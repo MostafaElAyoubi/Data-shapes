@@ -1,0 +1,36 @@
+import clr
+clr.AddReference('RevitAPI')
+from Autodesk.Revit.DB import*
+
+clr.AddReference('ProtoGeometry')
+from Autodesk.DesignScript.Geometry import *
+
+clr.AddReference('RevitServices')
+from RevitServices.Persistence import DocumentManager
+from RevitServices.Transactions import TransactionManager
+
+clr.AddReference('ProtoGeometry')
+from Autodesk.DesignScript.Geometry import *
+
+doc = DocumentManager.Instance.CurrentDBDocument
+
+view = UnwrapElement(IN[0])
+points = [XYZ(i.X/0.3048,i.Y/0.3048,i.Z/0.3048) for i in IN[2]]
+direction = UnwrapElement(IN[1])
+
+ex = []
+pts = []
+
+direction = XYZ(IN[1].X,IN[1].Y,IN[1].Z)
+ri = ReferenceIntersector(view)
+ri.FindReferencesInRevitLinks = True
+
+for p in points:
+	ref = ri.FindNearest(p,direction)
+	if ref == None:
+		pts.append('No projection')
+	else:
+		refp = ref.GetReference().GlobalPoint
+		pts.append(Point.ByCoordinates(refp.X*0.3048,refp.Y*0.3048,refp.Z*0.3048))
+
+OUT = pts
