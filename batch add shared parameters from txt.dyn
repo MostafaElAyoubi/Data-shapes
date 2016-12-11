@@ -1,0 +1,200 @@
+<Workspace Version="1.2.1.3083" X="-2755.91516895451" Y="-2989.45466140378" zoom="0.97865917356546" Name="Home" Description="" RunType="Manual" RunPeriod="1000" HasRunWithoutCrash="False">
+  <NamespaceResolutionMap />
+  <Elements>
+    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="aa3b0931-4e31-4c00-ab04-8783711d66fa" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="1744.69926013593" y="3502.86227456243" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="&quot;SharedParameters file&quot;;" ShouldFocus="false" />
+    <Dynamo.Graph.Nodes.CustomNodes.Function guid="c0e32813-4c8e-4ad9-9bde-f50b0dfd3229" type="Dynamo.Graph.Nodes.CustomNodes.Function" nickname="SharedParameters from txt file" x="2694.93331839957" y="3878.09921485269" isVisible="true" isUpstreamVisible="true" lacing="Shortest" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <ID value="15f07ff7-ecab-4028-882c-f1276f530895" />
+      <Name value="SharedParameters from txt file" />
+      <Description value="Gets parameters from SharedParameter .txt file" />
+      <Inputs>
+        <Input value="FilePath" />
+      </Inputs>
+      <Outputs>
+        <Output value="Revit Parameters" />
+        <Output value="Parameter Names" />
+      </Outputs>
+    </Dynamo.Graph.Nodes.CustomNodes.Function>
+    <Dynamo.Graph.Nodes.CustomNodes.Function guid="ace7444d-fc5b-4c3c-b090-7bd812d7ed3f" type="Dynamo.Graph.Nodes.CustomNodes.Function" nickname="UI.MultipleInputForm ++" x="2124.15781395708" y="3496.07816183222" isVisible="true" isUpstreamVisible="true" lacing="Shortest" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <PortInfo index="2" default="True" />
+      <ID value="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" />
+      <Name value="UI.MultipleInputForm ++" />
+      <Description value="Create a form with multiple inputs. InputType codification:&#xD;&#xA;-strings : &quot;s&quot;&#xD;&#xA;-booleans : &quot;bool&quot;&#xD;&#xA;-filepaths : &quot;fp&quot; &#xD;&#xA;-directorypath : &quot;dp&quot;&#xD;&#xA;-revit element section : &quot;se&quot;&#xD;&#xA;-revit face selection : &quot;sf&quot;&#xD;&#xA;-revit edge selection : &quot;sed&quot;&#xD;&#xA;-dropdown lists : UI.DropDown Data node&#xD;&#xA;-listview : UI.ListView Data node&#xD;&#xA;see www.data-shapes.net for more infos" />
+      <Inputs>
+        <Input value="InputNames" />
+        <Input value="InputTypes (see description) " />
+        <Input value="Toggle" />
+      </Inputs>
+      <Outputs>
+        <Output value="User Inputs" />
+        <Output value="Was Ran " />
+      </Outputs>
+    </Dynamo.Graph.Nodes.CustomNodes.Function>
+    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="f7df36c2-b601-49b7-8549-dc1084b7e9d3" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="1773.55574126199" y="3597.34222965048" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="&quot;fp&quot;;" ShouldFocus="false" />
+    <Dynamo.Graph.Nodes.CustomNodes.Function guid="30a562dc-79ac-4930-a1e6-8b198afa8566" type="Dynamo.Graph.Nodes.CustomNodes.Function" nickname="UI.MultipleInputForm ++" x="3560.24160040633" y="3464.45920607245" isVisible="true" isUpstreamVisible="true" lacing="Shortest" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <PortInfo index="2" default="True" />
+      <ID value="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" />
+      <Name value="UI.MultipleInputForm ++" />
+      <Description value="Create a form with multiple inputs. InputType codification:&#xD;&#xA;-strings : &quot;s&quot;&#xD;&#xA;-booleans : &quot;bool&quot;&#xD;&#xA;-filepaths : &quot;fp&quot; &#xD;&#xA;-directorypath : &quot;dp&quot;&#xD;&#xA;-revit element section : &quot;se&quot;&#xD;&#xA;-revit face selection : &quot;sf&quot;&#xD;&#xA;-revit edge selection : &quot;sed&quot;&#xD;&#xA;-dropdown lists : UI.DropDown Data node&#xD;&#xA;-listview : UI.ListView Data node&#xD;&#xA;see www.data-shapes.net for more infos" />
+      <Inputs>
+        <Input value="InputNames" />
+        <Input value="InputTypes (see description) " />
+        <Input value="Toggle" />
+      </Inputs>
+      <Outputs>
+        <Output value="User Inputs" />
+        <Output value="Was Ran " />
+      </Outputs>
+    </Dynamo.Graph.Nodes.CustomNodes.Function>
+    <Dynamo.Graph.Nodes.CustomNodes.Function guid="9adab7ec-f651-42f9-9cfa-7c413ebb49e1" type="Dynamo.Graph.Nodes.CustomNodes.Function" nickname="UI.Listview Data" x="3024.01091878016" y="3880.05239391396" isVisible="true" isUpstreamVisible="true" lacing="Shortest" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <ID value="c3a36eb7-8fe8-4417-b31e-ccc9fded769b" />
+      <Name value="UI.Listview Data" />
+      <Description value="Create data for ListView input in UI.MultiInputForm" />
+      <Inputs>
+        <Input value="Keys : []" />
+        <Input value="Values : []" />
+      </Inputs>
+      <Outputs>
+        <Output value="ListView input" />
+      </Outputs>
+    </Dynamo.Graph.Nodes.CustomNodes.Function>
+    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="bdd67ddc-5b33-4800-8ebb-fae445b0308b" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="3016.84527203843" y="3383.444286398" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="{&quot;Categories&quot;,&quot;Parameters&quot;,&quot;ParameterGroup&quot;};" ShouldFocus="false" />
+    <Dynamo.Graph.Nodes.CustomNodes.Function guid="b511f2e7-0f21-4553-aaf0-e5c872dee2b3" type="Dynamo.Graph.Nodes.CustomNodes.Function" nickname="Add Shared Parameter(s) from txt" x="4137.59209627348" y="3459.39731638611" isVisible="true" isUpstreamVisible="true" lacing="Shortest" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <PortInfo index="2" default="False" />
+      <ID value="d8c8dc5b-4042-413b-94d7-475cd4e6ff8a" />
+      <Name value="Add Shared Parameter(s) from txt" />
+      <Description value="Add shared parameters to project from SharedParameter .txt file" />
+      <Inputs>
+        <Input value="Category " />
+        <Input value="Parameters(s)" />
+        <Input value="ParameterGroup" />
+      </Inputs>
+      <Outputs>
+        <Output value="OUT" />
+      </Outputs>
+    </Dynamo.Graph.Nodes.CustomNodes.Function>
+    <Dynamo.Graph.Nodes.CustomNodes.Function guid="7d2d8ff6-81b6-4d34-af5b-45ab43a4620d" type="Dynamo.Graph.Nodes.CustomNodes.Function" nickname="Parameter Group" x="2566.77048447283" y="4081.66112594102" isVisible="true" isUpstreamVisible="true" lacing="Shortest" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <ID value="1f15bf94-cfb7-490e-857b-7a488fae06f1" />
+      <Name value="Parameter Group" />
+      <Description value="This node will return all available Parameter Groups" />
+      <Inputs />
+      <Outputs>
+        <Output value="Parameter Group" />
+      </Outputs>
+    </Dynamo.Graph.Nodes.CustomNodes.Function>
+    <Dynamo.Graph.Nodes.CustomNodes.Function guid="38d4d29e-fa12-4cb5-b5dd-e55de44ee5a2" type="Dynamo.Graph.Nodes.CustomNodes.Function" nickname="UI.DropDown Data" x="3013.12591193873" y="4019.05492401467" isVisible="true" isUpstreamVisible="true" lacing="Shortest" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <ID value="b409775c-5d88-4d47-96a3-5135c775d26a" />
+      <Name value="UI.DropDown Data" />
+      <Description value="Create data for DropDown input in UI.MultiInputForm" />
+      <Inputs>
+        <Input value="Keys : []" />
+        <Input value="Values : []" />
+      </Inputs>
+      <Outputs>
+        <Output value="DropDown input" />
+      </Outputs>
+    </Dynamo.Graph.Nodes.CustomNodes.Function>
+    <Dynamo.Graph.Nodes.CustomNodes.Function guid="2bd48c02-c1aa-4b6e-9a2c-46989b3e636a" type="Dynamo.Graph.Nodes.CustomNodes.Function" nickname="Categories list" x="2769.91120752013" y="3744.45499930961" isVisible="true" isUpstreamVisible="true" lacing="Shortest" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <ID value="79846c2e-0c6c-4c2e-acfd-62419e6d0988" />
+      <Name value="Categories list" />
+      <Description value="Gives list of all Revit categories and a matching list of their names" />
+      <Inputs />
+      <Outputs>
+        <Output value="Revit Categories" />
+        <Output value="Category name(s)" />
+      </Outputs>
+    </Dynamo.Graph.Nodes.CustomNodes.Function>
+    <Dynamo.Graph.Nodes.CustomNodes.Function guid="e3e98a58-a3c8-4b34-abeb-3bdfc144d113" type="Dynamo.Graph.Nodes.CustomNodes.Function" nickname="UI.Listview Data" x="3025.40706598604" y="3739.03529436182" isVisible="true" isUpstreamVisible="true" lacing="Shortest" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <ID value="c3a36eb7-8fe8-4417-b31e-ccc9fded769b" />
+      <Name value="UI.Listview Data" />
+      <Description value="Create data for ListView input in UI.MultiInputForm" />
+      <Inputs>
+        <Input value="Keys : []" />
+        <Input value="Values : []" />
+      </Inputs>
+      <Outputs>
+        <Output value="ListView input" />
+      </Outputs>
+    </Dynamo.Graph.Nodes.CustomNodes.Function>
+    <CoreNodeModels.Input.BoolSelector guid="25278a8c-3d84-4590-8f97-c67083da6a5a" type="CoreNodeModels.Input.BoolSelector" nickname="Boolean" x="1782.54820794593" y="3706.26218753725" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <System.Boolean>True</System.Boolean>
+    </CoreNodeModels.Input.BoolSelector>
+    <CoreNodeModels.CreateList guid="40547c83-301a-413f-b67c-352d57e5597d" type="CoreNodeModels.CreateList" nickname="List.Create" x="3378.71388512926" y="3850.77742666578" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="3">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <PortInfo index="2" default="False" />
+    </CoreNodeModels.CreateList>
+    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="89dde545-2166-4ef4-93bb-7715936b8b43" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="2560.74604623293" y="3882.36105611528" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="x[0];" ShouldFocus="false">
+      <PortInfo index="0" default="False" />
+    </Dynamo.Graph.Nodes.CodeBlockNodeModel>
+    <CoreNodeModels.FromObject guid="0494178e-c5a8-4476-a29a-b517609a3f24" type="CoreNodeModels.FromObject" nickname="String from Object" x="2801.90820280249" y="4020.45846523721" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+    </CoreNodeModels.FromObject>
+    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="dcc59602-fe9d-4a4e-a173-ef145c100973" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="3975.51834357368" y="3472.81601274005" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="x[0];&#xA;x[1];&#xA;x[2];" ShouldFocus="false">
+      <PortInfo index="0" default="False" />
+    </Dynamo.Graph.Nodes.CodeBlockNodeModel>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="aa3b0931-4e31-4c00-ab04-8783711d66fa" start_index="0" end="ace7444d-fc5b-4c3c-b090-7bd812d7ed3f" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="c0e32813-4c8e-4ad9-9bde-f50b0dfd3229" start_index="0" end="9adab7ec-f651-42f9-9cfa-7c413ebb49e1" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="c0e32813-4c8e-4ad9-9bde-f50b0dfd3229" start_index="1" end="9adab7ec-f651-42f9-9cfa-7c413ebb49e1" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="ace7444d-fc5b-4c3c-b090-7bd812d7ed3f" start_index="0" end="89dde545-2166-4ef4-93bb-7715936b8b43" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="ace7444d-fc5b-4c3c-b090-7bd812d7ed3f" start_index="1" end="30a562dc-79ac-4930-a1e6-8b198afa8566" end_index="2" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="f7df36c2-b601-49b7-8549-dc1084b7e9d3" start_index="0" end="ace7444d-fc5b-4c3c-b090-7bd812d7ed3f" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="30a562dc-79ac-4930-a1e6-8b198afa8566" start_index="0" end="dcc59602-fe9d-4a4e-a173-ef145c100973" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="9adab7ec-f651-42f9-9cfa-7c413ebb49e1" start_index="0" end="40547c83-301a-413f-b67c-352d57e5597d" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="bdd67ddc-5b33-4800-8ebb-fae445b0308b" start_index="0" end="30a562dc-79ac-4930-a1e6-8b198afa8566" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="7d2d8ff6-81b6-4d34-af5b-45ab43a4620d" start_index="0" end="38d4d29e-fa12-4cb5-b5dd-e55de44ee5a2" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="7d2d8ff6-81b6-4d34-af5b-45ab43a4620d" start_index="0" end="0494178e-c5a8-4476-a29a-b517609a3f24" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="38d4d29e-fa12-4cb5-b5dd-e55de44ee5a2" start_index="0" end="40547c83-301a-413f-b67c-352d57e5597d" end_index="2" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="2bd48c02-c1aa-4b6e-9a2c-46989b3e636a" start_index="0" end="e3e98a58-a3c8-4b34-abeb-3bdfc144d113" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="2bd48c02-c1aa-4b6e-9a2c-46989b3e636a" start_index="1" end="e3e98a58-a3c8-4b34-abeb-3bdfc144d113" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="e3e98a58-a3c8-4b34-abeb-3bdfc144d113" start_index="0" end="40547c83-301a-413f-b67c-352d57e5597d" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="25278a8c-3d84-4590-8f97-c67083da6a5a" start_index="0" end="ace7444d-fc5b-4c3c-b090-7bd812d7ed3f" end_index="2" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="40547c83-301a-413f-b67c-352d57e5597d" start_index="0" end="30a562dc-79ac-4930-a1e6-8b198afa8566" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="89dde545-2166-4ef4-93bb-7715936b8b43" start_index="0" end="c0e32813-4c8e-4ad9-9bde-f50b0dfd3229" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="0494178e-c5a8-4476-a29a-b517609a3f24" start_index="0" end="38d4d29e-fa12-4cb5-b5dd-e55de44ee5a2" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="dcc59602-fe9d-4a4e-a173-ef145c100973" start_index="0" end="b511f2e7-0f21-4553-aaf0-e5c872dee2b3" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="dcc59602-fe9d-4a4e-a173-ef145c100973" start_index="1" end="b511f2e7-0f21-4553-aaf0-e5c872dee2b3" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="dcc59602-fe9d-4a4e-a173-ef145c100973" start_index="2" end="b511f2e7-0f21-4553-aaf0-e5c872dee2b3" end_index="2" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations>
+    <Dynamo.Graph.Annotations.AnnotationModel guid="08771104-d8b3-4744-a0b6-adc86787e35e" annotationText="Getting shared parameters from .txt and preparing data for UI.MultipleInputFrom ++" left="2550.74604623293" top="3643.03529436182" width="954.96783889633" height="531.6258315792" fontSize="36" InitialTop="3739.03529436182" InitialHeight="465.625831579199" TextblockHeight="86" backgrouund="#FFC1D676">
+      <Models ModelGuid="c0e32813-4c8e-4ad9-9bde-f50b0dfd3229" />
+      <Models ModelGuid="9adab7ec-f651-42f9-9cfa-7c413ebb49e1" />
+      <Models ModelGuid="7d2d8ff6-81b6-4d34-af5b-45ab43a4620d" />
+      <Models ModelGuid="38d4d29e-fa12-4cb5-b5dd-e55de44ee5a2" />
+      <Models ModelGuid="2bd48c02-c1aa-4b6e-9a2c-46989b3e636a" />
+      <Models ModelGuid="e3e98a58-a3c8-4b34-abeb-3bdfc144d113" />
+      <Models ModelGuid="40547c83-301a-413f-b67c-352d57e5597d" />
+      <Models ModelGuid="89dde545-2166-4ef4-93bb-7715936b8b43" />
+      <Models ModelGuid="0494178e-c5a8-4476-a29a-b517609a3f24" />
+    </Dynamo.Graph.Annotations.AnnotationModel>
+    <Dynamo.Graph.Annotations.AnnotationModel guid="dd152db6-547d-4f81-98e6-d386d2cf6f1e" annotationText="Prompt user to select shared parameters .txt file" left="2114.15781395708" top="3414.07816183222" width="368" height="227" fontSize="30" InitialTop="3496.07816183222" InitialHeight="175" TextblockHeight="72" backgrouund="#FFA4E1FF">
+      <Models ModelGuid="ace7444d-fc5b-4c3c-b090-7bd812d7ed3f" />
+    </Dynamo.Graph.Annotations.AnnotationModel>
+    <Dynamo.Graph.Annotations.AnnotationModel guid="d6fbe701-0c5e-4d2e-8680-7d1d8ddf35a5" annotationText="prompt user to select categories, parameters and parameter group" left="3550.24160040633" top="3346.45920607245" width="368" height="263" fontSize="30" InitialTop="3464.45920607245" InitialHeight="175" TextblockHeight="108" backgrouund="#FFA4E1FF">
+      <Models ModelGuid="30a562dc-79ac-4930-a1e6-8b198afa8566" />
+    </Dynamo.Graph.Annotations.AnnotationModel>
+    <Dynamo.Graph.Annotations.AnnotationModel guid="c8fd7f83-2f98-4d2d-b8ba-7689a6923740" annotationText="Adding the parameters" left="4127.59209627348" top="3377.39731638611" width="259" height="227" fontSize="30" InitialTop="3459.39731638611" InitialHeight="175" TextblockHeight="72" backgrouund="#FFC1D676">
+      <Models ModelGuid="b511f2e7-0f21-4553-aaf0-e5c872dee2b3" />
+    </Dynamo.Graph.Annotations.AnnotationModel>
+  </Annotations>
+  <Presets />
+  <Cameras>
+    <Camera Name="Background Preview" eyeX="-15.728045463562" eyeY="84.3762283325195" eyeZ="36.7305603027344" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+  </Cameras>
+</Workspace>
