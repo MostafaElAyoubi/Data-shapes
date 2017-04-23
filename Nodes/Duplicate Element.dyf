@@ -1,0 +1,60 @@
+<Workspace Version="1.2.0.2831" X="380.571428571429" Y="204" zoom="1" Name="Duplicate Element" Description="Duplicates all types of elements including view templates" ID="bcbf8d22-dfa8-4858-81a9-fc762229a8b9" Category="Data-Shapes.Revit.Elements">
+  <NamespaceResolutionMap />
+  <Elements>
+    <PythonNodeModels.PythonNode guid="ef677ad8-47ca-4b7b-b5f5-f5fea1dfa323" type="PythonNodeModels.PythonNode" nickname="Python Script" x="250" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="1">
+      <PortInfo index="0" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi
+#Node-mode 2016 elayoub.mostafa@gmail.com
+
+import clr
+clr.AddReference('RevitAPI')
+from Autodesk.Revit.DB import *
+import Autodesk
+
+clr.AddReference('RevitServices')
+import RevitServices
+from RevitServices.Persistence import DocumentManager
+from RevitServices.Transactions import TransactionManager
+
+from System.Collections.Generic import*
+
+doc = DocumentManager.Instance.CurrentDBDocument
+
+if isinstance(IN[0],list):
+	views = UnwrapElement(IN[0])
+else:
+	views = [UnwrapElement(IN[0])]
+
+ids = [view.Id for view in views]
+
+elementlist = List[ElementId](ids)
+
+TransactionManager.Instance.EnsureInTransaction(doc)
+for view in views:
+
+	copyid = ElementTransformUtils.CopyElements(doc, elementlist, doc, Transform.Identity, CopyPasteOptions())
+	newview = [doc.GetElement(id) for id in copyid]
+
+TransactionManager.Instance.TransactionTaskDone()
+
+OUT = newview</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="716224d8-5ee1-45fb-96ec-25297039eb77" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="446.142857142857" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="OUT" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="97d90793-9525-4edf-9ed6-f427c1c416ad" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="56.5714285714284" y="-1.14285714285705" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Elements " />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="ef677ad8-47ca-4b7b-b5f5-f5fea1dfa323" start_index="0" end="716224d8-5ee1-45fb-96ec-25297039eb77" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="97d90793-9525-4edf-9ed6-f427c1c416ad" start_index="0" end="ef677ad8-47ca-4b7b-b5f5-f5fea1dfa323" end_index="0" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Background Preview" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+  </Cameras>
+</Workspace>

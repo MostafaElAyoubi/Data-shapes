@@ -1,0 +1,65 @@
+<Workspace Version="1.2.1.3083" X="-187" Y="-31.8571428571429" zoom="1" Name="Export to FBX" Description="Exports 3D views to FBX format" ID="8bbd3ec6-bc5b-4a95-aa18-eb1ca097fef4" Category="Data-Shapes.Export">
+  <NamespaceResolutionMap />
+  <Elements>
+    <PythonNodeModels.PythonNode guid="6b30ff40-a936-4299-98b8-e97bdbcdd96a" type="PythonNodeModels.PythonNode" nickname="Python Script" x="686.285714285714" y="354.285714285714" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="3">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <PortInfo index="2" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi, 2016 elayoub.mostafa@gmail.com
+#Data-Shapes www.data-shapes.net
+
+import clr
+clr.AddReference('RevitAPI')
+from Autodesk.Revit.DB import*
+clr.AddReference('RevitServices')
+from RevitServices.Persistence import DocumentManager
+from RevitServices.Transactions import TransactionManager
+
+doc = DocumentManager.Instance.CurrentDBDocument
+
+t = Transaction(doc,'export')
+t.Start()
+
+
+folder = IN[0]
+name = IN[1]
+views = IN[2]
+result = []
+vset = ViewSet()
+
+
+for n,v in zip(name,views):
+
+    vset.Insert(UnwrapElement(v))
+    result.append(doc.Export(folder,n,vset,FBXExportOptions()))
+
+t.Commit()
+OUT = 'You Have successfully exported %d 3D views to FBX format' %(result.count(True))</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="fa00e712-15f8-4b85-802d-40f51dbaec35" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="370.857142857143" y="308.571428571429" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="ExportFolderPath : string" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="db1ae4ce-3391-477e-a1df-f8b587e4b881" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="321.714285714286" y="384" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="ExportName(s) : string" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="86edf924-1252-46a9-a5c5-b4279d790044" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="425.428571428572" y="458" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="3DView(s)" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="7fd1daf9-3a36-45a4-8315-435dcce4a932" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="881.142857142857" y="354.857142857143" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="OUT" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="6b30ff40-a936-4299-98b8-e97bdbcdd96a" start_index="0" end="7fd1daf9-3a36-45a4-8315-435dcce4a932" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="fa00e712-15f8-4b85-802d-40f51dbaec35" start_index="0" end="6b30ff40-a936-4299-98b8-e97bdbcdd96a" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="db1ae4ce-3391-477e-a1df-f8b587e4b881" start_index="0" end="6b30ff40-a936-4299-98b8-e97bdbcdd96a" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="86edf924-1252-46a9-a5c5-b4279d790044" start_index="0" end="6b30ff40-a936-4299-98b8-e97bdbcdd96a" end_index="2" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Background Preview" eyeX="-17.9303162276892" eyeY="93.4809496036911" eyeZ="34.2342044899956" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+  </Cameras>
+</Workspace>

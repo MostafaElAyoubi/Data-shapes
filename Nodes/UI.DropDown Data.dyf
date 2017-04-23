@@ -1,0 +1,81 @@
+<Workspace Version="1.2.1.3083" X="469" Y="365" zoom="1" Name="UI.DropDown Data" Description="Create data for DropDown input in UI.MultiInputForm ++ . Check out www.data-shapes.net for more infos." ID="b409775c-5d88-4d47-96a3-5135c775d26a" Category="Data-Shapes.UI">
+  <NamespaceResolutionMap />
+  <Elements>
+    <PythonNodeModels.PythonNode guid="290d259f-4609-4a00-a48b-13f306f45fb4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="250" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="3">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <PortInfo index="2" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi ,  2016
+#Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
+
+class dropdown():
+
+    def __init__(self,inputname):
+        self.inputname = inputname
+
+    def __setitem__(self, key, item):
+        self.__dict__[key] = item
+
+    def __getitem__(self, key):
+        return self.__dict__[key]
+
+    def __iter__(self):
+        return iter(self.__dict__)
+
+    def values(self):
+        return self.__dict__.values()
+
+    def keys(self):
+        return self.__dict__.keys()
+
+    def __repr__(self):
+        return 'UI.DropDown input'
+        
+x = dropdown(IN[0])
+
+if isinstance(IN[1],list):
+	in1 = IN[1]
+else:
+	in1 = [IN[1]]
+if isinstance(IN[2],list):
+	in2 = IN[2]
+else:
+	in2 = [IN[2]]
+	
+
+for k,v in zip(in1,in2):
+	try:
+		x[str(k)] = v
+	except:
+		x[k.encode('utf-8').decode('utf-8')] = v
+
+
+OUT = x</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="e5bae464-617f-4520-826d-9a5513a177f3" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="447" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="DropDown input" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="cc4da914-c5b9-4f36-b77f-4b8cd7cbd8ef" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-149" y="-46" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="InputName : string = &quot;Input&quot;" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="2ff3e262-a97c-4688-b0c7-98024a9c3b25" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-69" y="24" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Keys : []" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="e158b273-0b97-423e-910e-b115032e89e2" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-80" y="87" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Values : []" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="290d259f-4609-4a00-a48b-13f306f45fb4" start_index="0" end="e5bae464-617f-4520-826d-9a5513a177f3" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="cc4da914-c5b9-4f36-b77f-4b8cd7cbd8ef" start_index="0" end="290d259f-4609-4a00-a48b-13f306f45fb4" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="2ff3e262-a97c-4688-b0c7-98024a9c3b25" start_index="0" end="290d259f-4609-4a00-a48b-13f306f45fb4" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="e158b273-0b97-423e-910e-b115032e89e2" start_index="0" end="290d259f-4609-4a00-a48b-13f306f45fb4" end_index="2" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Background Preview" eyeX="-14.0531152643546" eyeY="34.053310833878" eyeZ="32.0541933174292" lookX="9.32521088174054" lookY="29.9706334576623" lookZ="-51.8825748412463" upX="-0.118370627354628" upY="0.743144825477394" upZ="0.658577378100588" />
+  </Cameras>
+</Workspace>
