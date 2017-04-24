@@ -1,4 +1,4 @@
-<Workspace Version="1.2.1.3083" X="420.898083825537" Y="200.738500462711" zoom="1.10476425630303" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
+<Workspace Version="1.3.0.875" X="420.898083825537" Y="200.738500462711" zoom="1.10476425630303" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
   <NamespaceResolutionMap />
   <Elements>
     <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="196.684721407928" y="75.7405755335164" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="6">
@@ -318,8 +318,10 @@ try:
 			cb = ComboBox()
 			cb.Location = Point(xinput,y)
 			cb.Width = 160
-			[cb.Items.Add(i) for i in j.keys() if not (i == 'inputname' or i == 'height')]
+			[cb.Items.Add(i) for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'defaultvalue')]
 			cb.Tag = j
+			if j.defaultvalue != None:
+				cb.SelectedIndex = j.defaultvalue
 			form.Controls.Add(cb)
 			form.output.append(cb)
 			y = label.Bottom + 25
@@ -405,15 +407,19 @@ try:
 			rbgroup.Width = 160
 			rbgroup.Location = Point(xinput,y)
 			rbgroup.Tag = j
+			rbcounter = 0
 			for key in j.keys():
-				if key != 'inputname':
+				if key != 'inputname' and key != 'defaultvalue':
 					rb = RadioButton()
 					rb.Text = key 
 					rb.Width = 130
 					rb.Location = Point(20,yrb)
+					if rbcounter == j.defaultvalue:
+						rb.Checked = True
 					rbgroup.Controls.Add(rb)
 					ybot = rb.Bottom
-					yrb = ybot + 5					
+					yrb = ybot + 5
+					rbcounter += 1
 				else:
 					pass
 			rbgroup.Height = ybot +20
@@ -699,6 +705,6 @@ except:
   <Annotations />
   <Presets />
   <Cameras>
-    <Camera Name="Background Preview" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+    <Camera Name="Hintergrundvorschau" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
   </Cameras>
 </Workspace>
