@@ -1,11 +1,35 @@
+
+Skip to content
+This repository
+
+    Pull requests
+    Issues
+    Gist
+
+    @MostafaElAyoubi
+
+1
+0
+
+    2
+
+andydandy74/Data-shapes forked from MostafaElAyoubi/Data-shapes
+Code
+Pull requests 0
+Projects 0
+Wiki
+Pulse
+Graphs
+Data-shapes/Nodes/UI.MultipleInputForm ++.dyf
+bd815df 2 days ago
+@andydandy74 andydandy74 Added Cancel button to UI.MultiInputForm ++
+@andydandy74
+@MostafaElAyoubi
+735 lines (674 sloc) 27 KB
 <Workspace Version="1.3.0.875" X="612.97196631162" Y="308.422875781361" zoom="0.931811528498333" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
   <NamespaceResolutionMap />
   <Elements>
-<<<<<<< HEAD
-    <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="196.684721407928" y="75.0164391438425" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="6">
-=======
     <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="196.684721407928" y="75.0164391438425" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="7">
->>>>>>> origin/master
       <PortInfo index="0" default="False" />
       <PortInfo index="1" default="False" />
       <PortInfo index="2" default="False" />
@@ -76,31 +100,6 @@ try:
 	
 	    def setclose(self, sender, event):
 	    	cbindexread = 0
-<<<<<<< HEAD
-	    	for f in self.output:
-	    		if f.GetType() == TextBox:
-	    			self.values.append(f.Text)
-	    		if f.GetType() == CheckBox:
-	    			self.values.append(f.Checked)
-	    		if f.GetType() == Button:
-	    			self.values.append(f.Tag)
-	    		if f.GetType() == ComboBox:
-	    			try:
-	    				key = f.Text
-	    				self.values.append(f.Tag[key])
-	    			except:
-	    				self.values.append(None)
-	    		if f.GetType() == mylistview:
-	    			self.values.append([f.Values[i.Text] for i in f.CheckedItems])
-	    		if f.GetType() == mytrackbar:
-	    			self.values.append(f.startval+f.Value*f.step)
-	    		if f.GetType() == mygroupbox:
-	    			try:
-	    				key = [j.Text for j in f.Controls if j.Checked == True][0]
-	    				self.values.append(f.Tag[key])
-	    			except:
-	    				self.values.append(None)
-=======
 	    	if sender.Name != "Cancel":
 	    		for f in self.output:
 	    			if f.GetType() == TextBox:
@@ -127,7 +126,6 @@ try:
 	    					self.values.append(None)
 	    	else:
 	    		self.values = None
->>>>>>> origin/master
 	    	self.Close()
 	
 	    def reset(self, sender, event):
@@ -760,6 +758,11 @@ except:
   <Annotations />
   <Presets />
   <Cameras>
-    <Camera Name="Background Preview" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+    <Camera Name="Hintergrundvorschau" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
   </Cameras>
 </Workspace>
+
+    Contact GitHub API Training Shop Blog About 
+
+    © 2017 GitHub, Inc. Terms Privacy Security Status Help 
+
