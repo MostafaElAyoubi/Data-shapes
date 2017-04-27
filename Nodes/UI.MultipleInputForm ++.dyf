@@ -1,13 +1,18 @@
-<Workspace Version="1.3.0.875" X="420.898083825537" Y="200.738500462711" zoom="1.10476425630303" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
+<Workspace Version="1.3.0.875" X="612.97196631162" Y="308.422875781361" zoom="0.931811528498333" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
   <NamespaceResolutionMap />
   <Elements>
+<<<<<<< HEAD
     <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="196.684721407928" y="75.0164391438425" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="6">
+=======
+    <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="196.684721407928" y="75.0164391438425" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="7">
+>>>>>>> origin/master
       <PortInfo index="0" default="False" />
       <PortInfo index="1" default="False" />
       <PortInfo index="2" default="False" />
       <PortInfo index="3" default="False" />
       <PortInfo index="4" default="False" />
       <PortInfo index="5" default="False" />
+      <PortInfo index="6" default="False" />
       <Script>#Copyright (c) mostafa el ayoubi ,  2016
 #Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
 	
@@ -71,6 +76,7 @@ try:
 	
 	    def setclose(self, sender, event):
 	    	cbindexread = 0
+<<<<<<< HEAD
 	    	for f in self.output:
 	    		if f.GetType() == TextBox:
 	    			self.values.append(f.Text)
@@ -94,6 +100,34 @@ try:
 	    				self.values.append(f.Tag[key])
 	    			except:
 	    				self.values.append(None)
+=======
+	    	if sender.Name != "Cancel":
+	    		for f in self.output:
+	    			if f.GetType() == TextBox:
+	    				self.values.append(f.Text)
+	    			if f.GetType() == CheckBox:
+	    				self.values.append(f.Checked)
+	    			if f.GetType() == Button:
+	    				self.values.append(f.Tag)
+	    			if f.GetType() == ComboBox:
+	    				try:
+	    					key = f.Text
+	    					self.values.append(f.Tag[key])
+	    				except:
+	    					self.values.append(None)
+	    			if f.GetType() == mylistview:
+	    				self.values.append([f.Values[i.Text] for i in f.CheckedItems])
+	    			if f.GetType() == mytrackbar:
+	    				self.values.append(f.startval+f.Value*f.step)
+	    			if f.GetType() == mygroupbox:
+	    				try:
+	    					key = [j.Text for j in f.Controls if j.Checked == True][0]
+	    					self.values.append(f.Tag[key])
+	    				except:
+	    					self.values.append(None)
+	    	else:
+	    		self.values = None
+>>>>>>> origin/master
 	    	self.Close()
 	
 	    def reset(self, sender, event):
@@ -591,6 +625,17 @@ try:
 	form.MinimizeBox = False
 	form.FormBorderStyle = FormBorderStyle.FixedSingle
 	
+	#Adding Cancel button
+	if IN[6] != None:
+		cancelbutton = Button()
+		cancelbutton.Text = IN[6]
+		cancelbutton.Width = 120
+		cancelbutton.Name = "Cancel"
+		cancelbutton.Location = Point (25,y+60)
+		cancelbutton.Click += form.setclose
+		form.Controls.Add(cancelbutton)
+		form.CancelButton = cancelbutton;
+	
 	#Adding link to help
 	
 	if IN[5] != None :
@@ -695,6 +740,9 @@ except:
     <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="a2f12833-18a2-47e4-b81e-05d7a1af165b" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-290.467474843354" y="314.330860684578" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
       <Symbol value="LinkToHelp_optional : string = null" />
     </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="54fa9d32-b20b-49d7-aab8-946482548269" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-597.573404707885" y="408.9216537817" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="// Cancel button will only be displayed if a label text is entered here&#xD;&#xA;CancelButtonText_optional : string = null" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
   </Elements>
   <Connectors>
     <Dynamo.Graph.Connectors.ConnectorModel start="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" start_index="0" end="6827a40a-d078-4ecb-a5f7-ac83d1a8b7a4" end_index="0" portType="0" />
@@ -706,6 +754,7 @@ except:
     <Dynamo.Graph.Connectors.ConnectorModel start="252f2b99-90bb-4a0d-a17f-36e0d7608dec" start_index="0" end="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" end_index="0" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="0a6977c9-a3ce-4e62-9bc9-be1fd8cf25f9" start_index="0" end="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" end_index="2" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="a2f12833-18a2-47e4-b81e-05d7a1af165b" start_index="0" end="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" end_index="5" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="54fa9d32-b20b-49d7-aab8-946482548269" start_index="0" end="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" end_index="6" portType="0" />
   </Connectors>
   <Notes />
   <Annotations />
