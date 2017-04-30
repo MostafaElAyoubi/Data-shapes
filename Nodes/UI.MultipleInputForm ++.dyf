@@ -1,4 +1,4 @@
-<Workspace Version="1.2.1.3083" X="443.37196631162" Y="142.822875781361" zoom="0.931811528498333" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
+<Workspace Version="1.3.0.875" X="443.37196631162" Y="142.822875781361" zoom="0.931811528498333" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
   <NamespaceResolutionMap />
   <Elements>
     <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="196.684721407928" y="76.7335245748186" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="7">
@@ -443,8 +443,11 @@ try:
 		elif j.__class__.__name__  == 'uifilepath':
 			fp = Button()
 			fp.Width = 160
-			fp.Text = j.buttontext
 			fp.Tag = j.defaultvalue
+			if j.defaultvalue == "FilePath":
+				fp.Text = j.buttontext
+			else:
+				fp.Text = j.defaultvalue
 			fp.Location = Point(xinput,y)
 			form.Controls.Add(fp)
 			fp.Click += form.openfile
@@ -453,8 +456,11 @@ try:
 		elif j.__class__.__name__ == 'uidirectorypath':
 			dp = Button()
 			dp.Width = 160
-			dp.Text = j.buttontext
 			dp.Tag = j.defaultvalue
+			if j.defaultvalue == "DirectoryPath":
+				dp.Text = j.buttontext
+			else:
+				dp.Text = j.defaultvalue
 			dp.Location = Point(xinput,y)
 			form.Controls.Add(dp)
 			dp.Click += form.opendirectory
@@ -757,6 +763,6 @@ except:
   <Annotations />
   <Presets />
   <Cameras>
-    <Camera Name="Background Preview" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+    <Camera Name="Hintergrundvorschau" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
   </Cameras>
 </Workspace>
