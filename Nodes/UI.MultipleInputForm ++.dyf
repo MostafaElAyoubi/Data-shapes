@@ -1,7 +1,7 @@
 <Workspace Version="1.3.0.875" X="374.10733387877" Y="133.008850349299" zoom="1.07925372895184" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
   <NamespaceResolutionMap />
   <Elements>
-    <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="196.684721407928" y="76.7335245748186" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="7">
+    <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="196.684721407928" y="77.6600907502917" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="7">
       <PortInfo index="0" default="False" />
       <PortInfo index="1" default="False" />
       <PortInfo index="2" default="False" />
@@ -367,7 +367,12 @@ try:
 		label.Location = Point(xlabel,y+4)
 		label.AutoSize = True
 		label.MaximumSize = Size(120,0)
-		label.Text = j.inputname
+		if j.__class__.__name__ == 'listview' and j.element_count:
+			# need to subtract 5 from the element counts (number of node inputs other than keys and values)
+			lv_element_count = len(j.values())-5
+			label.Text = j.inputname + '\n(' + str(lv_element_count) + ' element' + ("s" if lv_element_count != 1 else "") + ')'
+		else:
+			label.Text = j.inputname
 		form.Controls.Add(label)
 
 		if j.__class__.__name__ == 'dropdown':
@@ -399,7 +404,7 @@ try:
 				lv.CheckBoxes = True
 			lv.View = vi.Details
 			lv.Sorting = SortOrder.Ascending
-			[lv.Items.Add(i) for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'highlight' or i == 'display_mode')]
+			[lv.Items.Add(i) for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'highlight' or i == 'display_mode' or i == 'element_count')]
 			lv.Location = Point(0,0)
 			lv.Width = 160
 			lv.Height = j.height
