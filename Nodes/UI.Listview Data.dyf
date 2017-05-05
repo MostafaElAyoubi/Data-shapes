@@ -43,8 +43,6 @@ class listview():
 
     def __repr__(self):
         return 'UI.ListView input'
-        
-x = listview(IN[0],IN[3],IN[4],IN[5],IN[6],IN[7])
 
 if isinstance(IN[1],list):
 	in1 = IN[1]
@@ -56,12 +54,18 @@ if isinstance(IN[2],list):
 else:
 	in2 = [IN[2]]
 
+if IN[6]:
+	element_count = len(in1)
+else:
+	element_count = 0
+
+x = listview(IN[0],IN[3],IN[4],IN[5],element_count,IN[7])
+
 for k,v in zip(in1,in2):
 	try:
 		x[str(k)] = v
 	except:
 		x[k.encode('utf-8').decode('utf-8')] = v
-
 
 OUT = x</Script>
     </PythonNodeModels.PythonNode>
