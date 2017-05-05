@@ -369,7 +369,7 @@ try:
 		label.MaximumSize = Size(120,0)
 		if j.__class__.__name__ == 'listview' and j.element_count:
 			# need to subtract 5 from the element counts (number of node inputs other than keys and values)
-			lv_element_count = len(j.values())-5
+			lv_element_count = len(j.values())-6
 			label.Text = j.inputname + '\n(' + str(lv_element_count) + ' element' + ("s" if lv_element_count != 1 else "") + ')'
 		else:
 			label.Text = j.inputname
@@ -404,12 +404,14 @@ try:
 				lv.CheckBoxes = True
 			lv.View = vi.Details
 			lv.Sorting = SortOrder.Ascending
-			[lv.Items.Add(i) for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'highlight' or i == 'display_mode' or i == 'element_count')]
+			[lv.Items.Add(i) for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'highlight' or i == 'display_mode' or i == 'element_count' or i == 'default_values')]
 			lv.Location = Point(0,0)
 			lv.Width = 160
 			lv.Height = j.height
 			lv.Scrollable = True
 			lv.ItemCheck += form.updateallnone
+			for i in j.default_values:
+				lv.Items.Item[i].Checked = True
 			#Click listview items to hilight and center in appropriate view
 			if j.highlight :
 				lv.MouseDown += form.setviewforelement
