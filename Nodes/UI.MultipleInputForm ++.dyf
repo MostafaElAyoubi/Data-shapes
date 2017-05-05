@@ -1,4 +1,4 @@
-<Workspace Version="1.3.0.875" X="538.37196631162" Y="179.822875781361" zoom="0.931811528498333" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
+<Workspace Version="1.3.0.875" X="374.10733387877" Y="133.008850349299" zoom="1.07925372895184" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
   <NamespaceResolutionMap />
   <Elements>
     <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="196.684721407928" y="76.7335245748186" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="7">
@@ -395,10 +395,11 @@ try:
 			lv.HeaderStyle = ColumnHeaderStyle.None
 			lv.Columns.Add(dummyheader)
 			lv.Values = j
-			lv.CheckBoxes = True
+			if not j.display_mode:
+				lv.CheckBoxes = True
 			lv.View = vi.Details
 			lv.Sorting = SortOrder.Ascending
-			[lv.Items.Add(i) for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'highlight')]
+			[lv.Items.Add(i) for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'highlight' or i == 'display_mode')]
 			lv.Location = Point(0,0)
 			lv.Width = 160
 			lv.Height = j.height
@@ -415,22 +416,25 @@ try:
 				for item in items:
 					item.BackColor = Color.FromArgb(230,243,255)
 			#Creating select all and select none radiobuttons
-			rball = RadioButton()
-			rball.Location = Point(0,(j.height)+5)
-			rball.Width = 70
-			rball.Text = "Select all"
-			rball.Click += form.selectall
-			rbnone = RadioButton()
-			rbnone.Location = Point(80,(j.height)+5)
-			rbnone.Width = 90
-			rbnone.Text = "Select none"			
-			rbnone.Click += form.selectnone			
+			if not j.display_mode:
+				rball = RadioButton()
+				rball.Location = Point(0,(j.height)+5)
+				rball.Width = 70
+				rball.Text = "Select all"
+				rball.Click += form.selectall
+				rbnone = RadioButton()
+				rbnone.Location = Point(80,(j.height)+5)
+				rbnone.Width = 90
+				rbnone.Text = "Select none"			
+				rbnone.Click += form.selectnone			
 			#Adding controls to panel
 			lvp.Controls.Add(lv)
-			lvp.Controls.Add(rball)
-			lvp.Controls.Add(rbnone)
+			if not j.display_mode:
+				lvp.Controls.Add(rball)
+				lvp.Controls.Add(rbnone)
 			form.Controls.Add(lvp)
-			form.output.append(lv)
+			if not j.display_mode:
+				form.output.append(lv)
 			y = lvp.Bottom + 25
 		elif j.__class__.__name__ == 'uitext':
 			tb = TextBox()
@@ -816,6 +820,6 @@ except:
   <Annotations />
   <Presets />
   <Cameras>
-    <Camera Name="Background Preview" eyeX="-12.747409590765" eyeY="43.6331654817698" eyeZ="46.4793092008243" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+    <Camera Name="Hintergrundvorschau" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
   </Cameras>
 </Workspace>

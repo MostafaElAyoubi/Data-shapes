@@ -1,21 +1,23 @@
 <Workspace Version="1.3.0.875" X="195" Y="43" zoom="1" ScaleFactor="1" Name="UI.Listview Data" Description="Create data for ListView input in UI.MultiInputForm ++ . Check out www.data-shapes.net for more infos." ID="c3a36eb7-8fe8-4417-b31e-ccc9fded769b" Category="Data-Shapes.UI">
   <NamespaceResolutionMap />
   <Elements>
-    <PythonNodeModels.PythonNode guid="cef200ad-1512-4bc5-ad03-6400d44b9b89" type="PythonNodeModels.PythonNode" nickname="Python Script" x="704" y="199" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="5">
+    <PythonNodeModels.PythonNode guid="cef200ad-1512-4bc5-ad03-6400d44b9b89" type="PythonNodeModels.PythonNode" nickname="Python Script" x="704" y="199" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="6">
       <PortInfo index="0" default="False" />
       <PortInfo index="1" default="False" />
       <PortInfo index="2" default="False" />
       <PortInfo index="3" default="False" />
       <PortInfo index="4" default="False" />
+      <PortInfo index="5" default="False" />
       <Script>#Copyright (c) mostafa el ayoubi ,  2016
 #Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
 
 class listview():
 
-    def __init__(self,inputname,height,highlight):
+    def __init__(self,inputname,height,highlight,display_mode):
         self.inputname = inputname
         self.height = height
         self.highlight = highlight
+        self.display_mode = display_mode
 
     def __setitem__(self, key, item):
         self.__dict__[key] = item
@@ -35,7 +37,7 @@ class listview():
     def __repr__(self):
         return 'UI.ListView input'
         
-x = listview(IN[0],IN[3],IN[4])
+x = listview(IN[0],IN[3],IN[4], IN[5])
 
 if isinstance(IN[1],list):
 	in1 = IN[1]
@@ -72,8 +74,11 @@ OUT = x</Script>
     <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="34be11ca-1a24-482f-9aa1-8ac0caf5cc65" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="362" y="375" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
       <Symbol value="Height : int = 200" />
     </Dynamo.Graph.Nodes.CustomNodes.Symbol>
-    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="163d591e-213c-4079-844e-221f0de52d14" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="190" y="465" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="163d591e-213c-4079-844e-221f0de52d14" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-112" y="461" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
       <Symbol value="// If true clicking elements of the listview will highlight it in a view like Dynamo's watch node&#xD;&#xA;HighlightInView : bool = false" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="17b88acf-e454-4649-b20b-534a6db34799" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-109" y="569" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="// Turns off ability to select elements. Form will not output any data for this element.&#xD;&#xA;DisplayModeOnly : bool = false" />
     </Dynamo.Graph.Nodes.CustomNodes.Symbol>
   </Elements>
   <Connectors>
@@ -83,11 +88,12 @@ OUT = x</Script>
     <Dynamo.Graph.Connectors.ConnectorModel start="be4be692-c420-47f5-8bab-b966c29580f0" start_index="0" end="cef200ad-1512-4bc5-ad03-6400d44b9b89" end_index="2" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="34be11ca-1a24-482f-9aa1-8ac0caf5cc65" start_index="0" end="cef200ad-1512-4bc5-ad03-6400d44b9b89" end_index="3" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="163d591e-213c-4079-844e-221f0de52d14" start_index="0" end="cef200ad-1512-4bc5-ad03-6400d44b9b89" end_index="4" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="17b88acf-e454-4649-b20b-534a6db34799" start_index="0" end="cef200ad-1512-4bc5-ad03-6400d44b9b89" end_index="5" portType="0" />
   </Connectors>
   <Notes />
   <Annotations />
   <Presets />
   <Cameras>
-    <Camera Name="Background Preview" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+    <Camera Name="Hintergrundvorschau" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
   </Cameras>
 </Workspace>
