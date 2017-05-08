@@ -1,4 +1,4 @@
-<Workspace Version="1.2.1.3083" X="427.10733387877" Y="171.008850349299" zoom="1.07925372895184" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
+<Workspace Version="1.3.0.875" X="427.10733387877" Y="171.008850349299" zoom="1.07925372895184" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
   <NamespaceResolutionMap />
   <Elements>
     <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="196.684721407928" y="77.6600907502917" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="7">
@@ -80,6 +80,7 @@ try:
 	        self.Text = 'Data-Shapes | Multi Input UI ++'
 	        self.output = []
 	        self.values = []
+	        self.cancelled = False
 	
 	    def setclose(self, sender, event):
 	    	cbindexread = 0
@@ -109,6 +110,7 @@ try:
 	    					self.values.append(None)
 	    	else:
 	    		self.values = None
+	    		self.cancelled = True
 	    	self.Close()
 	
 	    def reset(self, sender, event):
@@ -771,14 +773,14 @@ try:
 		if importcolorselection != 2:
 			Application.Run(form)
 			result = form.values
-			OUT = result,True
+			OUT = result,True, form.cancelled
 		else:
-			OUT = ['ColorSelection input is only available With Revit 2017'] , False
+			OUT = ['ColorSelection input is only available With Revit 2017'] , False, False
 	else :
-		OUT = ['Set toggle to true!'] , False
+		OUT = ['Set toggle to true!'] , False, False
 except:
 	import traceback
-	OUT = traceback.format_exc() , "error"
+	OUT = traceback.format_exc() , "error", "error"
 </Script>
     </PythonNodeModels.PythonNode>
     <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="aee876f4-fa60-4b94-b682-9f495e2af792" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-237.818921203124" y="-64.1119899707852" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
@@ -791,7 +793,7 @@ except:
       <PortInfo index="0" default="False" />
       <Symbol value="User Inputs" />
     </Dynamo.Graph.Nodes.CustomNodes.Output>
-    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="6827a40a-d078-4ecb-a5f7-ac83d1a8b7a4" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="362.902015533628" y="76.9283353103305" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="OUT[0];&#xA;OUT[1];" ShouldFocus="false">
+    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="6827a40a-d078-4ecb-a5f7-ac83d1a8b7a4" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="362.902015533628" y="76.9283353103305" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="OUT[0];&#xA;OUT[1];&#xA;OUT[2];" ShouldFocus="false">
       <PortInfo index="0" default="False" />
     </Dynamo.Graph.Nodes.CodeBlockNodeModel>
     <Dynamo.Graph.Nodes.CustomNodes.Output guid="eb9fddf6-8cda-490b-b149-93f1cf2ce43b" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="634.459274273106" y="150.518874645589" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
@@ -813,6 +815,10 @@ except:
     <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="54fa9d32-b20b-49d7-aab8-946482548269" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-597.573404707885" y="408.9216537817" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
       <Symbol value="// Cancel button will only be displayed if a label text is entered here&#xD;&#xA;CancelButtonText_optional : string = null" />
     </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="f3d565e5-379a-4207-9558-4e2319983692" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="635.56506851444" y="227.039411349449" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Was Cancelled" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
   </Elements>
   <Connectors>
     <Dynamo.Graph.Connectors.ConnectorModel start="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" start_index="0" end="6827a40a-d078-4ecb-a5f7-ac83d1a8b7a4" end_index="0" portType="0" />
@@ -820,6 +826,7 @@ except:
     <Dynamo.Graph.Connectors.ConnectorModel start="eb6d92c4-51e8-4b3c-8461-eb2623034eb8" start_index="0" end="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" end_index="4" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="6827a40a-d078-4ecb-a5f7-ac83d1a8b7a4" start_index="0" end="47e0a031-4356-4447-ad0a-ba20606d99f4" end_index="0" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="6827a40a-d078-4ecb-a5f7-ac83d1a8b7a4" start_index="1" end="eb9fddf6-8cda-490b-b149-93f1cf2ce43b" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="6827a40a-d078-4ecb-a5f7-ac83d1a8b7a4" start_index="2" end="f3d565e5-379a-4207-9558-4e2319983692" end_index="0" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="44f805f4-2c46-4774-b18f-9ecc58e06f34" start_index="0" end="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" end_index="1" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="252f2b99-90bb-4a0d-a17f-36e0d7608dec" start_index="0" end="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" end_index="0" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="0a6977c9-a3ce-4e62-9bc9-be1fd8cf25f9" start_index="0" end="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" end_index="2" portType="0" />
@@ -830,6 +837,6 @@ except:
   <Annotations />
   <Presets />
   <Cameras>
-    <Camera Name="Background Preview" eyeX="-18.7951368663855" eyeY="65.8886248173693" eyeZ="34.4957363276876" lookX="0.705943490870748" lookY="15.3060331978439" lookZ="-58.6704950680851" upX="-0.00546217379627798" upY="0.891006524188368" upZ="0.45395763955592" />
+    <Camera Name="Hintergrundvorschau" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
   </Cameras>
 </Workspace>
