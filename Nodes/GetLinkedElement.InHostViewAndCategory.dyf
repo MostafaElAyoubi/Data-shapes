@@ -1,0 +1,120 @@
+<Workspace Version="1.2.1.3083" X="-128.0475" Y="-77.805" zoom="1.1575" Name="GetLinkedElement.InHostViewAndCategory" Description="Gets linked elements in host view, filtered by category." ID="46353bef-98a3-4a8b-8254-2926187a009e" Category="Data-Shapes.Revit.Elements">
+  <NamespaceResolutionMap />
+  <Elements>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="b0234c69-8087-4e37-9eb3-30e02aed6fa5" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="847" y="369.417650163228" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="elements" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <PythonNodeModels.PythonNode guid="9c4407df-88eb-4f2c-bcdb-5dee71a9ba0a" type="PythonNodeModels.PythonNode" nickname="Python Script" x="652.886301832254" y="373.142328726818" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="4">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <PortInfo index="2" default="False" />
+      <PortInfo index="3" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi ,  2017
+#Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
+
+import clr
+clr.AddReference('RevitAPI')
+from Autodesk.Revit.DB import*
+clr.AddReference('RevitServices')
+from RevitServices.Persistence import DocumentManager
+doc = DocumentManager.Instance.CurrentDBDocument
+import System
+from System.Collections.Generic import *
+
+clr.AddReference('ProtoGeometry')
+from Autodesk.DesignScript.Geometry import*
+doc = DocumentManager.Instance.CurrentDBDocument
+
+#Inputs
+if isinstance(IN[2],list):
+	categories = IN[2]
+else:
+	categories = [UnwrapElement(IN[2])]
+linkdoc = IN[1]
+if isinstance(IN[0],list):
+	views = UnwrapElement(IN[0])
+else:
+	views = [UnwrapElement(IN[0])]
+
+collector = []
+
+#getting project base point elevation
+basepointfilter = ElementCategoryFilter(BuiltInCategory.OST_ProjectBasePoint)
+basepoint = FilteredElementCollector(doc).WherePasses(basepointfilter).ToElements()
+bpelevation = [b.ParametersMap.get_Item('Elev').AsDouble() for b in basepoint]
+
+#Category filter
+catfilter = []
+for i in categories:
+	catfilter.append(ElementCategoryFilter(System.Enum.ToObject(BuiltInCategory, int(str(i.Id)))))
+
+catfilterlist = List[ElementFilter](catfilter)
+filter = LogicalOrFilter(catfilterlist)
+
+UIunit = Document.GetUnits(doc).GetFormatOptions(UnitType.UT_Length).DisplayUnits
+level = []
+for v in views:
+
+	#creating a boundingbox for each view from it's crop box and view range
+	bb = v.CropBox
+	vr = v.GetViewRange()
+	topclip = PlanViewPlane.TopClipPlane
+	bottomclip = PlanViewPlane.BottomClipPlane
+	cutclip = PlanViewPlane.CutPlane
+	toplevel = (doc.GetElement(vr.GetLevelId(topclip)))
+	topoffset = vr.GetOffset(topclip)
+	cutlevel = (doc.GetElement(vr.GetLevelId(cutclip)))
+	cutoffset = vr.GetOffset(cutclip)
+	try:
+		topZ = toplevel.Elevation + topoffset - bpelevation[0]
+	except:
+		topZ = cutlevel.Elevation + cutoffset - bpelevation[0]
+	bottomlevel = (doc.GetElement(vr.GetLevelId(bottomclip)))
+	bottomoffset = vr.GetOffset(bottomclip)
+	try:
+		bottomZ = bottomlevel.Elevation + bottomoffset - bpelevation[0]
+	except :
+		bottomZ = cutlevel.Elevation - bpelevation[0]
+	min = bb.Min
+	max = bb.Max
+	newmin = XYZ(min.X,min.Y,bottomZ)
+	newmax = XYZ(max.X,max.Y,topZ)
+	ol = Outline(newmin,newmax)
+
+	#combining boundingbox and category filters
+	bbfilter = BoundingBoxIntersectsFilter(ol)
+	andfilter = LogicalAndFilter(filter,bbfilter)
+
+	#collecting elements
+	collector.append(FilteredElementCollector(linkdoc).WherePasses(andfilter).ToElements())
+
+OUT = collector</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="60ed5067-d515-4189-8f74-9478a85a2789" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="400.380195357757" y="562.263930467921" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="LinkDoc" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="2bb02d7d-5fb1-42fe-b79d-5f6d7ab6a8b5" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="394" y="411.417650163228" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="views : var[]" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="dac38ff6-4c17-43e2-85eb-a8cb7bb6f417" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="406.088045321016" y="329" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Categories" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="623a1e81-2165-4864-9584-0d1eaf72703e" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="393" y="477.417650163228" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Refresh : bool = true" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="9c4407df-88eb-4f2c-bcdb-5dee71a9ba0a" start_index="0" end="b0234c69-8087-4e37-9eb3-30e02aed6fa5" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="60ed5067-d515-4189-8f74-9478a85a2789" start_index="0" end="9c4407df-88eb-4f2c-bcdb-5dee71a9ba0a" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="2bb02d7d-5fb1-42fe-b79d-5f6d7ab6a8b5" start_index="0" end="9c4407df-88eb-4f2c-bcdb-5dee71a9ba0a" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="dac38ff6-4c17-43e2-85eb-a8cb7bb6f417" start_index="0" end="9c4407df-88eb-4f2c-bcdb-5dee71a9ba0a" end_index="2" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="623a1e81-2165-4864-9584-0d1eaf72703e" start_index="0" end="9c4407df-88eb-4f2c-bcdb-5dee71a9ba0a" end_index="3" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Background Preview" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+  </Cameras>
+</Workspace>
