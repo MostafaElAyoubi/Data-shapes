@@ -1,7 +1,7 @@
-<Workspace Version="1.2.1.3083" X="374.74712396624" Y="238.400584759276" zoom="0.765829392851556" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
+<Workspace Version="1.3.0.875" X="836.576163843576" Y="92.8187798862903" zoom="1.13758205229475" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
   <NamespaceResolutionMap />
   <Elements>
-    <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="196.684721407928" y="76.3543168934324" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="7">
+    <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="199.296269121647" y="76.3543168934324" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="9">
       <PortInfo index="0" default="False" />
       <PortInfo index="1" default="False" />
       <PortInfo index="2" default="False" />
@@ -9,6 +9,8 @@
       <PortInfo index="4" default="False" />
       <PortInfo index="5" default="False" />
       <PortInfo index="6" default="False" />
+      <PortInfo index="7" default="False" />
+      <PortInfo index="8" default="False" />
       <Script>#Copyright (c) mostafa el ayoubi ,  2016
 #Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
 	
@@ -18,7 +20,7 @@ try:
 	clr.AddReference('System.Drawing')
 	
 	from System.Drawing import Point , Size , Graphics, Bitmap, Image, Font, FontStyle, Icon, Color, Region , Rectangle 
-	from System.Windows.Forms import Application, DockStyle, Button, Form, Label, TrackBar , ToolTip, ColumnHeader, TextBox, CheckBox, FolderBrowserDialog, OpenFileDialog, DialogResult, ComboBox, FormBorderStyle, FormStartPosition, ListView, ListViewItem , SortOrder, Panel, ImageLayout, GroupBox, RadioButton, BorderStyle, PictureBox, PictureBoxSizeMode, LinkLabel, CheckState, ColumnHeaderStyle , ImageList
+	from System.Windows.Forms import Application, DockStyle, Button, Form, Label, TrackBar , ToolTip, ColumnHeader, TextBox, CheckBox, FolderBrowserDialog, OpenFileDialog, DialogResult, ComboBox, FormBorderStyle, FormStartPosition, ListView, ListViewItem , SortOrder, Panel, ImageLayout, GroupBox, RadioButton, BorderStyle, PictureBox, PictureBoxSizeMode, LinkLabel, CheckState, ColumnHeaderStyle , ImageList, VScrollBar
 	from System.Collections.Generic import *
 	from System.Collections.Generic import List as iList
 	from System.Windows.Forms import View as vi
@@ -350,7 +352,9 @@ try:
 	form.ControlBox = False
 	xlabel = 25
 	xinput = 150
-	y = 10
+	formy = 10
+	if IN[8] &gt; 350:	formwidth = IN[8]
+	else: formwidth = 350
 	fields = []
 	error = 0
 	
@@ -359,16 +363,23 @@ try:
 	if IN[3] != "":
 		des = Label()
 		des.Font = Font("Arial", 15,FontStyle.Bold)
-		des.Location = Point(xlabel,y)
+		des.Location = Point(xlabel,formy)
 		des.AutoSize = True
-		des.MaximumSize = Size(300,0)
+		des.MaximumSize = Size(formwidth - 2 * xlabel,0)
 		des.Text = IN[3]
 		form.Controls.Add(des)
-		y = des.Bottom + 15
+		formy = des.Bottom + 15
+	formheaderheight = formy
 	
 	#Input form
 	
+	# Create a container panel for all inputs
+	formbody = Panel()
+	formbody.Location = Point(0,formy)
+	formbody.Width = formwidth - 15
+	y = 0
 	
+	# Process form inputs
 	if isinstance(IN[0],list):
 		inputtypes = IN[0]
 	else:
@@ -384,25 +395,26 @@ try:
 			label.Text = j.inputname + '\n(' + str(j.element_count) + ' element' + ("s" if j.element_count &gt; 1 else "") + ')'
 		else:
 			label.Text = j.inputname
-		form.Controls.Add(label)
+		formbody.Controls.Add(label)
 
 		if j.__class__.__name__ == 'dropdown':
 			cb = ComboBox()
 			cb.Location = Point(xinput,y)
-			cb.Width = 160
+			cb.Width = formwidth - xinput - 40
 			cb.Sorted = True
 			[cb.Items.Add(i) for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'defaultvalue' or i == 'highlight')]
 			cb.Tag = j
 			if j.defaultvalue != None:
 				defindex = [i for i in cb.Items].index([i for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'defaultvalue' or i == 'highlight')][j.defaultvalue])
 				cb.SelectedIndex = defindex
-			form.Controls.Add(cb)
+			formbody.Controls.Add(cb)
 			form.output.append(cb)
 			y = label.Bottom + 25
 		elif j.__class__.__name__ == 'listview':
 			lvp = Panel()
 			lvp.Location = Point(xinput,y)
 			lvp.Height = j.height + 25
+			lvp.Width = formwidth - xinput - 40
 			#Creating the listview box
 			lv = mylistview()
 			lv.Scrollable = True
@@ -419,7 +431,7 @@ try:
 			lv.Sorting = SortOrder.Ascending
 			[lv.Items.Add(i) for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'highlight' or i == 'display_mode' or i == 'element_count' or i == 'default_values')]
 			lv.Location = Point(0,0)
-			lv.Width = 160
+			lv.Width = formwidth - xinput - 40
 			lv.Height = j.height
 			lv.Scrollable = True
 			lv.ItemCheck += form.updateallnone
@@ -452,17 +464,17 @@ try:
 			if not j.display_mode:
 				lvp.Controls.Add(rball)
 				lvp.Controls.Add(rbnone)
-			form.Controls.Add(lvp)
+			formbody.Controls.Add(lvp)
 			if not j.display_mode:
 				form.output.append(lv)
 			y = lvp.Bottom + 25
 		elif j.__class__.__name__ == 'uitext':
 			tb = TextBox()
 			tb.Text = j.defaultvalue
-			tb.Width = 160
+			tb.Width = formwidth - xinput - 40
 			tb.Location = Point(xinput,y)
-			form.Controls.Add(tb)
-			form.Controls.Add(label)
+			formbody.Controls.Add(tb)
+			formbody.Controls.Add(label)
 			form.output.append(tb)
 			y = label.Bottom + 25
 		elif j.__class__.__name__ == 'uitextnote':
@@ -475,26 +487,27 @@ try:
 			tn = Label()
 			tn.Location = Point(xlabel,18)
 			tn.AutoSize = True
-			tn.MaximumSize = Size(260,0)
+			tn.MaximumSize = Size(formwidth - 90,0)
 			tn.Text = j.textnote
 			tn.BringToFront()
 			gb.Controls.Add(tn)
-			gb.Size = Size(285, tn.Bottom-tn.Top+25)
+			gb.Size = Size(formwidth - 65, tn.Bottom-tn.Top+25)
 			y = gb.Bottom + 25
+			formbody.Controls.Add(gb)
 		elif j.__class__.__name__ == 'uibool':
 			yn = CheckBox()
-			yn.Width = 150
+			yn.Width = formwidth - xinput - 50
 			yn.Location = Point(xinput,y)
 			yn.Text = j.booltext
 			yn.Checked = j.defaultvalue
-			form.Controls.Add(yn)
+			formbody.Controls.Add(yn)
 			form.output.append(yn)
 			y = label.Bottom + 25
 		elif j.__class__.__name__ == 'uiradio':
 			yrb = 20
 			rbs = []
 			rbgroup = mygroupbox()
-			rbgroup.Width = 160
+			rbgroup.Width = formwidth - xinput - 40
 			rbgroup.Location = Point(xinput,y)
 			rbgroup.Tag = j
 			rbcounter = 0
@@ -502,13 +515,13 @@ try:
 				if key != 'inputname' and key != 'defaultvalue':
 					rb = RadioButton()
 					rb.Text = key 
-					rb.Width = 130
+					rb.Width = formwidth - xinput - 70
 					rb.Location = Point(20,yrb)
 					if rbcounter == j.defaultvalue:
 						rb.Checked = True
 					rbgroup.Controls.Add(rb)
 					g = rb.CreateGraphics()
-					sizetext = g.MeasureString(key,rb.Font, 130)
+					sizetext = g.MeasureString(key,rb.Font, formwidth - xinput - 70)
 					heighttext = sizetext.Height
 					rb.Height = heighttext + 15
 					ybot = rb.Bottom
@@ -518,41 +531,41 @@ try:
 					pass
 			rbgroup.Height = ybot +20
 			[rbgroup.Controls.Add(rb) for rb in rbs]
-			form.Controls.Add(rbgroup)
+			formbody.Controls.Add(rbgroup)
 			form.output.append(rbgroup)
 			y = rbgroup.Bottom + 25
 		elif j.__class__.__name__  == 'uifilepath':
 			fp = Button()
-			fp.Width = 160
+			fp.Width = formwidth - xinput - 40
 			fp.Tag = j.defaultvalue
 			if j.defaultvalue == "FilePath":
 				fp.Text = j.buttontext
 			else:
 				fp.Text = j.defaultvalue
 			fp.Location = Point(xinput,y)
-			form.Controls.Add(fp)
+			formbody.Controls.Add(fp)
 			fp.Click += form.openfile
 			form.output.append(fp)
 			y = label.Bottom + 25
 		elif j.__class__.__name__ == 'uidirectorypath':
 			dp = Button()
-			dp.Width = 160
+			dp.Width = formwidth - xinput - 40
 			dp.Tag = j.defaultvalue
 			if j.defaultvalue == "DirectoryPath":
 				dp.Text = j.buttontext
 			else:
 				dp.Text = j.defaultvalue
 			dp.Location = Point(xinput,y)
-			form.Controls.Add(dp)
+			formbody.Controls.Add(dp)
 			dp.Click += form.opendirectory
 			form.output.append(dp)
 			y = label.Bottom + 30
 		elif j.__class__.__name__ == 'uiselectelements':
 			se = Button()
-			se.Width = 160
+			se.Width = formwidth - xinput - 40
 			se.Text = j.buttontext
 			se.Location = Point(xinput,y)
-			form.Controls.Add(se)
+			formbody.Controls.Add(se)
 			if j.multi == False:
 				se.Click += form.pickobjects
 			else:
@@ -561,10 +574,10 @@ try:
 			y = label.Bottom + 25
 		elif j.__class__.__name__ == 'uiselectlinkedelements':
 			se = Button()
-			se.Width = 160
+			se.Width = formwidth - xinput - 40
 			se.Text = j.buttontext
 			se.Location = Point(xinput,y)
-			form.Controls.Add(se)
+			formbody.Controls.Add(se)
 			if j.multi == False:
 				se.Click += form.picklinkedobjects
 			else:
@@ -573,11 +586,11 @@ try:
 			y = label.Bottom + 25
 		elif j.__class__.__name__ == 'uiselectlinkedelementsofcat':
 			sec = Button()
-			sec.Width = 160
+			sec.Width = formwidth - xinput - 40
 			sec.Text = j.buttontext
 			sec.Tag = j.category
 			sec.Location = Point(xinput,y)
-			form.Controls.Add(sec)
+			formbody.Controls.Add(sec)
 			if j.multi == False:
 				sec.Click += form.picklinkedobjectsofcat
 			else:
@@ -586,11 +599,11 @@ try:
 			y = label.Bottom + 25
 		elif j.__class__.__name__ == 'uiselectelementsofcat':
 			sec = Button()
-			sec.Width = 160
+			sec.Width = formwidth - xinput - 40
 			sec.Text = j.buttontext
 			sec.Tag = j.category
 			sec.Location = Point(xinput,y)
-			form.Controls.Add(sec)
+			formbody.Controls.Add(sec)
 			if j.multi == False:
 				sec.Click += form.pickobjectsofcat
 			else:
@@ -599,19 +612,19 @@ try:
 			y = label.Bottom + 25
 		elif j.__class__.__name__ == 'uiselectfaces':
 			sf = Button()
-			sf.Width = 160
+			sf.Width = formwidth - xinput - 40
 			sf.Text = j.buttontext
 			sf.Location = Point(xinput,y)
-			form.Controls.Add(sf)
+			formbody.Controls.Add(sf)
 			sf.Click += form.pickfaces
 			form.output.append(sf)
 			y = label.Bottom + 25
 		elif j.__class__.__name__ == 'uiselectedges':
 			sed = Button()
-			sed.Width = 160
+			sed.Width = formwidth - xinput - 40
 			sed.Text = j.buttontext
 			sed.Location = Point(xinput,y)
-			form.Controls.Add(sed)
+			formbody.Controls.Add(sed)
 			sed.Click += form.pickedges
 			form.output.append(sed)
 			y = label.Bottom + 25
@@ -623,7 +636,7 @@ try:
 			else:
 				defval = j.defaultvalue
 			sl = mytrackbar(j.minimum,j.step)
-			gb.Width = 160
+			gb.Width = formwidth - xinput - 40
 			gb.Height = 40
 			sl.Minimum = 0
 			sl.Maximum = (j.maximum-j.minimum)/j.step
@@ -631,7 +644,7 @@ try:
 			sl.TickFrequency = (j.maximum-j.minimum)/j.step/10
 			gb.Location = Point(xinput,y)
 			sl.Location = Point(40,0)
-			sl.Width = 125
+			sl.Width = formwidth - xinput - 75
 			gb.Controls.Add(sl)
 			form.output.append(sl)
 			displabel = Label()
@@ -640,39 +653,47 @@ try:
 			displabel.Text = str(defval)
 			displabel.BringToFront()
 			gb.Controls.Add(displabel)	
-			form.Controls.Add(gb)			
+			formbody.Controls.Add(gb)			
 			sl.Scroll += form.scroll
 			y = label.Bottom + 25
 		elif j.__class__.__name__ == 'uiimage':
 			pic = Image.FromFile(j.image)
 			im = PictureBox()
-			im.BorderStyle = BorderStyle.Fixed3D
+			if j.showborder:
+				im.BorderStyle = BorderStyle.Fixed3D
+			else:
+				im.BorderStyle = BorderStyle.None
 			ratio = (pic.Height)/(pic.Width)
 			h = float(pic.Height)
 			w = float(pic.Width)
 			ratio = h/w
-			im.Size = Size(285,285*ratio)
-			scaledimage = Bitmap(285,285*ratio)
+			image_maxsize = formwidth - 65
+			im.Size = Size(image_maxsize,image_maxsize*ratio)
+			scaledimage = Bitmap(image_maxsize,image_maxsize*ratio)
 			gr = Graphics.FromImage(scaledimage)
-			gr.DrawImage(pic,0,0,285,285*ratio)
+			gr.DrawImage(pic,0,0,image_maxsize,image_maxsize*ratio)
 			im.Image = pic
 			im.SizeMode = PictureBoxSizeMode.Zoom
-			form.Controls.Add(im)
+			formbody.Controls.Add(im)
 			im.Location = Point(25,y+25)
 			y = im.Bottom + 25
 	
 		elif j.__class__.__name__ == 'uicolorpick' and importcolorselection == 0:
 			cp = Button()
-			cp.Width = 160
+			cp.Width = formwidth - xinput - 40
 			cp.Text = j.buttontext
 			cp.Location = Point(xinput,y)
-			form.Controls.Add(cp)
+			formbody.Controls.Add(cp)
 			cp.Click += form.colorpicker
 			form.output.append(cp)
 			y = label.Bottom + 25			
 		elif j.__class__.__name__ == 'uicolorpick' and importcolorselection == 1:
 			importcolorselection = 2
 
+	# add the formbody panel to the form
+	formbody.Height = y
+	form.Controls.Add(formbody)		
+	
 	#Adding Logo 
 	#default logo in case no input	
 	try:
@@ -707,10 +728,10 @@ try:
 		logo = Panel()
 		if IN[6] == None:
 			xlogo = 20
-			ylogo = y+10
+			ylogo = formy+10
 		else:
 			xlogo = 30
-			ylogo = y
+			ylogo = formy
 		size = 110
 		logo = PictureBox()
 		ratio = (ima.Height)/(ima.Width)
@@ -734,9 +755,9 @@ try:
 	except :
 		pass
 	if IN[6] != None:
-		y = logo.Bottom + 20
+		formy = logo.Bottom + 20
 	else:
-		y += 60
+		formy += 60
 
 
 
@@ -744,8 +765,8 @@ try:
 	
 	button = Button()
 	button.Text = IN[1]
-	button.Width = 160
-	button.Location = Point (150,y)
+	button.Width = formwidth - xinput - 40
+	button.Location = Point (xinput,formy)
 	button.Click += form.setclose
 	form.Controls.Add(button)
 	form.MaximizeBox = False
@@ -758,7 +779,7 @@ try:
 		cancelbutton.Text = IN[6]
 		cancelbutton.Width = 120
 		cancelbutton.Name = "Cancel"
-		cancelbutton.Location = Point (25,y)
+		cancelbutton.Location = Point (25,formy)
 		cancelbutton.Click += form.setclose
 		form.Controls.Add(cancelbutton)
 		form.CancelButton = cancelbutton
@@ -770,16 +791,42 @@ try:
 		helplink.Text = "Help"
 		helplink.Tag = IN[5]
 		helplink.Click += form.openurl
-		helplink.Location = Point(285,y+30)
+		helplink.Location = Point(formwidth - 65,formy+30)
 		form.Controls.Add(helplink)
 	else:
 		pass	
 			
-
-	form.ShowIcon = True	
-	form.Height = y + 120
-	form.Width = 350
+	form.ShowIcon = True
+	form.Width = formwidth
+	form.Height = formy + 120
+	formfooterheight = form.Height - formheaderheight
 	
+	# Make formbody scrollable
+	
+	# if the form is longer than its maximum height, do the following:
+	# modify the form height
+	# make the formbody panel scrollable
+	if form.Height + formbody.Height &gt; IN[7] and IN[7] &gt; 0:
+		formbody_calculatedheight = IN[7] - form.Height
+		# make sure the formbody is at least 100 px high
+		if formbody_calculatedheight &lt; 100: formbody_calculatedheight = 100
+		formbody.Height = formbody_calculatedheight
+		form.Height = form.Height + formbody_calculatedheight
+		# this (and apparently only this) will implement a vertical AutoScroll *only*
+		# http://stackoverflow.com/a/28583501
+		formbody.HorizontalScroll.Maximum = 0
+		formbody.AutoScroll = False
+		formbody.VerticalScroll.Visible = False
+		formbody.AutoScroll = True
+		formbody.BorderStyle = BorderStyle.Fixed3D
+	else:
+		form.Height = form.Height + formbody.Height
+	# Move footer elements
+	logo.Location = Point(logo.Location.X, logo.Location.Y + formbody.Height)
+	button.Location = Point(button.Location.X, button.Location.Y + formbody.Height)
+	if IN[6] != None: cancelbutton.Location = Point(cancelbutton.Location.X, cancelbutton.Location.Y + formbody.Height)
+	if IN[5] != None: helplink.Location = Point(helplink.Location.X, helplink.Location.Y + formbody.Height)
+
 	#Positionning the form at top left of current view
 	uiviews = uidoc.GetOpenUIViews()
 	activeviewid = doc.ActiveView.Id
@@ -838,6 +885,12 @@ except:
       <PortInfo index="0" default="False" />
       <Symbol value="Was Cancelled" />
     </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="cb9cd769-fdcd-479c-8868-c89365616091" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-241.01121323173" y="498.353792414835" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="MaxHeight_optional : int = 0" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="024ed433-d62b-4a2a-b573-5399dd344fcd" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-245.116104881934" y="577.973198975489" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Width_optional : int = 350" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
   </Elements>
   <Connectors>
     <Dynamo.Graph.Connectors.ConnectorModel start="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" start_index="0" end="6827a40a-d078-4ecb-a5f7-ac83d1a8b7a4" end_index="0" portType="0" />
@@ -851,11 +904,13 @@ except:
     <Dynamo.Graph.Connectors.ConnectorModel start="0a6977c9-a3ce-4e62-9bc9-be1fd8cf25f9" start_index="0" end="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" end_index="2" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="a2f12833-18a2-47e4-b81e-05d7a1af165b" start_index="0" end="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" end_index="5" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="54fa9d32-b20b-49d7-aab8-946482548269" start_index="0" end="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" end_index="6" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="cb9cd769-fdcd-479c-8868-c89365616091" start_index="0" end="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" end_index="7" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="024ed433-d62b-4a2a-b573-5399dd344fcd" start_index="0" end="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" end_index="8" portType="0" />
   </Connectors>
   <Notes />
   <Annotations />
   <Presets />
   <Cameras>
-    <Camera Name="Background Preview" eyeX="-13161.0654296875" eyeY="27297.533203125" eyeZ="26838.912109375" lookX="19869.58203125" lookY="-24897.978515625" lookZ="-52612.84765625" upX="0.0704369470477104" upY="0.97992467880249" upZ="-0.186510622501373" />
+    <Camera Name="Hintergrundvorschau" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
   </Cameras>
 </Workspace>
