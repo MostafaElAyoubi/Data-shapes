@@ -707,7 +707,15 @@ try:
 	#Adding Logo 
 	#default logo in case no input	
 	try:
-		if IN[4] == '':
+		if IN[4] != '':
+			try:
+				ima = Image.FromFile(IN[4])
+				bmp = Bitmap.FromFile(IN[4])
+			except:
+				ima = IN[4]
+				bmp = IN[4]
+
+		else :
 			dynamo = Assembly.Load('DynamoCore')
 			version = str(dynamo.GetName().Version)[:3]		
 			dynPath = os.getenv('APPDATA')+"\\Dynamo\Dynamo Revit\\" + version 
@@ -728,13 +736,6 @@ try:
 							bmp = Bitmap.FromFile(deflogopath)
 						except: 
 							pass
-		else :
-			try:
-				ima = Image.FromFile(IN[4])
-				bmp = Bitmap.FromFile(IN[4])
-			except:
-				ima = IN[4]
-				bmp = IN[4]
 		logo = Panel()
 		if IN[6] == None:
 			xlogo = 20
@@ -765,9 +766,13 @@ try:
 	except :
 		pass
 	if IN[6] != None:
-		formy = logo.Bottom + 20
+		if IN[8] &gt; 400:
+			formy += 50
+			xinput = 270
+		else:
+			formy = logo.Bottom + 20
 	else:
-		formy += 60
+		formy += 50
 
 
 
@@ -789,7 +794,7 @@ try:
 		cancelbutton.Text = IN[6]
 		cancelbutton.Width = 120
 		cancelbutton.Name = "Cancel"
-		cancelbutton.Location = Point (25,formy)
+		cancelbutton.Location = Point (xinput -120 ,formy)
 		cancelbutton.Click += form.setclose
 		form.Controls.Add(cancelbutton)
 		form.CancelButton = cancelbutton
