@@ -4,7 +4,7 @@
     <ClassMap partialName="DSCore.List" resolvedName="DSCore.List" assemblyName="DSCoreNodes.dll" />
   </NamespaceResolutionMap>
   <Elements>
-    <PythonNodeModels.PythonNode guid="cef200ad-1512-4bc5-ad03-6400d44b9b89" type="PythonNodeModels.PythonNode" nickname="Python Script" x="702.505489989118" y="199" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="8">
+    <PythonNodeModels.PythonNode guid="cef200ad-1512-4bc5-ad03-6400d44b9b89" type="PythonNodeModels.PythonNode" nickname="Python Script" x="702.505489989118" y="199" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="9">
       <PortInfo index="0" default="False" />
       <PortInfo index="1" default="False" />
       <PortInfo index="2" default="False" />
@@ -13,18 +13,20 @@
       <PortInfo index="5" default="False" />
       <PortInfo index="6" default="False" />
       <PortInfo index="7" default="False" />
+      <PortInfo index="8" default="False" />
       <Script>#Copyright (c) mostafa el ayoubi ,  2016
 #Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
 
 class listview():
 
-    def __init__(self,inputname,height,highlight,display_mode,element_count,default_values):
+    def __init__(self,inputname,height,highlight,display_mode,element_count,default_values,sorted):
         self.inputname = inputname
         self.height = height
         self.highlight = highlight
         self.display_mode = display_mode
         self.element_count = element_count
         self.default_values = default_values
+        self.sorted = sorted
 
     def __setitem__(self, key, item):
         self.__dict__[key] = item
@@ -59,7 +61,7 @@ if IN[6]:
 else:
 	element_count = 0
 
-x = listview(IN[0],IN[3],IN[4],IN[5],element_count,IN[7])
+x = listview(IN[0],IN[3],IN[4],IN[5],element_count,IN[7],IN[8])
 
 for k,v in zip(in1,in2):
 	try:
@@ -103,6 +105,9 @@ OUT = x</Script>
     <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="3070d208-b980-42fb-82b5-5969b13d0fc0" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="186.851171247113" y="774.906156400992" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
       <Symbol value="DefaultValueIndices_optionnal : int[] = DSCore.List.Empty" />
     </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="ea654926-9398-461c-9bbd-f4c97f0530d9" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="215.006894294656" y="870.918942799708" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="// Determines wether the ListView items are sorted or not&#xD;&#xA;SortItems : bool = true" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
   </Elements>
   <Connectors>
     <Dynamo.Graph.Connectors.ConnectorModel start="cef200ad-1512-4bc5-ad03-6400d44b9b89" start_index="0" end="ab104914-28ac-4b9f-bcae-0fce01efb435" end_index="0" portType="0" />
@@ -114,6 +119,7 @@ OUT = x</Script>
     <Dynamo.Graph.Connectors.ConnectorModel start="17b88acf-e454-4649-b20b-534a6db34799" start_index="0" end="cef200ad-1512-4bc5-ad03-6400d44b9b89" end_index="5" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="08be7782-cbdb-44b5-9706-0b8e86e8ef86" start_index="0" end="cef200ad-1512-4bc5-ad03-6400d44b9b89" end_index="6" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="3070d208-b980-42fb-82b5-5969b13d0fc0" start_index="0" end="cef200ad-1512-4bc5-ad03-6400d44b9b89" end_index="7" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="ea654926-9398-461c-9bbd-f4c97f0530d9" start_index="0" end="cef200ad-1512-4bc5-ad03-6400d44b9b89" end_index="8" portType="0" />
   </Connectors>
   <Notes />
   <Annotations />

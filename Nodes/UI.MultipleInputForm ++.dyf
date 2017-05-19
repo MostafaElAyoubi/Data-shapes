@@ -1,7 +1,7 @@
-<Workspace Version="1.2.1.3083" X="836.576163843576" Y="92.8187798862903" zoom="1.13758205229475" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
+<Workspace Version="1.2.1.3083" X="892.594431180097" Y="83.9385401245126" zoom="0.959788699581274" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
   <NamespaceResolutionMap />
   <Elements>
-    <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="199.296269121647" y="76.3543168934324" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="9">
+    <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="198.417211652357" y="76.3543168934324" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="9">
       <PortInfo index="0" default="False" />
       <PortInfo index="1" default="False" />
       <PortInfo index="2" default="False" />
@@ -434,8 +434,12 @@ try:
 			if not j.display_mode:
 				lv.CheckBoxes = True
 			lv.View = vi.Details
-			lv.Sorting = SortOrder.Ascending
-			[lv.Items.Add(i) for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'highlight' or i == 'display_mode' or i == 'element_count' or i == 'default_values')]
+			lvItems =  [i for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'highlight' or i == 'display_mode' or i == 'element_count' or i == 'default_values' or i == 'sorted')]
+			if j.sorted :
+				lvItems.sort()
+			else:
+				pass
+			[lv.Items.Add(i) for i in lvItems]
 			lv.Location = Point(0,0)
 			lv.Width = formwidth - xinput - 40
 			lv.Height = j.height
@@ -449,7 +453,6 @@ try:
 				lv.MouseUp += form.zoomcenter
 				items = list(lv.Items)
 				lv.FullRowSelect = True
-				items.sort(key=lambda x: x.Text)
 				del items[::2]
 				for item in items:
 					item.BackColor = Color.FromArgb(230,243,255)
