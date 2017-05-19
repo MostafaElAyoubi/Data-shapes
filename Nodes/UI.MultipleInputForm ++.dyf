@@ -93,13 +93,14 @@ try:
 	    			if f.GetType() == CheckBox:
 	    				self.values.append(f.Checked)
 	    			if f.GetType() == Button:
-	    				try:
+	    				if isinstance(f.Tag ,list):
 	    					self.values.append([e for e in f.Tag if e.__class__.__name__ != "Category"])
-	    				except:
+	    				else:	    					
 	    					if f.Tag.__class__.__name__ != "Category":
 	    						self.values.append(f.Tag)
 	    					else:
-	    						self.values.append([])
+    							self.values.append([])
+
 	    			if f.GetType() == ComboBox:
 	    				try:
 	    					key = f.Text
