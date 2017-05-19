@@ -446,7 +446,8 @@ try:
 			lv.Scrollable = True
 			lv.ItemCheck += form.updateallnone
 			for i in j.default_values:
-				lv.Items.Item[i].Checked = True
+				defInd = lvItems.index([x for x in j.keys() if not (x == 'inputname' or x == 'height' or x == 'highlight' or x == 'display_mode' or x == 'element_count' or x == 'default_values' or x == 'sorted')][i])
+				lv.Items[defInd].Checked = True
 			#Click listview items to hilight and center in appropriate view
 			if j.highlight :
 				lv.MouseDown += form.setviewforelement
