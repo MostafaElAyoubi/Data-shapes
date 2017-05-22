@@ -1,4 +1,4 @@
-<Workspace Version="1.2.1.3083" X="892.594431180097" Y="83.9385401245126" zoom="0.959788699581274" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
+<Workspace Version="1.2.1.3083" X="766.116937591178" Y="152.135557736249" zoom="1.11135753276951" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
   <NamespaceResolutionMap />
   <Elements>
     <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="198.417211652357" y="76.3543168934324" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="9">
@@ -849,12 +849,15 @@ try:
 
 	#Positionning the form at top left of current view
 	uiviews = uidoc.GetOpenUIViews()
-	activeviewid = doc.ActiveView.Id
-	activeUIView = [v for v in uiviews if v.ViewId == activeviewid][0]
+	if doc.ActiveView.IsValidType(doc.ActiveView.GetTypeId()):
+		activeviewid = doc.ActiveView.Id
+		activeUIView = [v for v in uiviews if v.ViewId == activeviewid][0]
+	else:
+		activeUIView = uiviews[0]
 	rect = activeUIView.GetWindowRectangle()
 	form.StartPosition = FormStartPosition.Manual
 	form.Location = Point(rect.Left-7,rect.Top)
-	
+		
 	if IN[2]:
 		if importcolorselection != 2:
 			Application.Run(form)
