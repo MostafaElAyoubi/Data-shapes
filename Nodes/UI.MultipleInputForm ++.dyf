@@ -436,7 +436,7 @@ try:
 				lv.CheckBoxes = True
 			lv.View = vi.Details
 			lvItems =  [i for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'highlight' or i == 'display_mode' or i == 'element_count' or i == 'default_values' or i == 'sorted')]
-			if j.sorted :
+			if j == 'sorted' :
 				lvItems.sort()
 			else:
 				pass
