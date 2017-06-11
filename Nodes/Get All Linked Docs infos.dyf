@@ -1,0 +1,98 @@
+<Workspace Version="1.2.1.3083" X="371.311024742991" Y="374.49950272252" zoom="1.27771698410772" Name="Get All Linked Docs infos" Description="Get all linked documents names and paths" ID="034ccda1-a2b7-4ae6-84dc-45c8e10a8dac" Category="Data-Shapes.Revit.Document">
+  <NamespaceResolutionMap />
+  <Elements>
+    <PythonNodeModels.PythonNode guid="8fb41096-5a80-4c5e-9ef5-a5523467ef7d" type="PythonNodeModels.PythonNode" nickname="Python Script" x="180.477660726262" y="-62.2337069305232" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="2">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <Script>import clr
+clr.AddReference('RevitAPI')
+from Autodesk.Revit.DB import*
+clr.AddReference('RevitServices')
+from RevitServices.Persistence import DocumentManager
+import sys
+pyt_path = r'C:\Program Files (x86)\IronPython 2.7\Lib'
+sys.path.append(pyt_path)
+import os
+
+doc = DocumentManager.Instance.CurrentDBDocument
+if IN[0] :
+	fp =  ModelPathUtils.ConvertUserVisiblePathToModelPath(IN[0])
+else : 
+	fp =  ModelPathUtils.ConvertUserVisiblePathToModelPath(doc.PathName)
+transdata = TransmissionData.ReadTransmissionData(fp)
+extref = transdata.GetAllExternalFileReferenceIds()
+eref  = [transdata.GetLastSavedReferenceData(i) for i in extref]
+
+paths = [ModelPathUtils.ConvertModelPathToUserVisiblePath(e.GetAbsolutePath()) for e in eref]
+
+rvtpaths = [p for p in paths if p.endswith('.rvt')]
+rvtnames = []
+rvtsize = [str(os.path.getsize(p)) + " Kb" for p in rvtpaths]
+for p in rvtpaths:
+	if '/' in p:
+		rvtnames.append(p.rsplit('/', 1)[-1])
+	else:
+		rvtnames.append(p.rsplit('\\', 1)[-1])
+cadpaths = [p for p in paths if p.endswith('.dwg')]
+cadnames = []
+cadsize = [str(os.path.getsize(p)) + " Kb" for p in cadpaths]
+for p in cadpaths:
+	if '/' in p:
+		cadnames.append(p.rsplit('/', 1)[-1])
+	else:
+		cadnames.append(p.rsplit('\\', 1)[-1])
+
+OUT = [rvtnames,rvtpaths,rvtsize] , [cadnames,cadpaths,cadsize] </Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="ff6a3e93-8952-424f-8134-a81220ad6c13" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="724.607870626215" y="-103.722844884205" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Rvt links names" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="a3226be4-e859-4377-a325-e53d4db6f0ec" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="401.890149174618" y="-56.1800792079667" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="//Rvt links names&#xA;out[0][0];&#xA;//Rvt links paths&#xA;out[0][1];&#xA;//Rvt links size&#xA;out[0][2];&#xA;//Dwg links names&#xA;out[1][0];&#xA;//Dwg links paths&#xA;out[1][1];&#xA;//Dwg links size&#xA;out[1][2];" ShouldFocus="false">
+      <PortInfo index="0" default="False" />
+    </Dynamo.Graph.Nodes.CodeBlockNodeModel>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="4d34ce9f-7c55-44a4-955e-424642bd0857" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="727.11490693006" y="-28.7777702968966" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Rvt links paths" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="1684deb4-861a-4302-a0ab-c613d514306e" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="723.818068803947" y="39.1254015926699" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Rvt links size" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="6f1ee2ce-1344-47c1-a98a-43477ae05808" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="732.857749949909" y="115.451863093759" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Dwg links names" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="14be8e72-8d36-40b6-8f61-a0586d079374" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-255.001936846364" y="-65.0627050185161" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Doc_FilePath : var = false" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="e1e5c46f-fbd6-4f3c-9996-f9e319f4ac57" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-187.989106301279" y="41.1786402830327" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Refresh : bool = false" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="0c4ae8ff-3c27-4a66-96e2-fde95b876981" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="757.357840032771" y="184.313506204145" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Dwg links paths" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="529fb306-5019-4bfe-bcfb-39844c2d7d61" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="749.91884970432" y="259.881367383968" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Dwg links size" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="8fb41096-5a80-4c5e-9ef5-a5523467ef7d" start_index="0" end="a3226be4-e859-4377-a325-e53d4db6f0ec" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="a3226be4-e859-4377-a325-e53d4db6f0ec" start_index="0" end="ff6a3e93-8952-424f-8134-a81220ad6c13" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="a3226be4-e859-4377-a325-e53d4db6f0ec" start_index="1" end="4d34ce9f-7c55-44a4-955e-424642bd0857" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="a3226be4-e859-4377-a325-e53d4db6f0ec" start_index="2" end="1684deb4-861a-4302-a0ab-c613d514306e" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="a3226be4-e859-4377-a325-e53d4db6f0ec" start_index="3" end="6f1ee2ce-1344-47c1-a98a-43477ae05808" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="a3226be4-e859-4377-a325-e53d4db6f0ec" start_index="4" end="0c4ae8ff-3c27-4a66-96e2-fde95b876981" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="a3226be4-e859-4377-a325-e53d4db6f0ec" start_index="5" end="529fb306-5019-4bfe-bcfb-39844c2d7d61" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="14be8e72-8d36-40b6-8f61-a0586d079374" start_index="0" end="8fb41096-5a80-4c5e-9ef5-a5523467ef7d" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="e1e5c46f-fbd6-4f3c-9996-f9e319f4ac57" start_index="0" end="8fb41096-5a80-4c5e-9ef5-a5523467ef7d" end_index="1" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Background Preview" eyeX="-20939.818359375" eyeY="40877.546875" eyeZ="49694.01171875" lookX="17594.912109375" lookY="-40877.546875" lookZ="-46589.72265625" upX="0.160395428538322" upY="0.891006529331207" upZ="-0.424712479114532" />
+  </Cameras>
+</Workspace>

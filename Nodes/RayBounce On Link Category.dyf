@@ -1,4 +1,4 @@
-<Workspace Version="1.2.1.3083" X="348.515499107143" Y="211.014654464286" zoom="1.33823125" Name="RayBounce On Link Category" Description="Same functionality as raybounce but takes linked model elements into account" ID="0e68ecd9-e2b5-4875-a334-8680f2f6e836" Category="Data-Shapes.Revit.RayBounce">
+<Workspace Version="1.3.0.875" X="-27.484500892857" Y="209.014654464286" zoom="1.33823125" ScaleFactor="1" Name="RayBounce On Link Category" Description="Same functionality as raybounce but takes linked model elements into account" ID="0e68ecd9-e2b5-4875-a334-8680f2f6e836" Category="Data-Shapes.Revit.RayBounce">
   <NamespaceResolutionMap>
     <ClassMap partialName="RayBounce" resolvedName="Revit.References.RayBounce" assemblyName="RevitNodes.dll" />
     <ClassMap partialName="Vector" resolvedName="Autodesk.DesignScript.Geometry.Vector" assemblyName="ProtoGeometry.dll" />
@@ -52,14 +52,16 @@ ri.FindReferencesInRevitLinks = True
 
 for p in points:
 	ref = ri.FindNearest(p,direction)
-	el = doc.GetElement(ri.GetTargetElementIds())
 	if ref == None:
 		pts.append(None)
 		elems.append(None)
 	else:
 		refp = ref.GetReference().GlobalPoint
 		pts.append(Point.ByCoordinates(UnitUtils.ConvertFromInternalUnits(refp.X,UIunit),UnitUtils.ConvertFromInternalUnits(refp.Y,UIunit),UnitUtils.ConvertFromInternalUnits(refp.Z,UIunit)))
-		elems.append(el)
+		refel = ref.GetReference()
+		linkinstance = doc.GetElement(refel.ElementId)
+		elem = linkinstance.GetLinkDocument().GetElement(refel.LinkedElementId)
+		elems.append(elem)
 
 
 OUT = pts , elems</Script>
@@ -101,6 +103,6 @@ OUT = pts , elems</Script>
   <Annotations />
   <Presets />
   <Cameras>
-    <Camera Name="Background Preview" eyeX="7.45157357662174" eyeY="16.6031416839228" eyeZ="9.96334080577824" lookX="-9.91837907196055" lookY="-14.4157846842041" lookZ="-13.0147234323051" upX="-0.293860556357939" upY="0.874619707139397" upZ="-0.385598679069833" />
+    <Camera Name="Background Preview" eyeX="-50320.5044249289" eyeY="16937.9374005745" eyeZ="62834.0608783794" lookX="50320.0825499289" lookY="-16933.848533387" lookZ="-62833.6155658794" upX="-0.0054549395499068" upY="0.999961938027591" upZ="0.00681146594036509" />
   </Cameras>
 </Workspace>

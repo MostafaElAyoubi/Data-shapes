@@ -4,7 +4,7 @@
     <PythonNodeModels.PythonNode guid="26f6d7d8-00ec-4a3a-97cc-f431883c095e" type="PythonNodeModels.PythonNode" nickname="Python Script" x="250" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="2">
       <PortInfo index="0" default="False" />
       <PortInfo index="1" default="False" />
-      <Script>#Copyright (c) mostafa el ayoubi ,  2016
+      <Script>#Copyright (c) mostafa el ayoubi ,  2017
 #Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
 
 class uigroup():
@@ -42,6 +42,6 @@ OUT = x</Script>
   <Annotations />
   <Presets />
   <Cameras>
-    <Camera Name="Background Preview" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+    <Camera Name="Background Preview" eyeX="-26.3565515772406" eyeY="74.8254454439059" eyeZ="58.9178592326158" lookX="11.148111703764" lookY="8.04129206646723" lookZ="-59.059776729532" upX="-0.063439365287769" upY="0.939692620785908" upZ="0.336085146015702" />
   </Cameras>
 </Workspace>
