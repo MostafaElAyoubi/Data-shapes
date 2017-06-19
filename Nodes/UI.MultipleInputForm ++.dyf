@@ -1,4 +1,4 @@
-<Workspace Version="1.3.0.875" X="544.116937591178" Y="36.135557736249" zoom="1.11135753276951" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
+<Workspace Version="1.3.0.875" X="517.116937591178" Y="8.135557736249" zoom="1.11135753276951" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
   <NamespaceResolutionMap />
   <Elements>
     <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="198.417211652357" y="76.3543168934324" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="9">
@@ -691,7 +691,7 @@ try:
 				h = float(pic.Height)
 				w = float(pic.Width)
 				ratio = h/w
-				image_maxsize = formwidth - 65
+				image_maxsize = formwidth - xlabel - rightmargin
 				im.Size = Size(image_maxsize,image_maxsize*ratio)
 				scaledimage = Bitmap(image_maxsize,image_maxsize*ratio)
 				gr = Graphics.FromImage(scaledimage)
@@ -718,6 +718,7 @@ try:
 				grouppanel.Text = j.groupname
 				grouppanel.Location = Point(xlabel,y)
 				grouppanel.Width = formwidth - 65
+				#recursive implementation of the definition to process grouped inputs
 				addinput(grouppanel,j.inputgroup,25,xinput-25,80,90)
 				formbody.Controls.Add(grouppanel)
 				y = grouppanel.Bottom + 25
@@ -725,9 +726,10 @@ try:
 
 
 
-	# add the formbody panel to the form
+	# process input lists 
 	addinput(body,inputtypes,0,xinput,40,120)
 	
+	#add the formbody panel to the form
 	form.Controls.Add(body)		
 	
 	#Adding Logo 

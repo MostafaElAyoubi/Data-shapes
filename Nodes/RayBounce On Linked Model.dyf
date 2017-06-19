@@ -1,14 +1,15 @@
-<Workspace Version="1.3.0.875" X="136.515499107143" Y="202.014654464286" zoom="1.33823125" ScaleFactor="1" Name="RayBounce On Linked Model" Description="Same functionality as raybounce but takes linked model elements into account" ID="de53be2a-ccd3-4ba4-ac19-bfc582c19c9b" Category="Data-Shapes.Revit.RayBounce">
+<Workspace Version="1.3.0.875" X="102.515499107143" Y="215.014654464286" zoom="1.33823125" ScaleFactor="1" Name="RayBounce On Linked Model" Description="Same functionality as raybounce but takes linked model elements into account" ID="de53be2a-ccd3-4ba4-ac19-bfc582c19c9b" Category="Data-Shapes.Revit.RayBounce">
   <NamespaceResolutionMap>
     <ClassMap partialName="RayBounce" resolvedName="Revit.References.RayBounce" assemblyName="RevitNodes.dll" />
     <ClassMap partialName="Vector" resolvedName="Autodesk.DesignScript.Geometry.Vector" assemblyName="ProtoGeometry.dll" />
     <ClassMap partialName="Point" resolvedName="Autodesk.DesignScript.Geometry.Point" assemblyName="ProtoGeometry.dll" />
   </NamespaceResolutionMap>
   <Elements>
-    <PythonNodeModels.PythonNode guid="1852c0e0-e60d-41f6-baa1-ea95d023d199" type="PythonNodeModels.PythonNode" nickname="Python Script" x="239.714285714286" y="7.42857142857144" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="3">
+    <PythonNodeModels.PythonNode guid="1852c0e0-e60d-41f6-baa1-ea95d023d199" type="PythonNodeModels.PythonNode" nickname="Python Script" x="239.714285714286" y="7.42857142857144" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="4">
       <PortInfo index="0" default="False" />
       <PortInfo index="1" default="False" />
       <PortInfo index="2" default="False" />
+      <PortInfo index="3" default="False" />
       <Script>#Copyright (c) mostafa el ayoubi
 #Node-mode www.data-shapes.net 2016 elayoub.mostafa@gmail.com
 
@@ -52,12 +53,20 @@ for p in points:
 		pts.append(None)
 		elems.append(None)
 	else:
-		refp = ref.GetReference().GlobalPoint
-		pts.append(Point.ByCoordinates(UnitUtils.ConvertFromInternalUnits(refp.X,UIunit),UnitUtils.ConvertFromInternalUnits(refp.Y,UIunit),UnitUtils.ConvertFromInternalUnits(refp.Z,UIunit)))
 		refel = ref.GetReference()
 		linkinstance = doc.GetElement(refel.ElementId)
-		elem = linkinstance.GetLinkDocument().GetElement(refel.LinkedElementId)
-		elems.append(elem)
+		try:
+			elem = linkinstance.GetLinkDocument().GetElement(refel.LinkedElementId)
+			elems.append(elem)
+			refp = ref.GetReference().GlobalPoint
+			pts.append(Point.ByCoordinates(UnitUtils.ConvertFromInternalUnits(refp.X,UIunit),UnitUtils.ConvertFromInternalUnits(refp.Y,UIunit),UnitUtils.ConvertFromInternalUnits(refp.Z,UIunit)))
+		except:
+			if not IN[3]:
+				elems.append(linkinstance)
+				refp = ref.GetReference().GlobalPoint
+				pts.append(Point.ByCoordinates(UnitUtils.ConvertFromInternalUnits(refp.X,UIunit),UnitUtils.ConvertFromInternalUnits(refp.Y,UIunit),UnitUtils.ConvertFromInternalUnits(refp.Z,UIunit)))
+			else:
+				pass
 
 
 OUT = pts , elems
@@ -83,6 +92,9 @@ OUT = pts , elems
     <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="a809dfac-e305-4ef9-914a-c6d20f64af0c" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="419.187070620268" y="12.3515647986848" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="x[0];&#xA;x[1];" ShouldFocus="false">
       <PortInfo index="0" default="False" />
     </Dynamo.Graph.Nodes.CodeBlockNodeModel>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="eeb8dc2a-e3f3-4fc8-b04b-a60cd9a177a1" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-42.9787445982471" y="189.791820760212" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="BounceOnLinkOnly : bool = true" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
   </Elements>
   <Connectors>
     <Dynamo.Graph.Connectors.ConnectorModel start="1852c0e0-e60d-41f6-baa1-ea95d023d199" start_index="0" end="a809dfac-e305-4ef9-914a-c6d20f64af0c" end_index="0" portType="0" />
@@ -91,11 +103,12 @@ OUT = pts , elems
     <Dynamo.Graph.Connectors.ConnectorModel start="35ecaa62-f132-44d4-a796-f23816aeaa3d" start_index="0" end="1852c0e0-e60d-41f6-baa1-ea95d023d199" end_index="2" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="a809dfac-e305-4ef9-914a-c6d20f64af0c" start_index="0" end="1ea1e62a-781b-4c6e-8f4a-66fd40b166e6" end_index="0" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="a809dfac-e305-4ef9-914a-c6d20f64af0c" start_index="1" end="6fe23fe7-ddea-4cc2-ad48-068c49a5a749" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="eeb8dc2a-e3f3-4fc8-b04b-a60cd9a177a1" start_index="0" end="1852c0e0-e60d-41f6-baa1-ea95d023d199" end_index="3" portType="0" />
   </Connectors>
   <Notes />
   <Annotations />
   <Presets />
   <Cameras>
-    <Camera Name="Aperçu en arrière-plan" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+    <Camera Name="Aperçu en arrière-plan" eyeX="388.096374511719" eyeY="123.447639465332" eyeZ="129.303466796875" lookX="-375.288024902344" lookY="-123.447639465332" lookZ="-358.499816894531" upX="-0.0126197533681989" upY="0.999847710132599" upZ="-0.0120552191510797" />
   </Cameras>
 </Workspace>
