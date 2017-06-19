@@ -1,4 +1,4 @@
-<Workspace Version="1.3.0.875" X="517.116937591178" Y="8.135557736249" zoom="1.11135753276951" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
+<Workspace Version="1.3.0.875" X="543.116937591178" Y="80.135557736249" zoom="1.11135753276951" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
   <NamespaceResolutionMap />
   <Elements>
     <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="198.417211652357" y="76.3543168934324" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="9">
@@ -400,7 +400,7 @@ try:
 	    return only_ascii	
 
 	
-	def addinput(formbody,inputs,starty,xinput,rightmargin,labelsize):
+	def addinput(formbody,inputs,starty,xinput,rightmargin,labelsize,importcolorselection):
 		y = starty
 		for j in inputs:
 			label = Label()
@@ -719,7 +719,7 @@ try:
 				grouppanel.Location = Point(xlabel,y)
 				grouppanel.Width = formwidth - 65
 				#recursive implementation of the definition to process grouped inputs
-				addinput(grouppanel,j.inputgroup,25,xinput-25,80,90)
+				addinput(grouppanel,j.inputgroup,25,xinput-25,80,90,importcolorselection)
 				formbody.Controls.Add(grouppanel)
 				y = grouppanel.Bottom + 25
 			formbody.Height = y
@@ -727,7 +727,7 @@ try:
 
 
 	# process input lists 
-	addinput(body,inputtypes,0,xinput,40,120)
+	addinput(body,inputtypes,0,xinput,40,120,importcolorselection)
 	
 	#add the formbody panel to the form
 	form.Controls.Add(body)		
