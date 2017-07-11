@@ -1,4 +1,4 @@
-<Workspace Version="1.3.0.875" X="-27.484500892857" Y="209.014654464286" zoom="1.33823125" ScaleFactor="1" Name="RayBounce On Link Category" Description="Same functionality as raybounce but takes linked model elements into account" ID="0e68ecd9-e2b5-4875-a334-8680f2f6e836" Category="Data-Shapes.Revit.RayBounce">
+<Workspace Version="1.3.0.875" X="233.515499107143" Y="223.014654464286" zoom="1.33823125" ScaleFactor="1" Name="RayBounce On Link Category" Description="Same functionality as raybounce but takes linked model elements into account" ID="0e68ecd9-e2b5-4875-a334-8680f2f6e836" Category="Data-Shapes.Revit.RayBounce">
   <NamespaceResolutionMap>
     <ClassMap partialName="RayBounce" resolvedName="Revit.References.RayBounce" assemblyName="RevitNodes.dll" />
     <ClassMap partialName="Vector" resolvedName="Autodesk.DesignScript.Geometry.Vector" assemblyName="ProtoGeometry.dll" />
@@ -6,13 +6,14 @@
     <ClassMap partialName="Category" resolvedName="Revit.Elements.Category" assemblyName="RevitNodes.dll" />
   </NamespaceResolutionMap>
   <Elements>
-    <PythonNodeModels.PythonNode guid="1852c0e0-e60d-41f6-baa1-ea95d023d199" type="PythonNodeModels.PythonNode" nickname="Python Script" x="239.714285714286" y="4.43955140680765" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="4">
+    <PythonNodeModels.PythonNode guid="1852c0e0-e60d-41f6-baa1-ea95d023d199" type="PythonNodeModels.PythonNode" nickname="Python Script" x="238.967030708845" y="3.69229640136672" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="5">
       <PortInfo index="0" default="False" />
       <PortInfo index="1" default="False" />
       <PortInfo index="2" default="False" />
       <PortInfo index="3" default="False" />
+      <PortInfo index="4" default="False" />
       <Script>#Copyright (c) mostafa el ayoubi
-#Node-mode www.data-shapes.net 2016 elayoub.mostafa@gmail.com
+#Data-Shapes www.data-shapes.net 2016 elayoub.mostafa@gmail.com
 
 import clr
 clr.AddReference('RevitAPI')
@@ -56,13 +57,20 @@ for p in points:
 		pts.append(None)
 		elems.append(None)
 	else:
-		refp = ref.GetReference().GlobalPoint
-		pts.append(Point.ByCoordinates(UnitUtils.ConvertFromInternalUnits(refp.X,UIunit),UnitUtils.ConvertFromInternalUnits(refp.Y,UIunit),UnitUtils.ConvertFromInternalUnits(refp.Z,UIunit)))
 		refel = ref.GetReference()
 		linkinstance = doc.GetElement(refel.ElementId)
-		elem = linkinstance.GetLinkDocument().GetElement(refel.LinkedElementId)
-		elems.append(elem)
-
+		try:
+			elem = linkinstance.GetLinkDocument().GetElement(refel.LinkedElementId)
+			elems.append(elem)
+			refp = ref.GetReference().GlobalPoint
+			pts.append(Point.ByCoordinates(UnitUtils.ConvertFromInternalUnits(refp.X,UIunit),UnitUtils.ConvertFromInternalUnits(refp.Y,UIunit),UnitUtils.ConvertFromInternalUnits(refp.Z,UIunit)))
+		except:
+			if not IN[4]:
+				elems.append(linkinstance)
+				refp = ref.GetReference().GlobalPoint
+				pts.append(Point.ByCoordinates(UnitUtils.ConvertFromInternalUnits(refp.X,UIunit),UnitUtils.ConvertFromInternalUnits(refp.Y,UIunit),UnitUtils.ConvertFromInternalUnits(refp.Z,UIunit)))
+			else:
+				pass
 
 OUT = pts , elems</Script>
     </PythonNodeModels.PythonNode>
@@ -89,6 +97,9 @@ OUT = pts , elems</Script>
       <PortInfo index="0" default="False" />
       <Symbol value="Elements" />
     </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="526861dc-fc7e-4615-83fa-6422d035cca5" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-70.6271797995623" y="251.06673120637" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="BounceOnLinksOnly : bool = true" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
   </Elements>
   <Connectors>
     <Dynamo.Graph.Connectors.ConnectorModel start="1852c0e0-e60d-41f6-baa1-ea95d023d199" start_index="0" end="80f56a7b-68cd-472e-99c3-98e3fbe65f5b" end_index="0" portType="0" />
@@ -98,11 +109,12 @@ OUT = pts , elems</Script>
     <Dynamo.Graph.Connectors.ConnectorModel start="6677bae3-81fb-4c08-9c0f-0ec0293e3a36" start_index="0" end="1852c0e0-e60d-41f6-baa1-ea95d023d199" end_index="3" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="80f56a7b-68cd-472e-99c3-98e3fbe65f5b" start_index="0" end="1ea1e62a-781b-4c6e-8f4a-66fd40b166e6" end_index="0" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="80f56a7b-68cd-472e-99c3-98e3fbe65f5b" start_index="1" end="9080cf61-8449-4640-b6cf-ea82a5a793c1" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="526861dc-fc7e-4615-83fa-6422d035cca5" start_index="0" end="1852c0e0-e60d-41f6-baa1-ea95d023d199" end_index="4" portType="0" />
   </Connectors>
   <Notes />
   <Annotations />
   <Presets />
   <Cameras>
-    <Camera Name="Background Preview" eyeX="-50320.5044249289" eyeY="16937.9374005745" eyeZ="62834.0608783794" lookX="50320.0825499289" lookY="-16933.848533387" lookZ="-62833.6155658794" upX="-0.0054549395499068" upY="0.999961938027591" upZ="0.00681146594036509" />
+    <Camera Name="Aperçu en arrière-plan" eyeX="388.096374511719" eyeY="123.447639465332" eyeZ="129.303466796875" lookX="-375.288024902344" lookY="-123.447639465332" lookZ="-358.499816894531" upX="-0.0126197533681989" upY="0.999847710132599" upZ="-0.0120552191510797" />
   </Cameras>
 </Workspace>
