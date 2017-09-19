@@ -1,4 +1,4 @@
-<Workspace Version="1.3.0.875" X="469" Y="365" zoom="1" ScaleFactor="1" Name="UI.DropDown Data" Description="Create data for DropDown input in UI.MultiInputForm ++ . Check out www.data-shapes.net for more infos." ID="b409775c-5d88-4d47-96a3-5135c775d26a" Category="Data-Shapes.UI">
+<Workspace Version="1.3.1.1736" X="469" Y="365" zoom="1" ScaleFactor="1" Name="UI.DropDown Data" Description="Create data for DropDown input in UI.MultiInputForm ++ . Check out www.data-shapes.net for more infos." ID="b409775c-5d88-4d47-96a3-5135c775d26a" Category="Data-Shapes.UI">
   <NamespaceResolutionMap />
   <Elements>
     <PythonNodeModels.PythonNode guid="290d259f-4609-4a00-a48b-13f306f45fb4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="250" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="4">
@@ -59,7 +59,7 @@ OUT = x</Script>
       <Symbol value="DropDown input" />
     </Dynamo.Graph.Nodes.CustomNodes.Output>
     <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="cc4da914-c5b9-4f36-b77f-4b8cd7cbd8ef" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-149" y="-46" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
-      <Symbol value="InputName : string = &quot;Input&quot;" />
+      <Symbol value="InputName : string = &quot;&quot;" />
     </Dynamo.Graph.Nodes.CustomNodes.Symbol>
     <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="2ff3e262-a97c-4688-b0c7-98024a9c3b25" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-69" y="24" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
       <Symbol value="Keys : []" />
@@ -82,6 +82,6 @@ OUT = x</Script>
   <Annotations />
   <Presets />
   <Cameras>
-    <Camera Name="Hintergrundvorschau" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+    <Camera Name="Aperçu en arrière-plan" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
   </Cameras>
 </Workspace>

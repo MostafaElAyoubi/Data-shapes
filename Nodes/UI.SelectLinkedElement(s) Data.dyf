@@ -1,4 +1,4 @@
-<Workspace Version="1.2.1.3083" X="73" Y="153" zoom="1" Name="UI.SelectLinkedElement(s) Data" Description="Create a button input for UI.MultipleInputForm++ that allows to select elements in à linked document. See www.data-shapes.net for more infos!" ID="74c13cd2-5b9a-494f-beac-ea71fec14b56" Category="Data-Shapes.UI">
+<Workspace Version="1.3.1.1736" X="73" Y="153" zoom="1" ScaleFactor="1" Name="UI.SelectLinkedElement(s) Data" Description="Create a button input for UI.MultipleInputForm++ that allows to select elements in à linked document. See www.data-shapes.net for more infos!" ID="74c13cd2-5b9a-494f-beac-ea71fec14b56" Category="Data-Shapes.UI">
   <NamespaceResolutionMap />
   <Elements>
     <PythonNodeModels.PythonNode guid="93b1039f-a745-4237-b0b3-8da2c3df7210" type="PythonNodeModels.PythonNode" nickname="Python Script" x="874.421680552555" y="91.2985221790141" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="3">
@@ -31,7 +31,7 @@ OUT = x</Script>
       <Symbol value="SelectLinkedElements input" />
     </Dynamo.Graph.Nodes.CustomNodes.Output>
     <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="18423df7-292e-4821-8307-1c4da49c0600" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="433" y="-30" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
-      <Symbol value="InputName : string = &quot;Input&quot;;" />
+      <Symbol value="InputName : string = &quot;&quot;;" />
     </Dynamo.Graph.Nodes.CustomNodes.Symbol>
     <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="a6320f9d-171a-43e4-93e7-94ff7b1364ab" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="300" y="83" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
       <Symbol value="ButtonText : string = &quot;Select Linked Element(s)&quot;;" />
@@ -50,6 +50,6 @@ OUT = x</Script>
   <Annotations />
   <Presets />
   <Cameras>
-    <Camera Name="Background Preview" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+    <Camera Name="Aperçu en arrière-plan" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
   </Cameras>
 </Workspace>

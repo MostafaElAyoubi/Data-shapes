@@ -1,0 +1,63 @@
+<Workspace Version="1.3.0.875" X="407" Y="228" zoom="1" ScaleFactor="1" Name="PerformanceAdviserRule Elements" Description="Gets all elements relative to a performance adviser rule. " ID="2c40f9ea-3e3f-4555-a941-e4e2ba295f70" Category="Data-Shapes.Revit.Elements">
+  <NamespaceResolutionMap>
+    <ClassMap partialName="DSCore.List" resolvedName="DSCore.List" assemblyName="DSCoreNodes.dll" />
+  </NamespaceResolutionMap>
+  <Elements>
+    <PythonNodeModels.PythonNode guid="f112b99d-52e1-4be0-be16-dc736e67a356" type="PythonNodeModels.PythonNode" nickname="Python Script" x="250" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="2">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi ,  2017
+#Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
+
+import clr
+clr.AddReference('RevitAPI')
+from Autodesk.Revit.DB import*
+clr.AddReference('RevitServices')
+from RevitServices.Persistence import DocumentManager
+from RevitServices.Transactions import TransactionManager
+clr.AddReference('RevitAPIUI')
+from Autodesk.Revit.UI import*
+import System
+from System.Collections.Generic import*
+
+
+doc = DocumentManager.Instance.CurrentDBDocument
+app = DocumentManager.Instance.CurrentUIApplication
+pa = PerformanceAdviser.GetPerformanceAdviser()
+allrules = pa.GetAllRuleIds()
+inputrule = IN[0].Name
+r = [a for a in allrules if pa.GetRuleName(a) == inputrule]
+rules = List[PerformanceAdviserRuleId]()
+[rules.Add(i) for i in r]
+failmess = pa.ExecuteRules(doc,rules)
+elementids = [d.GetFailingElements() for d in failmess]
+elements = []
+
+for e in elementids:
+    elems = [doc.GetElement(id) for id in e]
+    elements.append(elems)
+OUT =  elements</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="540ff493-dd56-4012-b02b-45f0a3f37ff9" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="449" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Elements" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="05cf961a-8eb0-45ef-a17c-8afd374fb035" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-31" y="-49" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="PerformanceAdviserRule" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="58cc3bfa-cb5c-4f08-aa06-f0fdf24c6ad2" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="49" y="92" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Refresh : bool" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="f112b99d-52e1-4be0-be16-dc736e67a356" start_index="0" end="540ff493-dd56-4012-b02b-45f0a3f37ff9" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="05cf961a-8eb0-45ef-a17c-8afd374fb035" start_index="0" end="f112b99d-52e1-4be0-be16-dc736e67a356" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="58cc3bfa-cb5c-4f08-aa06-f0fdf24c6ad2" start_index="0" end="f112b99d-52e1-4be0-be16-dc736e67a356" end_index="1" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Background Preview" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+  </Cameras>
+</Workspace>
