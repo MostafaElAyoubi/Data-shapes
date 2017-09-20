@@ -556,7 +556,7 @@ try:
 				tn = Label()
 				tn.Location = Point(xlabel,18)
 				tn.AutoSize = True
-				tn.MaximumSize = Size(formwidth - 90,0)
+				tn.MaximumSize = Size(formwidth - rightmargin - 45 ,0)
 				tn.Text = j.textnote
 				tn.BringToFront()
 				gb.Controls.Add(tn)
@@ -1057,6 +1057,6 @@ except:
   <Annotations />
   <Presets />
   <Cameras>
-    <Camera Name="Aperçu en arrière-plan" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+    <Camera Name="Aperçu en arrière-plan" eyeX="-15.4594045188635" eyeY="45.2910547569025" eyeZ="45.5466109298949" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
   </Cameras>
 </Workspace>

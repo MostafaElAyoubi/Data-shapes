@@ -29,7 +29,7 @@ OUT = x</Script>
       <Symbol value="InputName : string = &quot;&quot;" />
     </Dynamo.Graph.Nodes.CustomNodes.Symbol>
     <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="0c7af9a8-468b-4987-8640-5d918a3db189" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-76.1112382482474" y="50.3956902067561" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
-      <Symbol value="DefaultText: string = &quot;Default&quot;" />
+      <Symbol value="DefaultText: string = &quot;&quot;" />
     </Dynamo.Graph.Nodes.CustomNodes.Symbol>
   </Elements>
   <Connectors>
