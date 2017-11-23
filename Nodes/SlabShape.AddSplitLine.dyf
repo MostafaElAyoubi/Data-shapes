@@ -1,0 +1,71 @@
+<Workspace Version="1.3.2.2480" X="456" Y="237" zoom="1" ScaleFactor="1" Name="SlabShape.AddSplitLine" Description="Adds split lines to Revit Floors" ID="f8d72f15-cb8a-46f7-b6e5-946cacba8af4" Category="Data-Shapes.Revit.Floors">
+  <NamespaceResolutionMap />
+  <Elements>
+    <PythonNodeModels.PythonNode guid="1acd5340-a052-4a5e-8b8f-8683fe2b26de" type="PythonNodeModels.PythonNode" nickname="Python Script" x="250" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="2">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi ,  2017
+#Data-Shapes www.data-shapes.net , mostafa.elayoubi@data-shapes.net
+
+import clr
+clr.AddReference('RevitAPI')
+from Autodesk.Revit.DB import*
+clr.AddReference('RevitServices')
+from RevitServices.Persistence import DocumentManager
+from RevitServices.Transactions import TransactionManager
+
+
+doc = DocumentManager.Instance.CurrentDBDocument
+floor = UnwrapElement(IN[0])
+sshpe = floor.SlabShapeEditor
+
+def tolist(input):
+	if isinstance(input,list):
+		return UnwrapElement(input)
+	else:
+		return [UnwrapElement(input)]
+
+def dscurvevertices(curve):
+	rvtline = list(curve.get_Geometry(Options()))[0]
+	return rvtline.GetEndPoint(0) , rvtline.GetEndPoint(1)
+
+def drawline(slabshape,line):
+	sp = slabshape.DrawPoint(dscurvevertices(line)[0])
+	ep = slabshape.DrawPoint(dscurvevertices(line)[1])
+	slabshape.DrawSplitLine(sp,ep)
+	return  slabshape
+
+curves = tolist(IN[1])
+
+TransactionManager.Instance.EnsureInTransaction(doc)
+
+for c in curves:
+	drawline(sshpe,c)
+
+TransactionManager.Instance.TransactionTaskDone()
+
+OUT = floor</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="58dd0175-837e-414d-a903-8a9373c4613a" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="449" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Floor" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="f5a82df4-1713-4718-9c82-f41da62519a6" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="47" y="-40" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Floor element" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="997ade2e-b511-4489-a4e6-c1192561d0cc" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="37" y="69" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Curve(s)" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="1acd5340-a052-4a5e-8b8f-8683fe2b26de" start_index="0" end="58dd0175-837e-414d-a903-8a9373c4613a" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="f5a82df4-1713-4718-9c82-f41da62519a6" start_index="0" end="1acd5340-a052-4a5e-8b8f-8683fe2b26de" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="997ade2e-b511-4489-a4e6-c1192561d0cc" start_index="0" end="1acd5340-a052-4a5e-8b8f-8683fe2b26de" end_index="1" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Background Preview" eyeX="-2557.40018087645" eyeY="21046.252342057" eyeZ="33072.0478046153" lookX="3792.57498556395" lookY="-21046.252342057" lookZ="-32336.4296405528" upX="0.0407944178772168" upY="0.936672189248398" upZ="-0.347823267419925" />
+  </Cameras>
+</Workspace>
