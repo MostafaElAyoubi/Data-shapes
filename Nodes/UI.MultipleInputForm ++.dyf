@@ -249,6 +249,7 @@ try:
 				sender.Tag = [i for j in faces for i in j]
 			except:
 				pass
+<<<<<<< HEAD
 			for c in self.Controls:
 				c.Enabled = True
 				
@@ -262,6 +263,8 @@ try:
 				pt = s.GlobalPoint
 				points.append(dsPoint.ByCoordinates(UnitUtils.ConvertFromInternalUnits(pt.X,UIunit),UnitUtils.ConvertFromInternalUnits(pt.Y,UIunit),UnitUtils.ConvertFromInternalUnits(pt.Z,UIunit)))
 			sender.Tag = points
+=======
+>>>>>>> origin/master
 			for c in self.Controls:
 				c.Enabled = True
 				
@@ -471,8 +474,13 @@ try:
 				else:
 					cb.Width = formwidth - rightmargin - xlabel
 					cb.Location = Point(xlabel,y)
+<<<<<<< HEAD
 				cb.Sorted = j._sorted
 				[cb.Items.Add(i) for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'defaultvalue' or i == 'highlight' or i == '_sorted')]
+=======
+				cb.Sorted = True
+				[cb.Items.Add(i) for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'defaultvalue' or i == 'highlight')]
+>>>>>>> origin/master
 				cb.Tag = j
 				if j.defaultvalue != None:
 					defindex = [i for i in cb.Items].index([i for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'defaultvalue' or i == 'highlight')][j.defaultvalue])
