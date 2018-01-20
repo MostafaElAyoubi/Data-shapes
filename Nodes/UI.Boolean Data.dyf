@@ -1,4 +1,4 @@
-<Workspace Version="1.2.1.3083" X="188" Y="217" zoom="1" Name="UI.Boolean input" Description="Creates a boolean input for UI.MultipleInputForm ++ . Check out www.data-shapes.net for more infos!" ID="62113099-742e-4754-acaf-81fcb1e7cec9" Category="Data-Shapes.UI">
+<Workspace Version="1.3.1.1736" X="188" Y="217" zoom="1" ScaleFactor="1" Name="UI.Boolean input" Description="Creates a boolean input for UI.MultipleInputForm ++ . Check out www.data-shapes.net for more infos!" ID="62113099-742e-4754-acaf-81fcb1e7cec9" Category="Data-Shapes.UI">
   <NamespaceResolutionMap />
   <Elements>
     <PythonNodeModels.PythonNode guid="9ff7a3e2-d882-4bf0-9777-45cf72a316cc" type="PythonNodeModels.PythonNode" nickname="Python Script" x="250" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="3">
@@ -28,7 +28,7 @@ OUT = x</Script>
       <Symbol value="Boolean input" />
     </Dynamo.Graph.Nodes.CustomNodes.Output>
     <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="0850cf62-9207-48fd-9266-3961b5312c85" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-93" y="-79" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
-      <Symbol value="InputName : string = &quot;Input&quot;" />
+      <Symbol value="InputName : string = &quot;&quot;" />
     </Dynamo.Graph.Nodes.CustomNodes.Symbol>
     <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="80f9ebea-2f68-4bc1-9d7a-c23db66a6987" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-82" y="16" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
       <Symbol value="DefaultValue : bool = false" />
@@ -47,6 +47,6 @@ OUT = x</Script>
   <Annotations />
   <Presets />
   <Cameras>
-    <Camera Name="Background Preview" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+    <Camera Name="Hintergrundvorschau" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
   </Cameras>
 </Workspace>

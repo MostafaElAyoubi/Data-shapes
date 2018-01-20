@@ -1,11 +1,7 @@
-<<<<<<< HEAD
-<Workspace Version="1.2.0.2690" X="583.055947736091" Y="111.028993366667" zoom="0.66275978056841" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
-=======
-<Workspace Version="1.3.0.875" X="543.116937591178" Y="80.135557736249" zoom="1.11135753276951" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
->>>>>>> origin/master
+<Workspace Version="1.3.2.2480" X="599.055947736091" Y="135.028993366667" zoom="0.66275978056841" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
   <NamespaceResolutionMap />
   <Elements>
-    <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="196.908369339774" y="76.3543168934324" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="9">
+    <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="198.417211652357" y="76.3543168934324" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="9">
       <PortInfo index="0" default="False" />
       <PortInfo index="1" default="False" />
       <PortInfo index="2" default="False" />
@@ -41,7 +37,7 @@ try:
 	import unicodedata
 	
 	clr.AddReference('RevitAPIUI')
-	from  Autodesk.Revit.UI import Selection , TaskDialog
+	from  Autodesk.Revit.UI import Selection , TaskDialog 
 	from  Autodesk.Revit.UI.Selection import ISelectionFilter
 	
 	importcolorselection = 0
@@ -62,13 +58,18 @@ try:
 	uidoc = DocumentManager.Instance.CurrentUIApplication.ActiveUIDocument
 
 	clr.AddReference('RevitAPI')
-	from Autodesk.Revit.DB import FilteredElementCollector , View , ViewType , ElementId , FamilyInstance
+	from Autodesk.Revit.DB import FilteredElementCollector , View , ViewType , ElementId , FamilyInstance , Document , UnitType , UnitUtils
 	dbviews = [v for v in FilteredElementCollector(doc).OfClass(View).ToElements() if (v.ViewType == ViewType.FloorPlan or v.ViewType == ViewType.CeilingPlan or v.ViewType == ViewType.Section or v.ViewType == ViewType.Elevation or v.ViewType == ViewType.ThreeD)]
 	viewindex = 0
+	
+	clr.AddReference('ProtoGeometry')
+	from Autodesk.DesignScript.Geometry import Point as dsPoint
 
 	
 	from System.Reflection import Assembly
 	import xml.etree.ElementTree as et
+	
+	UIunit = Document.GetUnits(doc).GetFormatOptions(UnitType.UT_Length).DisplayUnits
 
 	class selectionfilter(ISelectionFilter):
 		def __init__(self,category):
@@ -148,18 +149,12 @@ try:
 	    def pickobjects(self, sender, event):
 			for c in self.Controls:
 				c.Enabled = False
-<<<<<<< HEAD
 			try:
 				sel = uidoc.Selection.PickObjects(Selection.ObjectType.Element,'')
 				selelem = [doc.GetElement(s.ElementId) for s in sel]
 				sender.Tag = (selelem)
 			except:
 				pass
-=======
-			sel = uidoc.Selection.PickObjects(Selection.ObjectType.Element,'')
-			selelem = [doc.GetElement(s.ElementId) for s in sel]
-			sender.Tag = (selelem)
->>>>>>> origin/master
 			for c in self.Controls:
 				c.Enabled = True
 			
@@ -167,7 +162,6 @@ try:
 			#This part was made easier by Dimitar Venkov's work
 			for c in self.Controls:
 				c.Enabled = False
-<<<<<<< HEAD
 			try:
 				linkref = uidoc.Selection.PickObject(Selection.ObjectType.Element,'Select the link instance.')
 				link = doc.GetElement(linkref.ElementId).GetLinkDocument()
@@ -177,32 +171,18 @@ try:
 				sender.Tag = (selelem)
 			except:
 				pass
-=======
-			linkref = uidoc.Selection.PickObject(Selection.ObjectType.Element,'Select the link instance.')
-			link = doc.GetElement(linkref.ElementId).GetLinkDocument()
-			td = TaskDialog.Show('Data-Shapes','Select the linked elements and press Finish.')
-			sel = uidoc.Selection.PickObjects(Selection.ObjectType.LinkedElement,'Select the linked elements and press Finish.')
-			selelem = [link.GetElement(s.LinkedElementId) for s in sel]
-			sender.Tag = (selelem)
->>>>>>> origin/master
 			for c in self.Controls:
 				c.Enabled = True		
 
 	    def pickobject(self, sender, event):
 			for c in self.Controls:
 				c.Enabled = False
-<<<<<<< HEAD
 			try:
 				sel = uidoc.Selection.PickObject(Selection.ObjectType.Element,'')
 				selelem = doc.GetElement(sel.ElementId) 
 				sender.Tag = (selelem)
 			except:
 				pass
-=======
-			sel = uidoc.Selection.PickObject(Selection.ObjectType.Element,'')
-			selelem = doc.GetElement(sel.ElementId) 
-			sender.Tag = (selelem)
->>>>>>> origin/master
 			for c in self.Controls:
 				c.Enabled = True
 			
@@ -210,7 +190,6 @@ try:
 			#This part was made easier by Dimitar Venkov's work
 			for c in self.Controls:
 				c.Enabled = False
-<<<<<<< HEAD
 			try:
 				linkref = uidoc.Selection.PickObject(Selection.ObjectType.Element,'Select the link instance.')
 				link = doc.GetElement(linkref.ElementId).GetLinkDocument()
@@ -220,14 +199,6 @@ try:
 				sender.Tag = (selelem)
 			except:
 				pass				
-=======
-			linkref = uidoc.Selection.PickObject(Selection.ObjectType.Element,'Select the link instance.')
-			link = doc.GetElement(linkref.ElementId).GetLinkDocument()
-			td = TaskDialog.Show('Data-Shapes','Select the linked element.')
-			sel = uidoc.Selection.PickObject(Selection.ObjectType.LinkedElement,'Select the linked element.')
-			selelem = link.GetElement(sel.LinkedElementId)
-			sender.Tag = (selelem)
->>>>>>> origin/master
 			for c in self.Controls:
 				c.Enabled = True
 			
@@ -238,7 +209,6 @@ try:
 				category = UnwrapElement(sender.Tag)
 			else:
 				category = [UnwrapElement(sender.Tag)]
-<<<<<<< HEAD
 			try:
 				selfilt = selectionfilter(category)
 				sel = uidoc.Selection.PickObjects(Selection.ObjectType.Element,selfilt,'Select %s' %(', '.join([c.Name for c in category])))
@@ -246,12 +216,6 @@ try:
 				sender.Tag = (selelem)
 			except:
 				pass
-=======
-			selfilt = selectionfilter(category)
-			sel = uidoc.Selection.PickObjects(Selection.ObjectType.Element,selfilt,'Select %s' %(', '.join([c.Name for c in category])))
-			selelem = [doc.GetElement(s.ElementId) for s in sel]
-			sender.Tag = (selelem)
->>>>>>> origin/master
 			for c in self.Controls:
 				c.Enabled = True
 
@@ -262,7 +226,6 @@ try:
 				category = UnwrapElement(sender.Tag)
 			else:
 				category = [UnwrapElement(sender.Tag)]
-<<<<<<< HEAD
 			try:
 				selfilt = selectionfilter(category)
 				sel = uidoc.Selection.PickObject(Selection.ObjectType.Element,selfilt,'Select %s' %(', '.join([c.Name for c in category])))
@@ -270,17 +233,10 @@ try:
 				sender.Tag = (selelem)
 			except:
 				pass
-=======
-			selfilt = selectionfilter(category)
-			sel = uidoc.Selection.PickObject(Selection.ObjectType.Element,selfilt,'Select %s' %(', '.join([c.Name for c in category])))
-			selelem = doc.GetElement(sel.ElementId) 
-			sender.Tag = (selelem)
->>>>>>> origin/master
 			for c in self.Controls:
 				c.Enabled = True
 			
 	    def pickfaces(self, sender, event):
-<<<<<<< HEAD
 			faces = []	    	
 			for c in self.Controls:
 				c.Enabled = False
@@ -290,21 +246,26 @@ try:
 					f = uidoc.Document.GetElement(s).GetGeometryObjectFromReference(s).ToProtoType(True)
 					[i.Tags.AddTag("RevitFaceReference", s) for i in f]
 					faces.append(f)
-				sender.Tag = [i for i in f for f in faces]
+				sender.Tag = [i for j in faces for i in j]
 			except:
 				pass
-=======
+			for c in self.Controls:
+				c.Enabled = True
+				
+	    def pickpointsonface(self, sender, event):
+			faces = []	    	
 			for c in self.Controls:
 				c.Enabled = False
-			selface = uidoc.Selection.PickObjects(Selection.ObjectType.Face,'')
-			faces = [uidoc.Document.GetElement(s).GetGeometryObjectFromReference(s).ToProtoType(True) for s in selface]
-			sender.Tag = [i for f in faces for i in f]
->>>>>>> origin/master
+			selpoints = uidoc.Selection.PickObjects(Selection.ObjectType.PointOnElement,'')
+			points = []
+			for s in selpoints:
+				pt = s.GlobalPoint
+				points.append(dsPoint.ByCoordinates(UnitUtils.ConvertFromInternalUnits(pt.X,UIunit),UnitUtils.ConvertFromInternalUnits(pt.Y,UIunit),UnitUtils.ConvertFromInternalUnits(pt.Z,UIunit)))
+			sender.Tag = points
 			for c in self.Controls:
 				c.Enabled = True
 				
 	    def pickedges(self, sender, event):
-<<<<<<< HEAD
 			edges = []
 			for c in self.Controls:
 				c.Enabled = False	
@@ -317,13 +278,6 @@ try:
 				sender.Tag = edges
 			except:
 				pass
-=======
-			for c in self.Controls:
-				c.Enabled = False
-			seledge = uidoc.Selection.PickObjects(Selection.ObjectType.Edge,'')
-			edges = [uidoc.Document.GetElement(s).GetGeometryObjectFromReference(s).AsCurve().ToProtoType(True) for s in seledge]
-			sender.Tag = edges
->>>>>>> origin/master
 			for c in self.Controls:
 				c.Enabled = True
 
@@ -511,10 +465,14 @@ try:
 	
 			if j.__class__.__name__ == 'dropdown':
 				cb = ComboBox()
-				cb.Location = Point(xinput,y)
-				cb.Width = formwidth - xinput - rightmargin
-				cb.Sorted = True
-				[cb.Items.Add(i) for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'defaultvalue' or i == 'highlight')]
+				if j.inputname != "":
+					cb.Width = formwidth - rightmargin - xinput
+					cb.Location = Point(xinput,y)
+				else:
+					cb.Width = formwidth - rightmargin - xlabel
+					cb.Location = Point(xlabel,y)
+				cb.Sorted = j._sorted
+				[cb.Items.Add(i) for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'defaultvalue' or i == 'highlight' or i == '_sorted')]
 				cb.Tag = j
 				if j.defaultvalue != None:
 					defindex = [i for i in cb.Items].index([i for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'defaultvalue' or i == 'highlight')][j.defaultvalue])
@@ -524,9 +482,16 @@ try:
 				y = label.Bottom + 25
 			elif j.__class__.__name__ == 'listview':
 				lvp = Panel()
-				lvp.Location = Point(xinput,y)
+				if j.inputname != "":
+					lvp.Location = Point(xinput,y)
+					lvp.Width = formwidth - rightmargin - xinput				
+				elif j.inputname == "" and j.element_count != 0:
+					lvp.Location = Point(xlabel,y+35)
+					lvp.Width = formwidth - rightmargin - xlabel
+				else : 
+					lvp.Location = Point(xlabel,y)
+					lvp.Width = formwidth - rightmargin - xlabel				
 				lvp.Height = j.height + 25
-				lvp.Width = formwidth - xinput - rightmargin
 				#Creating the listview box
 				lv = mylistview()
 				lv.Scrollable = True
@@ -547,7 +512,12 @@ try:
 					pass
 				[lv.Items.Add(i) for i in lvItems]
 				lv.Location = Point(0,0)
-				lv.Width = formwidth - xinput - rightmargin
+				if j.inputname != "" and j.element_count != 0:
+					lv.Width = formwidth - rightmargin - xinput
+				elif j.inputname != "" and j.element_count == 0:
+					lv.Width = formwidth - rightmargin - xinput
+				else:
+					lv.Width = formwidth - rightmargin - xlabel
 				lv.Height = j.height
 				lv.Scrollable = True
 				lv.ItemCheck += form.updateallnone
@@ -587,8 +557,12 @@ try:
 			elif j.__class__.__name__ == 'uitext':
 				tb = TextBox()
 				tb.Text = j.defaultvalue
-				tb.Width = formwidth - xinput - rightmargin
-				tb.Location = Point(xinput,y)
+				if j.inputname != "":
+					tb.Width = formwidth  - rightmargin - xinput
+					tb.Location = Point(xinput,y)
+				else:
+					tb.Width = formwidth - rightmargin - xlabel
+					tb.Location = Point(xlabel,y)
 				formbody.Controls.Add(tb)
 				formbody.Controls.Add(label)
 				form.output.append(tb)
@@ -603,20 +577,20 @@ try:
 				tn = Label()
 				tn.Location = Point(xlabel,18)
 				tn.AutoSize = True
-				tn.MaximumSize = Size(formwidth - 90,0)
+				tn.MaximumSize = Size(formwidth - rightmargin - 45 ,0)
 				tn.Text = j.textnote
 				tn.BringToFront()
 				gb.Controls.Add(tn)
-				gb.Size = Size(formwidth - 65, tn.Bottom-tn.Top+25)
+				gb.Size = Size(formwidth  - rightmargin - 25, tn.Bottom-tn.Top+25)  
 				y = gb.Bottom + 25
 				formbody.Controls.Add(gb)
 			elif j.__class__.__name__ == 'uibool':
 				yn = CheckBox()
-				yn.Width = formwidth - xinput - 50
+				yn.Width = formwidth - xinput - rightmargin + 10
 				yn.Location = Point(xinput,y)
 				yn.Text = j.booltext
 				g = yn.CreateGraphics()
-				sizetext = g.MeasureString(yn.Text,yn.Font, formwidth - xinput - 70)
+				sizetext = g.MeasureString(yn.Text,yn.Font, formwidth - xinput - rightmargin -20)
 				heighttext = sizetext.Height
 				yn.Height = heighttext + 15
 				yn.Checked = j.defaultvalue
@@ -627,21 +601,28 @@ try:
 				yrb = 20
 				rbs = []
 				rbgroup = mygroupbox()
-				rbgroup.Width = formwidth - xinput - rightmargin
-				rbgroup.Location = Point(xinput,y)
+				if j.inputname != "":
+					rbgroup.Width = formwidth - xinput - rightmargin
+					rbgroup.Location = Point(xinput,y)
+				else:
+					rbgroup.Width = formwidth - xlabel - rightmargin
+					rbgroup.Location = Point(xlabel,y)					
 				rbgroup.Tag = j
 				rbcounter = 0
 				for key in j.keys():
 					if key != 'inputname' and key != 'defaultvalue':
 						rb = RadioButton()
 						rb.Text = key 
-						rb.Width = formwidth - xinput - rightmargin - 30
+						if j.inputname != "":
+							rb.Width = formwidth - xinput - rightmargin - 35
+						else:
+							rb.Width = formwidth - xlabel - rightmargin - 35
 						rb.Location = Point(20,yrb)
 						if rbcounter == j.defaultvalue:
 							rb.Checked = True
 						rbgroup.Controls.Add(rb)
 						g = rb.CreateGraphics()
-						sizetext = g.MeasureString(key,rb.Font, formwidth - xinput - 70)
+						sizetext = g.MeasureString(key,rb.Font, formwidth - xinput - 90)
 						heighttext = sizetext.Height
 						rb.Height = heighttext + 15
 						ybot = rb.Bottom
@@ -656,35 +637,48 @@ try:
 				y = rbgroup.Bottom + 25
 			elif j.__class__.__name__  == 'uifilepath':
 				fp = Button()
-				fp.Width = formwidth - xinput - rightmargin
+				if j.inputname != "":
+					fp.Width = formwidth - xinput - rightmargin
+					fp.Location = Point(xinput,y)
+				else:
+					fp.Width = formwidth - xlabel - rightmargin		
+					fp.Location = Point(xlabel,y)					
 				fp.Tag = j.defaultvalue
 				if j.defaultvalue == "FilePath":
 					fp.Text = j.buttontext
 				else:
 					fp.Text = j.defaultvalue
-				fp.Location = Point(xinput,y)
 				formbody.Controls.Add(fp)
 				fp.Click += form.openfile
 				form.output.append(fp)
 				y = label.Bottom + 25
 			elif j.__class__.__name__ == 'uidirectorypath':
 				dp = Button()
-				dp.Width = formwidth - xinput - rightmargin
+				if j.inputname != "":
+					dp.Width = formwidth - xinput - rightmargin
+					dp.Location = Point(xinput,y)
+				else:
+					dp.Width = formwidth - xlabel - rightmargin		
+					dp.Location = Point(xlabel,y)
 				dp.Tag = j.defaultvalue
 				if j.defaultvalue == "DirectoryPath":
 					dp.Text = j.buttontext
 				else:
 					dp.Text = j.defaultvalue
-				dp.Location = Point(xinput,y)
 				formbody.Controls.Add(dp)
 				dp.Click += form.opendirectory
 				form.output.append(dp)
 				y = label.Bottom + 30
 			elif j.__class__.__name__ == 'uiselectelements':
 				se = Button()
-				se.Width = formwidth - xinput - rightmargin
+				if j.inputname != "":
+					se.Width = formwidth - xinput - rightmargin
+					se.Location = Point(xinput,y)
+				else:
+					se.Width = formwidth - xlabel - rightmargin		
+					se.Location = Point(xlabel,y)
 				se.Text = j.buttontext
-				se.Location = Point(xinput,y)
+
 				formbody.Controls.Add(se)
 				if j.multi == False:
 					se.Click += form.pickobjects
@@ -694,9 +688,13 @@ try:
 				y = label.Bottom + 25
 			elif j.__class__.__name__ == 'uiselectlinkedelements':
 				se = Button()
-				se.Width = formwidth - xinput - rightmargin
+				if j.inputname != "":
+					se.Width = formwidth - xinput - rightmargin
+					se.Location = Point(xinput,y)
+				else:
+					se.Width = formwidth - xlabel - rightmargin		
+					se.Location = Point(xlabel,y)
 				se.Text = j.buttontext
-				se.Location = Point(xinput,y)
 				formbody.Controls.Add(se)
 				if j.multi == False:
 					se.Click += form.picklinkedobjects
@@ -706,10 +704,14 @@ try:
 				y = label.Bottom + 25
 			elif j.__class__.__name__ == 'uiselectlinkedelementsofcat':
 				sec = Button()
-				sec.Width = formwidth - xinput - rightmargin
+				if j.inputname != "":
+					sec.Width = formwidth - xinput - rightmargin
+					sec.Location = Point(xinput,y)
+				else:
+					sec.Width = formwidth - xlabel - rightmargin		
+					sec.Location = Point(xlabel,y)
 				sec.Text = j.buttontext
 				sec.Tag = j.category
-				sec.Location = Point(xinput,y)
 				formbody.Controls.Add(sec)
 				if j.multi == False:
 					sec.Click += form.picklinkedobjectsofcat
@@ -719,10 +721,14 @@ try:
 				y = label.Bottom + 25
 			elif j.__class__.__name__ == 'uiselectelementsofcat':
 				sec = Button()
-				sec.Width = formwidth - xinput - rightmargin
+				if j.inputname != "":
+					sec.Width = formwidth - xinput - rightmargin
+					sec.Location = Point(xinput,y)
+				else:
+					sec.Width = formwidth - xlabel - rightmargin		
+					sec.Location = Point(xlabel,y)
 				sec.Text = j.buttontext
 				sec.Tag = j.category
-				sec.Location = Point(xinput,y)
 				formbody.Controls.Add(sec)
 				if j.multi == False:
 					sec.Click += form.pickobjectsofcat
@@ -732,18 +738,39 @@ try:
 				y = label.Bottom + 25
 			elif j.__class__.__name__ == 'uiselectfaces':
 				sf = Button()
-				sf.Width = formwidth - xinput - rightmargin
+				if j.inputname != "":
+					sf.Width = formwidth - xinput - rightmargin
+					sf.Location = Point(xinput,y)
+				else:
+					sf.Width = formwidth - xlabel - rightmargin		
+					sf.Location = Point(xlabel,y)
 				sf.Text = j.buttontext
-				sf.Location = Point(xinput,y)
 				formbody.Controls.Add(sf)
 				sf.Click += form.pickfaces
 				form.output.append(sf)
 				y = label.Bottom + 25
+			elif j.__class__.__name__ == 'uiselectpointsonface':
+				spf = Button()
+				if j.inputname != "":
+					spf.Width = formwidth - xinput - rightmargin
+					spf.Location = Point(xinput,y)
+				else:
+					spf.Width = formwidth - xlabel - rightmargin		
+					spf.Location = Point(xlabel,y)
+				spf.Text = j.buttontext
+				formbody.Controls.Add(spf)
+				spf.Click += form.pickpointsonface
+				form.output.append(spf)
+				y = label.Bottom + 25
 			elif j.__class__.__name__ == 'uiselectedges':
 				sed = Button()
-				sed.Width = formwidth - xinput - rightmargin
+				if j.inputname != "":
+					sed.Width = formwidth - xinput - rightmargin
+					sed.Location = Point(xinput,y)
+				else:
+					sed.Width = formwidth - xlabel - rightmargin		
+					sed.Location = Point(xlabel,y)
 				sed.Text = j.buttontext
-				sed.Location = Point(xinput,y)
 				formbody.Controls.Add(sed)
 				sed.Click += form.pickedges
 				form.output.append(sed)
@@ -756,15 +783,22 @@ try:
 				else:
 					defval = j.defaultvalue
 				sl = mytrackbar(j.minimum,j.step)
-				gb.Width = formwidth - xinput - rightmargin
+				if j.inputname != "":
+					gb.Width = formwidth - xinput - rightmargin
+					gb.Location = Point(xinput,y)
+				else:
+					gb.Width = formwidth - xlabel - rightmargin		
+					gb.Location = Point(xlabel,y)
 				gb.Height = 40
 				sl.Minimum = 0
 				sl.Maximum = (j.maximum-j.minimum)/j.step
 				sl.Value = (defval - j.minimum) / j.step
 				sl.TickFrequency = (j.maximum-j.minimum)/j.step/10
-				gb.Location = Point(xinput,y)
 				sl.Location = Point(40,0)
-				sl.Width = formwidth - xinput - 75
+				if j.inputname != "":
+					sl.Width = formwidth - xinput - rightmargin - 35
+				else:
+					sl.Width = formwidth - xlabel -rightmargin - 35
 				gb.Controls.Add(sl)
 				form.output.append(sl)
 				displabel = Label()
@@ -800,9 +834,13 @@ try:
 		
 			elif j.__class__.__name__ == 'uicolorpick' and importcolorselection == 0:
 				cp = Button()
-				cp.Width = formwidth - xinput - rightmargin
+				if j.inputname != "":
+					cp.Width = formwidth - xinput - rightmargin
+					cp.Location = Point(xinput,y)
+				else:
+					cp.Width = formwidth - xlabel - rightmargin		
+					cp.Location = Point(xlabel,y)
 				cp.Text = j.buttontext
-				cp.Location = Point(xinput,y)
 				formbody.Controls.Add(cp)
 				cp.Click += form.colorpicker
 				form.output.append(cp)
@@ -1053,6 +1091,6 @@ except:
   <Annotations />
   <Presets />
   <Cameras>
-    <Camera Name="Aperçu en arrière-plan" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+    <Camera Name="Background Preview" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
   </Cameras>
 </Workspace>

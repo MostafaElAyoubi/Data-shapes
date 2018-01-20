@@ -1,4 +1,4 @@
-<Workspace Version="1.3.0.875" X="233.515499107143" Y="223.014654464286" zoom="1.33823125" ScaleFactor="1" Name="RayBounce On Link Category" Description="Same functionality as raybounce but takes linked model elements into account" ID="0e68ecd9-e2b5-4875-a334-8680f2f6e836" Category="Data-Shapes.Revit.RayBounce">
+<Workspace Version="1.3.2.2480" X="183.515499107143" Y="216.014654464286" zoom="1.33823125" ScaleFactor="1" Name="RayBounce On Link Category" Description="Same functionality as raybounce but takes linked model elements into account" ID="0e68ecd9-e2b5-4875-a334-8680f2f6e836" Category="Data-Shapes.Revit.RayBounce">
   <NamespaceResolutionMap>
     <ClassMap partialName="RayBounce" resolvedName="Revit.References.RayBounce" assemblyName="RevitNodes.dll" />
     <ClassMap partialName="Vector" resolvedName="Autodesk.DesignScript.Geometry.Vector" assemblyName="ProtoGeometry.dll" />
@@ -26,12 +26,17 @@ clr.AddReference('RevitServices')
 from RevitServices.Persistence import DocumentManager
 
 import System
+from System.Collections.Generic import*
 
 doc = DocumentManager.Instance.CurrentDBDocument
 
+def tolist(input):
+	if isinstance(input,list):
+		return input
+	else:
+		return [input]
+
 #Document UI Units
-
-
 UIunit = Document.GetUnits(doc).GetFormatOptions(UnitType.UT_Length).DisplayUnits
 
 #Inputs : Points, Direction, 3D View
@@ -46,8 +51,13 @@ view = UnwrapElement(IN[2])
 ex = []
 pts = []
 elems = []
-_category = IN[3]
-filter = ElementCategoryFilter(System.Enum.ToObject(BuiltInCategory, _category.Id))
+categories = tolist(IN[3])
+catfilters = []
+for i in categories:
+	catfilters.append(ElementCategoryFilter(System.Enum.ToObject(BuiltInCategory, int(str(i.Id)))))
+catfilterlist = List[ElementFilter](catfilters)
+filter = LogicalOrFilter(catfilterlist)
+
 ri = ReferenceIntersector(filter,FindReferenceTarget.All,view)
 ri.FindReferencesInRevitLinks = True
 
@@ -115,6 +125,6 @@ OUT = pts , elems</Script>
   <Annotations />
   <Presets />
   <Cameras>
-    <Camera Name="Aperçu en arrière-plan" eyeX="388.096374511719" eyeY="123.447639465332" eyeZ="129.303466796875" lookX="-375.288024902344" lookY="-123.447639465332" lookZ="-358.499816894531" upX="-0.0126197533681989" upY="0.999847710132599" upZ="-0.0120552191510797" />
+    <Camera Name="Background Preview" eyeX="305.457167867674" eyeY="34.366868491008" eyeZ="130.911215003852" lookX="-162.804327858195" lookY="16.0018581254794" lookZ="-112.686376484897" upX="0.240402532652065" upY="0.956304755963039" upZ="0.166396622612817" />
   </Cameras>
 </Workspace>
