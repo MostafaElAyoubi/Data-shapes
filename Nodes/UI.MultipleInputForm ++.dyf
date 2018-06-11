@@ -157,6 +157,42 @@ try:
 				pass
 			for c in self.Controls:
 				c.Enabled = True
+	    def pickobjectsordered(self, sender, event):
+			for c in self.Controls:
+				c.Enabled = False
+			output = []
+			test = True
+			TaskDialog.Show("Data|Shapes", 'Pick elements in order, then hit ESC to exit.')
+			while test:
+				try:
+					sel = doc.GetElement(uidoc.Selection.PickObject(Selection.ObjectType.Element, 'Pick elements in order').ElementId)
+					output.append(sel.ToDSType(True))
+				except : 
+					test = False
+				sender.Tag = output
+			for c in self.Controls:
+				c.Enabled = True
+	    
+	    def pickobjectsofcatordered(self, sender, event):
+			for c in self.Controls:
+				c.Enabled = False
+			output = []
+			test = True
+			if isinstance(sender.Tag,list):			
+				category = UnwrapElement(sender.Tag)
+			else:
+				category = [UnwrapElement(sender.Tag)]
+			TaskDialog.Show("Data|Shapes", 'Select %s in order, then press ESC to exit.' %(', '.join([c.Name for c in category])))
+			while test:
+				try:
+					selfilt = selectionfilter(category)
+					sel = doc.GetElement(uidoc.Selection.PickObject(Selection.ObjectType.Element,selfilt, 'Select %s' %(', '.join([c.Name for c in category]))).ElementId)				
+					output.append(sel.ToDSType(True))
+				except : 
+					test = False
+				sender.Tag = (output)
+			for c in self.Controls:
+				c.Enabled = True
 			
 	    def picklinkedobjects(self, sender, event):
 			#This part was made easier by Dimitar Venkov's work
@@ -686,6 +722,19 @@ try:
 					se.Click  += form.pickobject
 				form.output.append(se)
 				y = label.Bottom + 25
+			elif j.__class__.__name__ == 'uiselectOrderedelements':
+				se = Button()
+				if j.inputname != "":
+					se.Width = formwidth - xinput - rightmargin
+					se.Location = Point(xinput,y)
+				else:
+					se.Width = formwidth - xlabel - rightmargin		
+					se.Location = Point(xlabel,y)
+				se.Text = j.buttontext
+				formbody.Controls.Add(se)
+				se.Click  += form.pickobjectsordered
+				form.output.append(se)
+				y = label.Bottom + 25
 			elif j.__class__.__name__ == 'uiselectlinkedelements':
 				se = Button()
 				if j.inputname != "":
@@ -734,6 +783,20 @@ try:
 					sec.Click += form.pickobjectsofcat
 				else:
 					sec.Click += form.pickobjectofcat
+				form.output.append(sec)
+				y = label.Bottom + 25
+			elif j.__class__.__name__ == 'uiselectOrderedelementsofcat':
+				sec = Button()
+				if j.inputname != "":
+					sec.Width = formwidth - xinput - rightmargin
+					sec.Location = Point(xinput,y)
+				else:
+					sec.Width = formwidth - xlabel - rightmargin		
+					sec.Location = Point(xlabel,y)
+				sec.Text = j.buttontext
+				sec.Tag = j.category
+				formbody.Controls.Add(sec)
+				sec.Click += form.pickobjectsofcatordered
 				form.output.append(sec)
 				y = label.Bottom + 25
 			elif j.__class__.__name__ == 'uiselectfaces':
