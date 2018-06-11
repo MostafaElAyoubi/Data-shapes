@@ -1,7 +1,7 @@
 <Workspace Version="1.3.2.2480" X="599.055947736091" Y="135.028993366667" zoom="0.66275978056841" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
   <NamespaceResolutionMap />
   <Elements>
-    <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="198.417211652357" y="76.3543168934324" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="9">
+    <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="198.417211652357" y="83.8985284563486" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="9">
       <PortInfo index="0" default="False" />
       <PortInfo index="1" default="False" />
       <PortInfo index="2" default="False" />
@@ -249,7 +249,6 @@ try:
 				sender.Tag = [i for j in faces for i in j]
 			except:
 				pass
-<<<<<<< HEAD
 			for c in self.Controls:
 				c.Enabled = True
 				
@@ -263,8 +262,6 @@ try:
 				pt = s.GlobalPoint
 				points.append(dsPoint.ByCoordinates(UnitUtils.ConvertFromInternalUnits(pt.X,UIunit),UnitUtils.ConvertFromInternalUnits(pt.Y,UIunit),UnitUtils.ConvertFromInternalUnits(pt.Z,UIunit)))
 			sender.Tag = points
-=======
->>>>>>> origin/master
 			for c in self.Controls:
 				c.Enabled = True
 				
@@ -474,16 +471,11 @@ try:
 				else:
 					cb.Width = formwidth - rightmargin - xlabel
 					cb.Location = Point(xlabel,y)
-<<<<<<< HEAD
 				cb.Sorted = j._sorted
-				[cb.Items.Add(i) for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'defaultvalue' or i == 'highlight' or i == '_sorted')]
-=======
-				cb.Sorted = True
-				[cb.Items.Add(i) for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'defaultvalue' or i == 'highlight')]
->>>>>>> origin/master
+				[cb.Items.Add(i) for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'defaultvalue' or i == 'highlight' or i == '_sorted' )]
 				cb.Tag = j
 				if j.defaultvalue != None:
-					defindex = [i for i in cb.Items].index([i for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'defaultvalue' or i == 'highlight')][j.defaultvalue])
+					defindex = [i for i in cb.Items].index([i for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'defaultvalue' or i == 'highlight' or i == '_sorted' )][j.defaultvalue])
 					cb.SelectedIndex = defindex
 				formbody.Controls.Add(cb)
 				form.output.append(cb)
@@ -513,7 +505,7 @@ try:
 				if not j.display_mode:
 					lv.CheckBoxes = True
 				lv.View = vi.Details
-				lvItems =  [i for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'highlight' or i == 'display_mode' or i == 'element_count' or i == 'default_values' or i == 'sorted')]
+				lvItems =  [i for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'highlight' or i == 'display_mode' or i == 'element_count' or i == 'default_values' or i == 'sorted' or i == 'showId')]
 				if j.sorted :
 					lvItems = sorted(lvItems,key = remove_accents)
 				else:
@@ -530,7 +522,7 @@ try:
 				lv.Scrollable = True
 				lv.ItemCheck += form.updateallnone
 				for i in j.default_values:
-					defInd = lvItems.index([x for x in j.keys() if not (x == 'inputname' or x == 'height' or x == 'highlight' or x == 'display_mode' or x == 'element_count' or x == 'default_values' or x == 'sorted')][i])
+					defInd = lvItems.index([x for x in j.keys() if not (x == 'inputname' or x == 'height' or x == 'highlight' or x == 'display_mode' or x == 'element_count' or x == 'default_values' or x == 'sorted' or x == 'showId')][i])
 					lv.Items[defInd].Checked = True
 				#Click listview items to hilight and center in appropriate view
 				if j.highlight :
