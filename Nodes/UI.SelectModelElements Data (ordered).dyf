@@ -1,0 +1,76 @@
+<Workspace Version="1.3.2.2480" X="-382.925376090258" Y="-44.8512947864655" zoom="0.954042924882813" ScaleFactor="1" Name="UI.SelectModelElements Data (ordered)" Description="Creates a Revit element selection input for UI.MultipleInputForm++ . Check out www.data-shapes.net for more infos!" ID="96354ad8-1c33-42e8-ad2d-025c19be5a9d" Category="Data-Shapes.UI">
+  <NamespaceResolutionMap />
+  <Elements>
+    <PythonNodeModels.PythonNode guid="0939c0d9-bcbe-4f5f-ae27-c3886a3e6f71" type="PythonNodeModels.PythonNode" nickname="Python Script" x="1283.53186781191" y="309.161205835686" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="3">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <PortInfo index="2" default="False" />
+      <Script>#Copyright (c) Data Shapes ,  2018
+#Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
+#This node was inspired by @DanielHurtubise
+
+class uiselectOrderedelements():
+
+    def __init__(self,inputname,buttontext):
+        self.inputname = inputname
+        self.buttontext = buttontext
+
+    def __repr__(self):
+        return 'UI.SelectOrderedElements input'
+
+
+
+class uiselectOrderedelementsofcat():
+
+    def __init__(self,inputname,buttontext,category):
+        self.inputname = inputname
+        self.buttontext = buttontext
+        self.category = category
+
+    def __repr__(self):
+        return 'UI.SelectOrderedElementsOfCategory input'
+
+if IN[2] == [""]:
+	x = uiselectOrderedelements(IN[0],IN[1])
+else:
+	if isinstance(IN[2],list):
+		catnames = ', '.join([UnwrapElement(i).Name for i in IN[2]])
+		if IN[1] == "Select Model Element(s)":
+			buttontext = 'Select %s' %(catnames)
+		else:
+			buttontext = IN[1]
+	else:
+		buttontext = IN[1]
+		
+	x = uiselectOrderedelementsofcat(IN[0],buttontext,IN[2])
+
+
+OUT = x</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="27c2174a-06fe-4f15-a36f-e6616cbd773e" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="1494.47696792073" y="312.868240261166" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="SelectOrderedModelElements input" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="e40c6938-ac18-4795-936f-dc9e64b24137" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="714.147613220809" y="238" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="InputName : string = &quot;&quot;;" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="ec7f16cf-ad1c-4d6a-b687-864ea3dbbd7e" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="712.246844015188" y="333.505489989118" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="ButtonText : string = &quot;Select Model Element(s)&quot;;" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="1b270218-dd5b-41bb-bc0f-a5781affa2aa" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="712.509747007477" y="446.274704951031" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="CategoryFilter : var[] = &quot;&quot;" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="0939c0d9-bcbe-4f5f-ae27-c3886a3e6f71" start_index="0" end="27c2174a-06fe-4f15-a36f-e6616cbd773e" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="e40c6938-ac18-4795-936f-dc9e64b24137" start_index="0" end="0939c0d9-bcbe-4f5f-ae27-c3886a3e6f71" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="ec7f16cf-ad1c-4d6a-b687-864ea3dbbd7e" start_index="0" end="0939c0d9-bcbe-4f5f-ae27-c3886a3e6f71" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="1b270218-dd5b-41bb-bc0f-a5781affa2aa" start_index="0" end="0939c0d9-bcbe-4f5f-ae27-c3886a3e6f71" end_index="2" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Background Preview" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+  </Cameras>
+</Workspace>
