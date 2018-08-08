@@ -1,30 +1,54 @@
 <Workspace Version="1.3.2.2480" X="275" Y="259" zoom="1" ScaleFactor="1" Name="UI.DataTable input" Description="Create a DataTable view input for UI.MultipleInputForm ++" ID="9f32e65e-e8cb-4d35-a2d2-25611e209d9e" Category="Data-Shapes.UI">
   <NamespaceResolutionMap />
   <Elements>
-    <PythonNodeModels.PythonNode guid="1cf63d5d-a9ea-4281-bf02-76f67137f150" type="PythonNodeModels.PythonNode" nickname="Python Script" x="701.941434077256" y="23.9773451850582" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="4">
+    <PythonNodeModels.PythonNode guid="1cf63d5d-a9ea-4281-bf02-76f67137f150" type="PythonNodeModels.PythonNode" nickname="Python Script" x="703.941434077256" y="24.9773451850582" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="5">
       <PortInfo index="0" default="False" />
       <PortInfo index="1" default="False" />
       <PortInfo index="2" default="False" />
       <PortInfo index="3" default="False" />
-      <Script>#Copyright (c) mostafa el ayoubi ,  2016
+      <PortInfo index="4" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi ,  2018
 #Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
+
+import clr
+clr.AddReference('RevitAPI')
+from Autodesk.Revit.DB import*
+clr.AddReference('RevitServices')
+from RevitServices.Persistence import DocumentManager
+from System import DateTime
+
+dt = DateTime.Now
+
+doc = DocumentManager.Instance.CurrentDBDocument
+
+try:
+	pname = doc.PathName
+	try:
+		name = pname.split('\\')[-1]
+
+	except:
+		name = pname.split("/")[-1] 		
+except:
+	name = "" 
 
 class tableview():
 
-    def __init__(self,inputname,_tabletitle,dataList,_hasTitle,_openExcel):
+    def __init__(self,inputname,_tabletitle,dataList,_hasTitle,_openExcel,_showinfo,_fileInfo):
     	self.inputname = inputname
         self._tabletitle = _tabletitle
         self.dataList = dataList
         self._hasTitle = _hasTitle
         self._openExcel = _openExcel
+        self._showinfo = _showinfo
+        self._fileInfo = _fileInfo
 
     def __repr__(self):
         return 'UI.TableView input'
-        
-x = tableview("",IN[0],IN[1],IN[2],IN[3])
+     
+x = tableview("",IN[0],IN[1],IN[2],IN[3],IN[4],name + " , " + str(dt))
 
 
-OUT = x</Script>
+OUT =  x</Script>
     </PythonNodeModels.PythonNode>
     <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="20ca47bc-b70f-4a92-9301-0f899ebb88ab" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="27" y="-4" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
       <Symbol value="InputName : string = &quot;Table Title&quot;;" />
@@ -39,7 +63,10 @@ OUT = x</Script>
     <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="edcbf6bf-0a5d-47c5-8159-b1ddf0dbe192" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="35" y="142" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
       <Symbol value="FirstRowIsTitles : bool = false" />
     </Dynamo.Graph.Nodes.CustomNodes.Symbol>
-    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="627dd837-d7b6-4981-8610-e5e9d2d1e5bb" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="37" y="210" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="627dd837-d7b6-4981-8610-e5e9d2d1e5bb" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="12" y="304" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="ShowTitleAndFileInfoInExport : bool = true" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="e55c506f-1552-429a-92d2-221211aeba3d" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="27" y="228" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
       <Symbol value="OpenExcelAtExport : bool = false" />
     </Dynamo.Graph.Nodes.CustomNodes.Symbol>
   </Elements>
@@ -48,7 +75,8 @@ OUT = x</Script>
     <Dynamo.Graph.Connectors.ConnectorModel start="20ca47bc-b70f-4a92-9301-0f899ebb88ab" start_index="0" end="1cf63d5d-a9ea-4281-bf02-76f67137f150" end_index="0" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="1230a067-4c4a-4862-b4b0-d004e200a72f" start_index="0" end="1cf63d5d-a9ea-4281-bf02-76f67137f150" end_index="1" portType="0" />
     <Dynamo.Graph.Connectors.ConnectorModel start="edcbf6bf-0a5d-47c5-8159-b1ddf0dbe192" start_index="0" end="1cf63d5d-a9ea-4281-bf02-76f67137f150" end_index="2" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="627dd837-d7b6-4981-8610-e5e9d2d1e5bb" start_index="0" end="1cf63d5d-a9ea-4281-bf02-76f67137f150" end_index="3" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="627dd837-d7b6-4981-8610-e5e9d2d1e5bb" start_index="0" end="1cf63d5d-a9ea-4281-bf02-76f67137f150" end_index="4" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="e55c506f-1552-429a-92d2-221211aeba3d" start_index="0" end="1cf63d5d-a9ea-4281-bf02-76f67137f150" end_index="3" portType="0" />
   </Connectors>
   <Notes />
   <Annotations />
