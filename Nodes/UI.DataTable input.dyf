@@ -1,0 +1,59 @@
+<Workspace Version="1.3.2.2480" X="275" Y="259" zoom="1" ScaleFactor="1" Name="UI.DataTable input" Description="Create a DataTable view input for UI.MultipleInputForm ++" ID="9f32e65e-e8cb-4d35-a2d2-25611e209d9e" Category="Data-Shapes.UI">
+  <NamespaceResolutionMap />
+  <Elements>
+    <PythonNodeModels.PythonNode guid="1cf63d5d-a9ea-4281-bf02-76f67137f150" type="PythonNodeModels.PythonNode" nickname="Python Script" x="701.941434077256" y="23.9773451850582" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="4">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <PortInfo index="2" default="False" />
+      <PortInfo index="3" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi ,  2016
+#Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
+
+class tableview():
+
+    def __init__(self,inputname,_tabletitle,dataList,_hasTitle,_openExcel):
+    	self.inputname = inputname
+        self._tabletitle = _tabletitle
+        self.dataList = dataList
+        self._hasTitle = _hasTitle
+        self._openExcel = _openExcel
+
+    def __repr__(self):
+        return 'UI.TableView input'
+        
+x = tableview("",IN[0],IN[1],IN[2],IN[3])
+
+
+OUT = x</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="20ca47bc-b70f-4a92-9301-0f899ebb88ab" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="27" y="-4" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="InputName : string = &quot;Table Title&quot;;" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="1230a067-4c4a-4862-b4b0-d004e200a72f" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="34" y="69" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Data" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="a4203266-9332-46f3-8208-48a67331dc5d" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="920.941434077256" y="25" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="TableView input" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="edcbf6bf-0a5d-47c5-8159-b1ddf0dbe192" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="35" y="142" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="FirstRowIsTitles : bool = false" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="627dd837-d7b6-4981-8610-e5e9d2d1e5bb" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="37" y="210" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="OpenExcelAtExport : bool = false" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="1cf63d5d-a9ea-4281-bf02-76f67137f150" start_index="0" end="a4203266-9332-46f3-8208-48a67331dc5d" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="20ca47bc-b70f-4a92-9301-0f899ebb88ab" start_index="0" end="1cf63d5d-a9ea-4281-bf02-76f67137f150" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="1230a067-4c4a-4862-b4b0-d004e200a72f" start_index="0" end="1cf63d5d-a9ea-4281-bf02-76f67137f150" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="edcbf6bf-0a5d-47c5-8159-b1ddf0dbe192" start_index="0" end="1cf63d5d-a9ea-4281-bf02-76f67137f150" end_index="2" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="627dd837-d7b6-4981-8610-e5e9d2d1e5bb" start_index="0" end="1cf63d5d-a9ea-4281-bf02-76f67137f150" end_index="3" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Background Preview" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+  </Cameras>
+</Workspace>
