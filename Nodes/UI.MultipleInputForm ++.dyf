@@ -1,7 +1,7 @@
 <Workspace Version="1.3.2.2480" X="599.055947736091" Y="135.028993366667" zoom="0.66275978056841" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
   <NamespaceResolutionMap />
   <Elements>
-    <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="205.961423215273" y="83.8985284563486" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="9">
+    <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="202.943738590106" y="83.8985284563486" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="9">
       <PortInfo index="0" default="False" />
       <PortInfo index="1" default="False" />
       <PortInfo index="2" default="False" />
@@ -15,7 +15,6 @@
 #Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
 	
 import clr
-
 import sys
 pyt_path = r'C:\Program Files (x86)\IronPython 2.7\Lib'
 sys.path.append(pyt_path)
@@ -27,8 +26,8 @@ try:
 	clr.AddReference('System.Windows.Forms')
 	clr.AddReference('System.Drawing')
 	
-	from System.Drawing import Point , Size , Graphics, Bitmap, Image, Font, FontStyle, Icon, Color, Region , Rectangle 
-	from System.Windows.Forms import Application, DockStyle, Button, Form, Label, TrackBar , ToolTip, ColumnHeader, TextBox, CheckBox, FolderBrowserDialog, OpenFileDialog, DialogResult, ComboBox, FormBorderStyle, FormStartPosition, ListView, ListViewItem , SortOrder, Panel, ImageLayout, GroupBox, RadioButton, BorderStyle, PictureBox, PictureBoxSizeMode, LinkLabel, CheckState, ColumnHeaderStyle , ImageList, VScrollBar, DataGrid 
+	from System.Drawing import Point , Size , Graphics, Bitmap, Image, Font, FontStyle, Icon, Color, Region , Rectangle , ContentAlignment
+	from System.Windows.Forms import Application, DockStyle, Button, Form, Label, TrackBar , ToolTip, ColumnHeader, TextBox, CheckBox, FolderBrowserDialog, OpenFileDialog, DialogResult, ComboBox, FormBorderStyle, FormStartPosition, ListView, ListViewItem , SortOrder, Panel, ImageLayout, GroupBox, RadioButton, BorderStyle, PictureBox, PictureBoxSizeMode, LinkLabel, CheckState, ColumnHeaderStyle , ImageList, VScrollBar, DataGridView
 	from System.Collections.Generic import *
 	from System.Collections.Generic import List as iList
 	from System.Windows.Forms import View as vi
@@ -153,9 +152,10 @@ try:
 	    	fbd.SelectedPath = sender.Text
 	    	parent = sender.Parent
 	    	fptextbox = parent.GetChildAtPoint(Point(parent.Location.X,sender.Location.Y+5))
-	    	dataGrid = parent.GetChildAtPoint(Point(parent.Location.X,parent.Location.Y))
+	    	dataGrid = parent.GetChildAtPoint(Point(parent.Location.X,parent.Location.Y+23))
 	    	dataTable = dataGrid.Tag
 	    	fptext = fptextbox.Text
+	    	titletext = parent.GetChildAtPoint(Point(0,0)).Text
 	    	dr = fbd.ShowDialog()
 	    	if sender.Tag[0]:
 	    		_header = Excel.XlYesNoGuess.xlYes
@@ -167,7 +167,7 @@ try:
 	    		if sender.Tag[2]:
 		    		titleCell = worksheet.Cells[1,1]
 		    		worksheet.Cells[2,1].Value2 = sender.Tag[3]
-		    		titleCell.Value2 = dataGrid.CaptionText
+		    		titleCell.Value2 = titletext
 		    		titleCell.Font.Size = 18
 		    		titleCell.Font.Bold = True
 		    		startR = 3
@@ -720,12 +720,22 @@ try:
 			elif j.__class__.__name__ == 'tableview':
 				#Creating grouping panel
 				tvp = Panel()
-				tvp.BringToFront()
 				tvp.Location = Point(xlabel,y)
 				tvp.Width = formwidth - rightmargin - xlabel
-				tvp.Height = 50 + len(j.dataList) * 15 + 50
+				tvp.Height = 50 + len(j.dataList) * 15 + 73
+				#Creating title
+				titlep = Label()
+				titlep.Text = j._tabletitle
+				titlep.Width = formwidth - rightmargin - xlabel
+				titlep.BackColor = Color.FromArgb(153,180,209)
+				titlep.Font = Font("Arial", 11, FontStyle.Bold)
+				titlep.TextAlign = ContentAlignment.MiddleLeft
+				titlep.BorderStyle = BorderStyle.FixedSingle
+				titlep.Location = Point(0,0)
+				tvp.Controls.Add(titlep)
 				#Creating data structure
-				dg = DataGrid()			
+				dg = DataGridView()
+				dg.EnableHeadersVisualStyles = False				
 				dt = DataTable()
 				dl = j.dataList
 				dtexl = DataTable()
@@ -751,9 +761,8 @@ try:
 					dtexl.Rows.Add(erow)				
 				dg.Tag = dtexl				
 				dg.DataSource = dt
-				dg.CaptionText = j._tabletitle
 				dg.Width = formwidth - rightmargin - xlabel
-				dg.Location = Point(0,0)
+				dg.Location = Point(0,23)
 				dg.Height = 50 + len(j.dataList) * 15
 				tvp.Controls.Add(dg)			
 				y = tvp.Bottom + 15
@@ -767,19 +776,20 @@ try:
 					ex.Text = "Export"					
 				ex.Width = 60	
 				ex.Height = 30
-				ex.Location = Point(formwidth - 125 ,dg.Height + 15)					
+				ex.Location = Point(formwidth - 125 ,dg.Bottom + 15)					
 				tvp.Controls.Add(ex)
 				ex.Click += form.exportToExcel
 				#Adding filepath export textbox
 				filepathtb = TextBox()
 				filepathtb.Text = "ExportFileName"
-				filepathtb.Location = Point(0 ,dg.Height + 20)
+				filepathtb.Location = Point(0 ,dg.Bottom + 20)
 				filepathtb.Width = formwidth - xlabel - 125
 				tvp.Controls.Add(filepathtb)
 				#Adding panel to form
 				formbody.Controls.Add(tvp)
 				form.output.append(dg)
 				y = tvp.Bottom + 25
+				form.topmost()
 			elif j.__class__.__name__ == 'uitextnote':
 				gb = GroupBox()
 				gb.Text = j.title
