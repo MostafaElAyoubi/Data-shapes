@@ -1,0 +1,52 @@
+<Workspace Version="1.3.0.875" X="245.21" Y="199.8875" zoom="1.1575" ScaleFactor="1" Name="UI.Image Data" Description="Places an image on UI.MultipleInutForm ++ ." ID="3945e119-3d48-4860-ad86-025b318be8bf" Category="Data-Shapes.UI">
+  <NamespaceResolutionMap />
+  <Elements>
+    <PythonNodeModels.PythonNode guid="9cbcd342-4e0f-42f9-b4e5-c0a2825db893" type="PythonNodeModels.PythonNode" nickname="Python Script" x="252.600431965443" y="56.8401727861771" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="3">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <PortInfo index="2" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi ,  2017
+#Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
+
+class uiimage():
+
+    def __init__(self,inputname,image,showborder):
+        self.inputname = inputname    
+        self.image = image
+        self.showborder = showborder
+
+    def __repr__(self):
+        return 'UI.Image input'
+        
+x = uiimage(IN[0],IN[1],IN[2])
+
+
+OUT = x</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="bf2ef3aa-3008-4e3e-afc8-34a5ca88630e" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-149.399568034557" y="-0.159827213822851" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="ImageTitle : string = &quot;&quot;" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="341118a4-8f4d-41b9-8d03-86d6981bc86c" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-149.399568034557" y="82.8401727861771" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Image" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="cf944a6c-9c1e-483e-92e1-c421252a144f" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="476.600431965443" y="56.8401727861771" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Image input" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="f6131b8c-e9ce-4d7b-8126-028ca0f94060" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-149.399568034557" y="165.840172786177" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="ShowBorder_optional : bool = true" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="9cbcd342-4e0f-42f9-b4e5-c0a2825db893" start_index="0" end="cf944a6c-9c1e-483e-92e1-c421252a144f" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="bf2ef3aa-3008-4e3e-afc8-34a5ca88630e" start_index="0" end="9cbcd342-4e0f-42f9-b4e5-c0a2825db893" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="341118a4-8f4d-41b9-8d03-86d6981bc86c" start_index="0" end="9cbcd342-4e0f-42f9-b4e5-c0a2825db893" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="f6131b8c-e9ce-4d7b-8126-028ca0f94060" start_index="0" end="9cbcd342-4e0f-42f9-b4e5-c0a2825db893" end_index="2" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Hintergrundvorschau" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+  </Cameras>
+</Workspace>

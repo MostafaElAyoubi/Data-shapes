@@ -1,0 +1,70 @@
+<Workspace Version="1.2.1.3083" X="200" Y="229" zoom="1" Name="Select Model Elements of Category" Description="Allows to perform a manual selection with a category filter." ID="f076090f-2845-4c5c-966b-9e523ef8453b" Category="Data-Shapes.Revit.Selection">
+  <NamespaceResolutionMap />
+  <Elements>
+    <PythonNodeModels.PythonNode guid="7aca3cf5-ccca-454f-87f2-bdc56feaccc3" type="PythonNodeModels.PythonNode" nickname="Python Script" x="250" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="2">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi ,  2017
+#Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
+#This work was inspired by @DanielHurtubise
+
+import clr
+clr.AddReference('RevitAPI')
+from Autodesk.Revit.DB import *
+clr.AddReference('RevitAPIUI')
+from Autodesk.Revit.UI import*
+from Autodesk.Revit.UI.Selection import ObjectType , ISelectionFilter
+clr.AddReference('RevitServices')
+from RevitServices.Persistence import DocumentManager
+
+doc = DocumentManager.Instance.CurrentDBDocument
+uidoc = uidoc = DocumentManager.Instance.CurrentUIApplication.ActiveUIDocument
+
+class selectionfilter(ISelectionFilter):
+	def __init__(self,categories):
+		self.categories = categories
+	def AllowElement(self,element):
+		if element.Category.Name in [c.Name for c in self.categories] :
+			return True
+		else:
+			return False
+	def AllowReference(reference,point):
+		return False
+
+if isinstance(IN[0],list):
+	categories = UnwrapElement(IN[0])
+else:
+	categories = [UnwrapElement(IN[0])]
+	
+selfilt = selectionfilter(categories)
+catnames = ', '.join([c.Name for c in categories])
+if IN[1]:
+	sel = uidoc.Selection.PickObjects(Selection.ObjectType.Element,selfilt,'Select %s' %(catnames))
+	selelem = [doc.GetElement(s.ElementId) for s in sel]
+	OUT = selelem
+else:
+	OUT = 'Set toggle to true!'</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="1ee170fb-4fab-4736-ac95-982725b2763f" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="447" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="OUT" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="0fb6c766-aaf5-4447-81b0-c7738c7f1087" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-3.5" y="-32" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Category" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="be157eda-e1e3-4cf0-b19c-2939ceeddab9" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-58" y="66" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Toggle : bool = false" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="7aca3cf5-ccca-454f-87f2-bdc56feaccc3" start_index="0" end="1ee170fb-4fab-4736-ac95-982725b2763f" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="0fb6c766-aaf5-4447-81b0-c7738c7f1087" start_index="0" end="7aca3cf5-ccca-454f-87f2-bdc56feaccc3" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="be157eda-e1e3-4cf0-b19c-2939ceeddab9" start_index="0" end="7aca3cf5-ccca-454f-87f2-bdc56feaccc3" end_index="1" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Background Preview" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+  </Cameras>
+</Workspace>

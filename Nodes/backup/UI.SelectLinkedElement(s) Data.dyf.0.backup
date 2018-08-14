@@ -1,0 +1,55 @@
+<Workspace Version="1.3.1.1736" X="73" Y="153" zoom="1" ScaleFactor="1" Name="UI.SelectLinkedElement(s) Data" Description="Create a button input for UI.MultipleInputForm++ that allows to select elements in à linked document. See www.data-shapes.net for more infos!" ID="74c13cd2-5b9a-494f-beac-ea71fec14b56" Category="Data-Shapes.UI">
+  <NamespaceResolutionMap />
+  <Elements>
+    <PythonNodeModels.PythonNode guid="93b1039f-a745-4237-b0b3-8da2c3df7210" type="PythonNodeModels.PythonNode" nickname="Python Script" x="874.421680552555" y="91.2985221790141" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="3">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <PortInfo index="2" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi ,  2017
+#Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
+#This node was inspired by @DanielHurtubise
+
+class uiselectlinkedelements():
+
+    def __init__(self,inputname,buttontext,multi):
+        self.inputname = inputname
+        self.buttontext = buttontext
+        self.multi = multi
+
+    def __repr__(self):
+        return 'UI.SelectLinkedElements input'
+
+
+
+x = uiselectlinkedelements(IN[0],IN[1],IN[2])
+
+
+OUT = x</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="2ddd9394-af6c-4346-a7a8-d0d87e39dd1c" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="1122.42168055256" y="48" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="SelectLinkedElements input" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="18423df7-292e-4821-8307-1c4da49c0600" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="433" y="-30" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="InputName : string = &quot;&quot;;" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="a6320f9d-171a-43e4-93e7-94ff7b1364ab" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="300" y="83" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="ButtonText : string = &quot;Select Linked Element(s)&quot;;" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="31cf47b5-4f7a-4bb9-811d-07019987c84e" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="390" y="192" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="SelectSingleElement : bool = false;" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="93b1039f-a745-4237-b0b3-8da2c3df7210" start_index="0" end="2ddd9394-af6c-4346-a7a8-d0d87e39dd1c" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="18423df7-292e-4821-8307-1c4da49c0600" start_index="0" end="93b1039f-a745-4237-b0b3-8da2c3df7210" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="a6320f9d-171a-43e4-93e7-94ff7b1364ab" start_index="0" end="93b1039f-a745-4237-b0b3-8da2c3df7210" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="31cf47b5-4f7a-4bb9-811d-07019987c84e" start_index="0" end="93b1039f-a745-4237-b0b3-8da2c3df7210" end_index="2" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Aperçu en arrière-plan" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+  </Cameras>
+</Workspace>

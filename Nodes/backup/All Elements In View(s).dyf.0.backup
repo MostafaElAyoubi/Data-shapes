@@ -1,0 +1,39 @@
+<Workspace Version="1.3.0.875" X="319.33" Y="271.5575" zoom="1.1575" ScaleFactor="1" Name="All Elements In View(s)" Description="Retrieves all visible element in a view or a set of views" ID="51e3d5bc-cc07-4e8b-b976-11dc51cf6843" Category="Data-Shapes.Revit.Elements">
+  <NamespaceResolutionMap />
+  <Elements>
+    <PythonNodeModels.PythonNode guid="d8c1cfb5-f669-43ee-adb9-ed71065c8cfa" type="PythonNodeModels.PythonNode" nickname="Python Script" x="250" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="1">
+      <PortInfo index="0" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi ,  2017
+#Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
+
+import clr
+clr.AddReference('RevitAPI')
+from Autodesk.Revit.DB import*
+clr.AddReference('RevitServices')
+from RevitServices.Persistence import DocumentManager
+
+doc = DocumentManager.Instance.CurrentDBDocument
+
+if isinstance(IN[0],list):
+	views = UnwrapElement(IN[0])
+else:
+	views = [UnwrapElement(IN[0])]
+
+OUT = [FilteredElementCollector(doc,v.Id).ToElements() for v in views]</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="3c77f6ce-91b4-4abd-96c4-d2899f37f332" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="0" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="View(s)" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="75b70a1a-31b0-487e-a01b-85d5199023f6" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="449" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Element(s)" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="d8c1cfb5-f669-43ee-adb9-ed71065c8cfa" start_index="0" end="75b70a1a-31b0-487e-a01b-85d5199023f6" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="3c77f6ce-91b4-4abd-96c4-d2899f37f332" start_index="0" end="d8c1cfb5-f669-43ee-adb9-ed71065c8cfa" end_index="0" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+</Workspace>

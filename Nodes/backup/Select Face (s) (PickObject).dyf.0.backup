@@ -1,0 +1,58 @@
+<Workspace Version="1.3.0.875" X="194.857142857142" Y="282.285714285714" zoom="1" ScaleFactor="1" Name="Select Face (s) (PickObject)" Description="Same as OOTB Select Faces, but can be used through Dynamo Player" ID="23014b57-313e-4c4f-957a-469ed4678df0" Category="Data-Shapes.Revit.Selection">
+  <NamespaceResolutionMap>
+    <ClassMap partialName="Dictionary" resolvedName="Lists.Dictionary" assemblyName="LunchBox.dll" />
+  </NamespaceResolutionMap>
+  <Elements>
+    <PythonNodeModels.PythonNode guid="86acd7f6-852f-4c9c-8857-61b26b95ce64" type="PythonNodeModels.PythonNode" nickname="Python Script" x="220.285714285714" y="0.571428571428555" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="1">
+      <PortInfo index="0" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi
+#Node-mode www.data-shapes.net 2016 elayoub.mostafa@gmail.com
+
+import clr
+
+clr.AddReference('RevitAPI')
+from Autodesk.Revit.DB import*
+clr.AddReference('RevitServices')
+from RevitServices.Persistence import DocumentManager
+clr.AddReference('RevitNodes')
+import Revit
+clr.AddReference('RevitAPIUI')
+from Autodesk.Revit.UI.Selection import ObjectType
+clr.ImportExtensions(Revit.Elements)
+clr.ImportExtensions(Revit.GeometryConversion)
+
+doc = DocumentManager.Instance.CurrentDBDocument
+uidoc = DocumentManager.Instance.CurrentUIApplication.ActiveUIDocument
+faces = []
+dsfaces = []
+
+faces.append(uidoc.Selection.PickObjects(ObjectType.Face,'Select Faces'))
+for f in faces:
+	for r in f:
+		e = uidoc.Document.GetElement(r)
+		dsface = e.GetGeometryObjectFromReference(r).ToProtoType(True)
+		[f.Tags.AddTag("RevitFaceReference", r) for f in dsface]
+		dsfaces.append(dsface)
+
+		
+OUT = dsfaces</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="e51c410e-a75f-4f1b-9067-64aefcacc370" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="446.142857142857" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Faces" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="85553419-e4e3-4c74-81bb-2e08cfae014b" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-69.4285714285714" y="1.71428571428567" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Refresh : bool = true" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="86acd7f6-852f-4c9c-8857-61b26b95ce64" start_index="0" end="e51c410e-a75f-4f1b-9067-64aefcacc370" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="85553419-e4e3-4c74-81bb-2e08cfae014b" start_index="0" end="86acd7f6-852f-4c9c-8857-61b26b95ce64" end_index="0" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Aperçu en arrière-plan" eyeX="-7.39973272359948" eyeY="41.9966386950539" eyeZ="48.2232292025038" lookX="1.24522674113985" lookY="-8.83677030636107" lookZ="-59.9780034755724" upX="-0.00144792935844418" upY="0.997564050259825" upZ="0.0697414448501592" />
+  </Cameras>
+</Workspace>

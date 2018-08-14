@@ -1,0 +1,46 @@
+<Workspace Version="1.3.1.1736" X="435.524289681056" Y="279.394972367262" zoom="2.05668026833428" ScaleFactor="1" Name="UI.TextNote Data" Description="Create Data for TextNote input in UI.MultipleInputForm ++ . Check out www.data-shapes.net for more informations" ID="21f76aa4-5026-47ec-b977-474280c81d74" Category="Data-Shapes.UI">
+  <NamespaceResolutionMap />
+  <Elements>
+    <PythonNodeModels.PythonNode guid="fa0ae2da-27ba-406d-81cb-ff23789e1a89" type="PythonNodeModels.PythonNode" nickname="Python Script" x="250" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="2">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi ,  2016
+#Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
+
+class uitextnote():
+
+    def __init__(self,inputname, title, textnote):
+        self.inputname = inputname
+        self.title = title
+        self.textnote = textnote
+
+
+
+    def __repr__(self):
+        return 'UI.TextNote input'
+        
+x = uitextnote("",IN[0],IN[1])
+
+
+OUT = x</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="65be4e9d-fed4-4880-b1c3-8fbd9a11818b" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="447" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="TextBox input" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="433ad0c4-aa3f-4f55-b235-dcc0f50590bf" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-93.9376902798839" y="-16.6510935108795" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Title : string = &quot;&quot;;" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="cebcb51e-75ab-4f76-a9fe-a9379bb9a8cd" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-91.829412326516" y="72.8784304514507" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value=" TextNote : string " />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="fa0ae2da-27ba-406d-81cb-ff23789e1a89" start_index="0" end="65be4e9d-fed4-4880-b1c3-8fbd9a11818b" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="433ad0c4-aa3f-4f55-b235-dcc0f50590bf" start_index="0" end="fa0ae2da-27ba-406d-81cb-ff23789e1a89" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="cebcb51e-75ab-4f76-a9fe-a9379bb9a8cd" start_index="0" end="fa0ae2da-27ba-406d-81cb-ff23789e1a89" end_index="1" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+</Workspace>

@@ -1,0 +1,114 @@
+<Workspace Version="1.3.0.875" X="102.515499107143" Y="215.014654464286" zoom="1.33823125" ScaleFactor="1" Name="RayBounce On Linked Model" Description="Same functionality as raybounce but takes linked model elements into account" ID="de53be2a-ccd3-4ba4-ac19-bfc582c19c9b" Category="Data-Shapes.Revit.RayBounce">
+  <NamespaceResolutionMap>
+    <ClassMap partialName="RayBounce" resolvedName="Revit.References.RayBounce" assemblyName="RevitNodes.dll" />
+    <ClassMap partialName="Vector" resolvedName="Autodesk.DesignScript.Geometry.Vector" assemblyName="ProtoGeometry.dll" />
+    <ClassMap partialName="Point" resolvedName="Autodesk.DesignScript.Geometry.Point" assemblyName="ProtoGeometry.dll" />
+  </NamespaceResolutionMap>
+  <Elements>
+    <PythonNodeModels.PythonNode guid="1852c0e0-e60d-41f6-baa1-ea95d023d199" type="PythonNodeModels.PythonNode" nickname="Python Script" x="239.714285714286" y="7.42857142857144" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="4">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <PortInfo index="2" default="False" />
+      <PortInfo index="3" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi
+#Node-mode www.data-shapes.net 2016 elayoub.mostafa@gmail.com
+
+import clr
+clr.AddReference('RevitAPI')
+from Autodesk.Revit.DB import*
+
+clr.AddReference('ProtoGeometry')
+from Autodesk.DesignScript.Geometry import *
+
+clr.AddReference('RevitServices')
+from RevitServices.Persistence import DocumentManager
+
+
+doc = DocumentManager.Instance.CurrentDBDocument
+
+#Document UI Units
+
+
+UIunit = Document.GetUnits(doc).GetFormatOptions(UnitType.UT_Length).DisplayUnits
+
+#Inputs : Points, Direction, 3D View
+if isinstance(IN[0],list):
+	points = [XYZ(UnitUtils.ConvertToInternalUnits(i.X,UIunit),UnitUtils.ConvertToInternalUnits(i.Y,UIunit),UnitUtils.ConvertToInternalUnits(i.Z,UIunit)) for i in IN[0]]
+else:
+	points = [XYZ(UnitUtils.ConvertToInternalUnits(IN[0].X,UIunit),UnitUtils.ConvertToInternalUnits(IN[0].Y,UIunit),UnitUtils.ConvertToInternalUnits(IN[0].Z,UIunit))]
+
+direction = XYZ(IN[1].X,IN[1].Y,IN[1].Z)
+view = UnwrapElement(IN[2])
+
+ex = []
+pts = []
+elems = []
+
+ri = ReferenceIntersector(view)
+ri.FindReferencesInRevitLinks = True
+
+for p in points:
+	ref = ri.FindNearest(p,direction)
+	if ref == None:
+		pts.append(None)
+		elems.append(None)
+	else:
+		refel = ref.GetReference()
+		linkinstance = doc.GetElement(refel.ElementId)
+		try:
+			elem = linkinstance.GetLinkDocument().GetElement(refel.LinkedElementId)
+			elems.append(elem)
+			refp = ref.GetReference().GlobalPoint
+			pts.append(Point.ByCoordinates(UnitUtils.ConvertFromInternalUnits(refp.X,UIunit),UnitUtils.ConvertFromInternalUnits(refp.Y,UIunit),UnitUtils.ConvertFromInternalUnits(refp.Z,UIunit)))
+		except:
+			if not IN[3]:
+				elems.append(linkinstance)
+				refp = ref.GetReference().GlobalPoint
+				pts.append(Point.ByCoordinates(UnitUtils.ConvertFromInternalUnits(refp.X,UIunit),UnitUtils.ConvertFromInternalUnits(refp.Y,UIunit),UnitUtils.ConvertFromInternalUnits(refp.Z,UIunit)))
+			else:
+				pass
+
+
+OUT = pts , elems
+</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="1ea1e62a-781b-4c6e-8f4a-66fd40b166e6" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="583.901561829681" y="7.99999999999997" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Points" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="548e91fe-f73f-4138-913e-eacfcfc5cdb5" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-42.5714285714286" y="-38.2857142857142" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Points : Point[]" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="9378bf08-940d-4bb1-91e6-ecebf9fb819b" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-50.5714285714285" y="35.4285714285715" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Direction : Vector" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="35ecaa62-f132-44d4-a796-f23816aeaa3d" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-39.4285714285712" y="106.571428571429" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="3D View : View3D" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="6fe23fe7-ddea-4cc2-ad48-068c49a5a749" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="583.220949961269" y="92.6486700528881" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Elements" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="a809dfac-e305-4ef9-914a-c6d20f64af0c" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="419.187070620268" y="12.3515647986848" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="x[0];&#xA;x[1];" ShouldFocus="false">
+      <PortInfo index="0" default="False" />
+    </Dynamo.Graph.Nodes.CodeBlockNodeModel>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="eeb8dc2a-e3f3-4fc8-b04b-a60cd9a177a1" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-42.9787445982471" y="189.791820760212" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="BounceOnLinkOnly : bool = true" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="1852c0e0-e60d-41f6-baa1-ea95d023d199" start_index="0" end="a809dfac-e305-4ef9-914a-c6d20f64af0c" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="548e91fe-f73f-4138-913e-eacfcfc5cdb5" start_index="0" end="1852c0e0-e60d-41f6-baa1-ea95d023d199" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="9378bf08-940d-4bb1-91e6-ecebf9fb819b" start_index="0" end="1852c0e0-e60d-41f6-baa1-ea95d023d199" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="35ecaa62-f132-44d4-a796-f23816aeaa3d" start_index="0" end="1852c0e0-e60d-41f6-baa1-ea95d023d199" end_index="2" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="a809dfac-e305-4ef9-914a-c6d20f64af0c" start_index="0" end="1ea1e62a-781b-4c6e-8f4a-66fd40b166e6" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="a809dfac-e305-4ef9-914a-c6d20f64af0c" start_index="1" end="6fe23fe7-ddea-4cc2-ad48-068c49a5a749" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="eeb8dc2a-e3f3-4fc8-b04b-a60cd9a177a1" start_index="0" end="1852c0e0-e60d-41f6-baa1-ea95d023d199" end_index="3" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Aperçu en arrière-plan" eyeX="388.096374511719" eyeY="123.447639465332" eyeZ="129.303466796875" lookX="-375.288024902344" lookY="-123.447639465332" lookZ="-358.499816894531" upX="-0.0126197533681989" upY="0.999847710132599" upZ="-0.0120552191510797" />
+  </Cameras>
+</Workspace>

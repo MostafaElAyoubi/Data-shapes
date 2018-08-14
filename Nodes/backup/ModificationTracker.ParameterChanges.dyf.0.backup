@@ -1,0 +1,84 @@
+<Workspace Version="1.2.1.3083" X="320" Y="235" zoom="1" Name="ModificationTracker.ParameterChanges" Description="takes ExistingElements Data as input and outputs elements with same parameter values and elements with changed parameter values. Check out www.Data-Shapes.net for more infos." ID="3fecf2eb-d8ed-47fa-aabe-30dbaf16cb82" Category="Data-Shapes.ModificationTracker">
+  <NamespaceResolutionMap />
+  <Elements>
+    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="88110af6-bcf5-4223-b22d-e46c8c6f53e1" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="415.852669266679" y="4.26299940198669" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="//same parameters&#xA;x[0];&#xA;//different parameters&#xA;x[1];&#xA;//report&#xA;x[2];" ShouldFocus="false">
+      <PortInfo index="0" default="False" />
+    </Dynamo.Graph.Nodes.CodeBlockNodeModel>
+    <PythonNodeModels.PythonNode guid="c1e5f769-981a-4237-8887-8fb76e806959" type="PythonNodeModels.PythonNode" nickname="Python Script" x="250" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="1">
+      <PortInfo index="0" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi ,  2016
+#Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
+#This node was inspired by Jeremy Tammik @Jeremytammik
+
+import clr
+clr.AddReference('RevitAPI')
+from Autodesk.Revit.DB import*
+clr.AddReference('RevitServices')
+from RevitServices.Persistence import DocumentManager
+
+doc = DocumentManager.Instance.CurrentDBDocument
+
+if isinstance(IN[0][0],list):
+	elementsA = UnwrapElement(IN[0][0])
+	elementsB = UnwrapElement(IN[0][1])
+else :
+	elementsA = [UnwrapElement(IN[0][0])]
+	elementsB = [UnwrapElement(IN[0][1])]
+
+
+
+def parametersnapshot(x):
+	parameters = x.Parameters
+	paramnames = [p.Definition.Name for p in parameters]
+	sortedindex = sorted(range(len(paramnames)), key = lambda k : paramnames[k])
+	sortedparameters = [paramnames[i] for i in sortedindex]
+	paramvalues = []
+	for p in parameters:
+		if p.AsString() != None:
+			paramvalues.append(p.AsString())
+		else :
+			paramvalues.append(p.AsValueString())
+	sortedvalues = [paramvalues[i] for i in sortedindex]
+	return ', '.join(['%s : %s' % (param,value) for param,value in zip(sortedparameters,sortedvalues)])
+
+paramtest = []
+for a,b in zip(elementsA , elementsB):
+	paramtest.append(parametersnapshot(a) == parametersnapshot(b))
+
+differentparameters  = [i for (i,m) in zip(elementsA,paramtest) if not m]
+sameparameters = [i for (i,m) in zip(elementsA,paramtest) if m]
+
+report = '%d element(s) tested, \n%d element(s) with same parameters, \n%d element(s) with parameter modifications' %(len(elementsA),len(sameparameters),len(differentparameters))
+
+OUT = sameparameters, differentparameters, report</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="1df60331-9be0-4e92-ab5e-a0056c2f7a66" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="0" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="ExistingElements Data" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="d2e2a4ff-0ff0-4afb-9505-d6492700e69c" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="758.5" y="-98" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Report" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="85effcc3-67c1-474a-8d03-6c6efcc373b6" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="740.5" y="1" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Elements with same parameter values" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="7255fc9c-b6cb-4ca5-b6a8-032eb0b0d46b" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="741.5" y="64" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Elements with changed parameter values" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="88110af6-bcf5-4223-b22d-e46c8c6f53e1" start_index="0" end="85effcc3-67c1-474a-8d03-6c6efcc373b6" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="88110af6-bcf5-4223-b22d-e46c8c6f53e1" start_index="1" end="7255fc9c-b6cb-4ca5-b6a8-032eb0b0d46b" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="88110af6-bcf5-4223-b22d-e46c8c6f53e1" start_index="2" end="d2e2a4ff-0ff0-4afb-9505-d6492700e69c" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="c1e5f769-981a-4237-8887-8fb76e806959" start_index="0" end="88110af6-bcf5-4223-b22d-e46c8c6f53e1" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="1df60331-9be0-4e92-ab5e-a0056c2f7a66" start_index="0" end="c1e5f769-981a-4237-8887-8fb76e806959" end_index="0" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Background Preview" eyeX="-9.39749431610107" eyeY="52.4106750488281" eyeZ="34.4080276489258" lookX="6.09853649139404" lookY="21.8498134613037" lookZ="-56.2351608276367" upX="-0.0595070272684097" upY="0.833885848522186" upZ="0.548719763755798" />
+  </Cameras>
+</Workspace>

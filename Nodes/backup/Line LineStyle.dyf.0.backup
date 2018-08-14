@@ -1,0 +1,66 @@
+<Workspace Version="1.2.1.3083" X="-212.350249003674" Y="-41.2168965883961" zoom="1.30764135636719" Name="Line LineStyle" Description="Gives LineStyle name and element of Lines" ID="b7a0f151-01c3-4c17-a025-a8901b5dcd38" Category="Data-Shapes.Revit.Lines">
+  <NamespaceResolutionMap />
+  <Elements>
+    <PythonNodeModels.PythonNode guid="0ae6fe77-cd2a-4f1b-90fa-2381928b171a" type="PythonNodeModels.PythonNode" nickname="Python Script" x="391.428571428572" y="249.142857142858" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="1">
+      <PortInfo index="0" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi
+#Data-Shapes 2016 elayoub.mostafa@gmail.com
+
+import clr
+clr.AddReference('RevitServices')
+import RevitServices
+from RevitServices.Persistence import DocumentManager
+clr.AddReference('RevitAPI')
+from Autodesk.Revit.DB import *
+clr.AddReference('RevitNodes')
+import Revit
+clr.ImportExtensions(Revit.Elements)
+
+
+doc = DocumentManager.Instance.CurrentDBDocument
+
+if isinstance(IN[0],list):
+	lines = UnwrapElement(IN[0])
+else:
+	lines = [UnwrapElement(IN[0])]
+	
+linestyles = []
+linestyleids = []
+
+for l in lines:
+	linestyles.append(l.LineStyle.Name)
+	linestyleids.append(l.LineStyle)
+
+
+OUT = [linestyles,linestyleids]
+
+</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="99951c64-58e4-437a-9d2e-9087002355ba" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="166.285714285714" y="252.571428571429" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Line(s) : var[] " />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="3058ebe6-edf8-4922-b15c-0ca98f989587" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="783.428571428572" y="204.571428571429" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="LineStyle name" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="ecac1bc6-09de-4e0a-8cea-bcbbcfd2e354" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="547.142857142857" y="252.571428571429" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="out[0];&#xA;out[1];" ShouldFocus="false">
+      <PortInfo index="0" default="False" />
+    </Dynamo.Graph.Nodes.CodeBlockNodeModel>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="87e17492-023e-409d-a55b-2c5f33685cc5" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="768" y="292.571428571429" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="LineStyle elemts" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="0ae6fe77-cd2a-4f1b-90fa-2381928b171a" start_index="0" end="ecac1bc6-09de-4e0a-8cea-bcbbcfd2e354" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="99951c64-58e4-437a-9d2e-9087002355ba" start_index="0" end="0ae6fe77-cd2a-4f1b-90fa-2381928b171a" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="ecac1bc6-09de-4e0a-8cea-bcbbcfd2e354" start_index="0" end="3058ebe6-edf8-4922-b15c-0ca98f989587" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="ecac1bc6-09de-4e0a-8cea-bcbbcfd2e354" start_index="1" end="87e17492-023e-409d-a55b-2c5f33685cc5" end_index="0" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Background Preview" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+  </Cameras>
+</Workspace>

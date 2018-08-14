@@ -1,0 +1,88 @@
+<Workspace Version="1.3.1.1736" X="88" Y="158" zoom="1" ScaleFactor="1" Name="UI.RadioButtons Data" Description="Create radio buttons input for UI.MultipleInputForm ++ . " ID="4abff87f-8dad-41a9-bcf6-98784ac456eb" Category="Data-Shapes.UI">
+  <NamespaceResolutionMap />
+  <Elements>
+    <PythonNodeModels.PythonNode guid="444eaf45-9e6e-47c7-b59b-ef9f5ef9d597" type="PythonNodeModels.PythonNode" nickname="Python Script" x="880.041201588621" y="123.387115195795" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="4">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <PortInfo index="2" default="False" />
+      <PortInfo index="3" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi ,  2017
+#Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
+
+
+class uiradio():
+
+    def __init__(self,inputname,defaultvalue):
+        self.inputname = inputname
+        self.defaultvalue = defaultvalue
+
+    def __setitem__(self, key, item):
+        self.__dict__[key] = item
+
+    def __getitem__(self, key):
+        return self.__dict__[key]
+
+    def __iter__(self):
+        return iter(self.__dict__)
+
+    def values(self):
+        return self.__dict__.values()
+
+    def keys(self):
+        return self.__dict__.keys()
+
+    def __repr__(self):
+        return 'UI.Radio input'
+        
+x = uiradio(IN[0],IN[3])
+
+if isinstance(IN[1],list):
+	in1 = IN[1]
+else:
+	in1 = [IN[1]]
+if isinstance(IN[2],list):
+	in2 = IN[2]
+else:
+	in2 = [IN[2]]
+	
+
+for k,v in zip(in1,in2):
+	try:
+		x[str(k)] = v
+	except:
+		x[k.encode('utf-8').decode('utf-8')] = v
+
+
+OUT = x</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="bcc7f5dd-8da7-471c-92ff-96047fa373e4" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="1117.04120158862" y="119" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="RadioButton input" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="7899cc7e-8b61-409a-8870-0c7a26ba1fb2" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="464" y="62" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="InputName : string = &quot;&quot;" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="2ece171c-e307-4399-9cca-eb50283a1900" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="493" y="136" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Keys" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="918edcb3-cb04-442a-aafe-7ccff0f3d00d" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="493" y="229" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Values" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="497013dc-7f63-4b39-a169-fcc579c12fb8" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="465" y="320" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="DefaultValueIndex : int = null" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="444eaf45-9e6e-47c7-b59b-ef9f5ef9d597" start_index="0" end="bcc7f5dd-8da7-471c-92ff-96047fa373e4" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="7899cc7e-8b61-409a-8870-0c7a26ba1fb2" start_index="0" end="444eaf45-9e6e-47c7-b59b-ef9f5ef9d597" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="2ece171c-e307-4399-9cca-eb50283a1900" start_index="0" end="444eaf45-9e6e-47c7-b59b-ef9f5ef9d597" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="918edcb3-cb04-442a-aafe-7ccff0f3d00d" start_index="0" end="444eaf45-9e6e-47c7-b59b-ef9f5ef9d597" end_index="2" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="497013dc-7f63-4b39-a169-fcc579c12fb8" start_index="0" end="444eaf45-9e6e-47c7-b59b-ef9f5ef9d597" end_index="3" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Aperçu en arrière-plan" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+  </Cameras>
+</Workspace>

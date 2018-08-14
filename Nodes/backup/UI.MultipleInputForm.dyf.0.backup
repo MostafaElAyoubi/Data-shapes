@@ -1,0 +1,279 @@
+<Workspace Version="1.2.1.3083" X="398.532858839286" Y="258.947086904018" zoom="1.545620359375" Name="UI.MultipleInputForm" Description="Create a form with multiple inputs. InputType codification:&#xD;&#xA;-strings : &quot;s&quot;&#xD;&#xA;-booleans : &quot;bool&quot;&#xD;&#xA;-filepaths : &quot;fp&quot; &#xD;&#xA;-directorypath : &quot;dp&quot;&#xD;&#xA;-revit element section : &quot;se&quot;&#xD;&#xA;-revit face selection : &quot;sf&quot;&#xD;&#xA;-revit edge selection : &quot;sed&quot;&#xD;&#xA;-dropdown lists : UI.DropDown Data node&#xD;&#xA;-listview : UI.ListView Data node&#xD;&#xA;see www.data-shapes.net for more infos" ID="be35fca4-1924-4de2-83dc-0c11f3659b7c" Category="Data-Shapes.UI">
+  <NamespaceResolutionMap />
+  <Elements>
+    <PythonNodeModels.PythonNode guid="15c27b57-3996-4291-86db-793554e44d45" type="PythonNodeModels.PythonNode" nickname="Python Script" x="215.582053256727" y="-7.80047123531233" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="3">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <PortInfo index="2" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi ,  2016
+#Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
+
+import clr
+clr.AddReference('System.Windows.Forms')
+clr.AddReference('System.Drawing')
+
+from System.Drawing import Point
+from System.Windows.Forms import Application, Button, Form, Label, TextBox, CheckBox, FolderBrowserDialog, OpenFileDialog, DialogResult, ComboBox, FormBorderStyle
+from System.Collections.Generic import *
+
+
+clr.AddReference('RevitAPIUI')
+from  Autodesk.Revit.UI import Selection
+
+clr.AddReference('RevitNodes')
+import Revit
+clr.ImportExtensions(Revit.Elements)
+clr.ImportExtensions(Revit.GeometryConversion)
+
+clr.AddReference('RevitServices')
+from RevitServices.Persistence import DocumentManager
+doc = DocumentManager.Instance.CurrentDBDocument
+uidoc = DocumentManager.Instance.CurrentUIApplication.ActiveUIDocument
+
+import sys
+pyt_path = r'C:\Program Files (x86)\IronPython 2.7\Lib'
+sys.path.append(pyt_path)
+
+#getting screen resolution and creating resolution factor to handle high res screens
+
+resfactX = 1
+resfactY = 1
+
+
+
+class MultiTextBoxForm(Form):
+	
+
+    def __init__(self):
+        self.Text = 'Data-Shapes | Multi Input UI'
+        self.output = []
+        self.values = []
+
+    def setclose(self, sender, event):
+    	cbindexread = 0
+    	for f in self.output:
+    		if f.GetType() == TextBox:
+    			self.values.append(f.Text)
+    		if f.GetType() == CheckBox:
+    			self.values.append(f.Checked)
+    		if f.GetType() == Button:
+    			if f.Tag == None :
+    				self.values.append(f.Text)
+    			else:
+    				self.values.append(f.Tag)
+    		if f.GetType() == ComboBox:
+    			self.values.append(globals() ['dict%d'%(cbindexread)][f.Text])
+    			cbindexread += 1
+    	self.Close()
+
+    def reset(self, sender, event):
+		pass
+
+    def openfile(self, sender, event):
+		ofd = OpenFileDialog()
+		dr = ofd.ShowDialog()
+		if dr == DialogResult.OK:
+			sender.Text = ofd.FileName
+
+    def opendirectory(self, sender, event):
+		fbd = FolderBrowserDialog()
+		dr = fbd.ShowDialog()
+		if dr == DialogResult.OK:
+			sender.Text = fbd.SelectedPath
+
+    def pickobjects(self, sender, event):
+		sel = uidoc.Selection.PickObjects(Selection.ObjectType.Element,'')
+		selelem = [doc.GetElement(s.ElementId) for s in sel]
+		sender.Tag = (selelem)
+
+    def pickfaces(self, sender, event):
+		selface = uidoc.Selection.PickObjects(Selection.ObjectType.Face,'')
+		faces = [uidoc.Document.GetElement(s).GetGeometryObjectFromReference(s).ToProtoType(True) for s in selface]
+		sender.Tag = [i for f in faces for i in f]
+
+    def pickedges(self, sender, event):
+		seledge = uidoc.Selection.PickObjects(Selection.ObjectType.Edge,'')
+		edges = [uidoc.Document.GetElement(s).GetGeometryObjectFromReference(s).AsCurve().ToProtoType(True) for s in seledge]
+		sender.Tag = edges
+
+    def topmost(self):
+		self.TopMost = True
+	
+
+
+form = MultiTextBoxForm()
+form.topmost()
+
+xlabel = 25*resfactX
+xinput = 125*resfactX
+y = 10*resfactY
+fields = []
+error = 0
+cbindex = 0
+inputheight = 20*resfactY
+inputwidth = 150*resfactX
+#Input form
+
+if isinstance(IN[0],list):
+	inputnames = IN[0]
+else:
+	inputnames = [IN[0]]
+
+if isinstance(IN[1],list):
+	inputtypes = IN[1]
+else:
+	inputtypes = [IN[1]]
+
+for i,j in zip(inputnames,inputtypes):
+	label = Label()
+	label.Location = Point(xlabel,y+4*resfactY)
+	label.Height = 20*resfactY
+	label.Width = 80*resfactX
+	label.Text = str(i)
+	form.Controls.Add(label)
+	if isinstance(j,list):
+		cb = ComboBox()
+		cb.Location = Point(xinput,y)
+		cb.Width = 150*resfactX
+		globals()['dict%d'%(cbindex)] = {}
+		try :
+			for k in j:
+				globals()['dict%d'%(cbindex)][k.Name] = k
+				cb.Items.Add(k.Name)
+		except :
+			for k in j:
+				try:
+					globals()['dict%d'%(cbindex)][str(k)] = k
+				except:
+					globals()['dict%d'%(cbindex)][k.encode('utf-8').decode('utf-8')] = k
+				cb.Items.Add(k)
+		form.Controls.Add(cb)
+		form.output.append(cb)
+		cbindex += 1
+	elif j == 's':
+		tb = TextBox()
+		tb.Text = 'Default'
+		tb.Width = inputwidth
+		tb.Height = inputheight
+		tb.Location = Point(xinput,y)
+		form.Controls.Add(tb)
+		form.Controls.Add(label)
+		form.output.append(tb)
+	elif j == 'bool':
+		yn = CheckBox()
+		yn.Location = Point(xinput,y)
+		yn.Text = 'Yes/No'
+		form.Controls.Add(yn)
+		form.output.append(yn)
+	elif j == 'fp':
+		fp = Button()
+		fp.Width = inputwidth
+		fp.Height = inputheight
+		fp.Text = 'FilePath'
+		fp.Location = Point(xinput,y)
+		form.Controls.Add(fp)
+		fp.Click += form.openfile
+		form.output.append(fp)
+	elif j == 'dp':
+		dp = Button()
+		dp.Width = inputwidth
+		dp.Height = inputheight
+		dp.Text = 'DirectoryPath'
+		dp.Location = Point(xinput,y)
+		form.Controls.Add(dp)
+		dp.Click += form.opendirectory
+		form.output.append(dp)
+	elif j == 'se':
+		se = Button()
+		se.Width = inputwidth
+		se.Height = inputheight
+		se.Text = 'Select model element(s)'
+		se.Location = Point(xinput,y)
+		form.Controls.Add(se)
+		se.Click += form.pickobjects
+		form.output.append(se)
+	elif j == 'sf':
+		sf = Button()
+		sf.Width = inputwidth
+		sf.Height = inputheight
+		sf.Text = 'Select face(s)'
+		sf.Location = Point(xinput,y)
+		form.Controls.Add(sf)
+		sf.Click += form.pickfaces
+		form.output.append(sf)
+	elif j == 'sed':
+		sed = Button()
+		sed.Width = inputwidth
+		sed.Height = inputheight
+		sed.Text = 'Select Edge(s)'
+		sed.Location = Point(xinput,y)
+		form.Controls.Add(sed)
+		sed.Click += form.pickedges
+		form.output.append(sed)
+
+	else :
+		error = 'One or more input types are invalid, visit www.data-shapes.net for more informations'
+	y+= 30*resfactY
+
+
+button = Button()
+button.Text = 'Set values'
+button.Width = inputwidth
+button.Height = inputheight
+button.Location = Point (100*resfactX,y+30*resfactY)
+button.Click += form.setclose
+form.Controls.Add(button)
+
+form.MaximizeBox = False
+form.MinimizeBox = False
+form.FormBorderStyle = FormBorderStyle.FixedSingle
+
+form.Width = 300*resfactX
+form.Height = y + 120*resfactY
+
+
+if error == 0 and IN[2] == True:
+	Application.Run(form)
+	result = form.values
+	OUT = result,True
+
+elif IN[2] == False:
+	result = "Set toggle to true!"
+	OUT = result,False</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="e51617d3-bd83-47c7-ae4f-9b990a9197e0" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="512.948056651854" y="-26.7815820214156" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="User inputs" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="8c3367cc-bbee-4834-b851-0d43999bf0ec" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-82" y="-64" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="InputNames " />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="21e1d581-c089-4915-b75a-354c247fda1e" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-170.733178908323" y="25.4958677357014" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="InputTypes (see description) " />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="b4c37afc-b32f-49b6-93c1-ad27c7070f23" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-93.214285714286" y="128.142857142857" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Toggle : bool = false" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="f02415b4-4e46-4eaa-b01e-6400eb6f879e" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="388.173555100545" y="1.59503809872942" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="x[0];&#xA;x[1];" ShouldFocus="false">
+      <PortInfo index="0" default="False" />
+    </Dynamo.Graph.Nodes.CodeBlockNodeModel>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="7a3296a7-e35f-40e0-8c58-c1c96f15c6bb" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="536.474638265803" y="67.139316907804" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Was Ran" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="15c27b57-3996-4291-86db-793554e44d45" start_index="0" end="f02415b4-4e46-4eaa-b01e-6400eb6f879e" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="8c3367cc-bbee-4834-b851-0d43999bf0ec" start_index="0" end="15c27b57-3996-4291-86db-793554e44d45" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="21e1d581-c089-4915-b75a-354c247fda1e" start_index="0" end="15c27b57-3996-4291-86db-793554e44d45" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="b4c37afc-b32f-49b6-93c1-ad27c7070f23" start_index="0" end="15c27b57-3996-4291-86db-793554e44d45" end_index="2" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="f02415b4-4e46-4eaa-b01e-6400eb6f879e" start_index="0" end="e51617d3-bd83-47c7-ae4f-9b990a9197e0" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="f02415b4-4e46-4eaa-b01e-6400eb6f879e" start_index="1" end="7a3296a7-e35f-40e0-8c58-c1c96f15c6bb" end_index="0" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Background Preview" eyeX="-6.6214967998404" eyeY="113.515170074614" eyeZ="32.0835315074471" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+  </Cameras>
+</Workspace>

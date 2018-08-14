@@ -1,0 +1,62 @@
+<Workspace Version="1.2.1.3083" X="334" Y="173" zoom="1" Name="Element(s) cut" Description="Cutting element(s) with element" ID="b0a6ae7e-e703-48da-9b2f-4a6d4eca728a" Category="Data-Shapes.Revit.Elements">
+  <NamespaceResolutionMap />
+  <Elements>
+    <PythonNodeModels.PythonNode guid="ea629d2b-7b4b-43b6-8112-c6d5a8425c05" type="PythonNodeModels.PythonNode" nickname="Python Script" x="250" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="2">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi
+#Data-Shapes 2016 elayoub.mostafa@gmail.com
+
+import clr
+clr.AddReference('RevitAPI')
+from Autodesk.Revit.DB import*
+clr.AddReference('RevitServices')
+from RevitServices.Persistence import DocumentManager
+from RevitServices.Transactions import TransactionManager
+from Autodesk.Revit.DB.SolidSolidCutUtils import AddCutBetweenSolids
+
+doc = DocumentManager.Instance.CurrentDBDocument
+
+if isinstance(IN[0],list):
+	tobecut = [UnwrapElement(i) for i in IN[0]]
+else:
+	tobecut = [UnwrapElement(IN[0])]
+cutting = UnwrapElement(IN[1])
+count = []
+
+TransactionManager.Instance.EnsureInTransaction(doc)
+
+for t in tobecut:
+	try:
+		count.append(AddCutBetweenSolids(doc,t,cutting))
+	except:
+		pass
+
+TransactionManager.Instance.TransactionTaskDone()
+
+
+OUT = '%d elements coupés' % (len(count))</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="f2ed9c54-68b7-4556-85bf-13b883516f55" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="447" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="OUT" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="f9b81e2b-3b21-4371-9011-9465da5bccfc" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-105.5" y="-50" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Element(s) to be cut : Element" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="aff4dc91-0ba7-4811-9121-02be86662a23" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-78.5" y="65" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Cutting Element : Element" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="ea629d2b-7b4b-43b6-8112-c6d5a8425c05" start_index="0" end="f2ed9c54-68b7-4556-85bf-13b883516f55" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="f9b81e2b-3b21-4371-9011-9465da5bccfc" start_index="0" end="ea629d2b-7b4b-43b6-8112-c6d5a8425c05" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="aff4dc91-0ba7-4811-9121-02be86662a23" start_index="0" end="ea629d2b-7b4b-43b6-8112-c6d5a8425c05" end_index="1" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Background Preview" eyeX="-7.14683103561401" eyeY="-1.98347985744476" eyeZ="-0.775114893913269" lookX="9.12536525726318" lookY="1.35481929779053" lookZ="4.38965654373169" upX="-0.308213979005814" upY="0.939692616462708" upZ="-0.148262932896614" />
+  </Cameras>
+</Workspace>

@@ -11,8 +11,8 @@
       <PortInfo index="6" default="False" />
       <PortInfo index="7" default="False" />
       <PortInfo index="8" default="False" />
-      <Script>#Copyright (c) mostafa el ayoubi ,  2016
-#Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
+      <Script>#Copyright (c) Data Shapes,  2018
+#Data-Shapes www.data-shapes.net , elayoubi.mostafa@data-shapes.io @data_shapes
 	
 import clr
 import sys
@@ -25,9 +25,11 @@ import unicodedata
 try:
 	clr.AddReference('System.Windows.Forms')
 	clr.AddReference('System.Drawing')
+	clr.AddReference('System.Windows.Forms.DataVisualization')
 	
 	from System.Drawing import Point , Size , Graphics, Bitmap, Image, Font, FontStyle, Icon, Color, Region , Rectangle , ContentAlignment
-	from System.Windows.Forms import Application, DockStyle, Button, Form, Label, TrackBar , ToolTip, ColumnHeader, TextBox, CheckBox, FolderBrowserDialog, OpenFileDialog, DialogResult, ComboBox, FormBorderStyle, FormStartPosition, ListView, ListViewItem , SortOrder, Panel, ImageLayout, GroupBox, RadioButton, BorderStyle, PictureBox, PictureBoxSizeMode, LinkLabel, CheckState, ColumnHeaderStyle , ImageList, VScrollBar, DataGridView
+	from System.Windows.Forms import Application, DockStyle, Button, Form, Label, TrackBar , ToolTip, ColumnHeader, TextBox, CheckBox, FolderBrowserDialog, OpenFileDialog, DialogResult, ComboBox, FormBorderStyle, FormStartPosition, ListView, ListViewItem , SortOrder, Panel, ImageLayout, GroupBox, RadioButton, BorderStyle, PictureBox, PictureBoxSizeMode, LinkLabel, CheckState, ColumnHeaderStyle , ImageList, VScrollBar, DataGridView, DataGridViewSelectionMode, DataGridViewAutoSizeColumnsMode , DataGridViewClipboardCopyMode , TreeView , TreeNode , TreeNodeCollection
+	from System.Windows.Forms.DataVisualization.Charting import Chart , SeriesChartType
 	from System.Collections.Generic import *
 	from System.Collections.Generic import List as iList
 	from System.Windows.Forms import View as vi
@@ -68,12 +70,29 @@ try:
 	clr.AddReference('ProtoGeometry')
 	from Autodesk.DesignScript.Geometry import Point as dsPoint
 
-	
 	from System.Reflection import Assembly
 	import xml.etree.ElementTree as et
 	
 	UIunit = Document.GetUnits(doc).GetFormatOptions(UnitType.UT_Length).DisplayUnits
+	
+	import re	
+	def regexEndNum(input):
+		try:
+			return 	re.search('(\d+)$', input).group(0)
+		except:
+			return ""
 
+	def iterateThroughNodes(collection,li):
+		if hasattr(collection,'Nodes'):
+			ntest = collection.Nodes
+			if len(ntest) &gt; 0:
+				for i in ntest:
+					iterateThroughNodes(i,li)
+			else:
+				if collection.Checked:
+					li.append(collection.Tag)
+		return li
+		
 	class selectionfilter(ISelectionFilter):
 		def __init__(self,category):
 			self.category = category
@@ -126,6 +145,34 @@ try:
 	    					self.values.append(f.Tag[key])
 	    				except:
 	    					self.values.append(None)
+	    			if f.GetType() == myDataGridView:
+	    				f.EndEdit()
+	    				dsrc = f.DataSource
+	    				out = []
+	    				colcount = f.ColumnCount
+	    				rowcount = f.RowCount - 1
+	    				if f.Tag:
+		    				l = []
+	    					for i in range(colcount):	    						
+	    						l.append(dsrc.Columns[i].ColumnName)
+	    					out.append(l)	    						
+		    				for r in range(rowcount):
+		    					l = []
+		    					for i in range(colcount):
+		    						l.append(dsrc.DefaultView[r].Row[i])
+		    					out.append(l)
+	    				else: 
+		    				for r in range(rowcount):
+		    					l = []
+		    					for i in range(colcount):
+		    						l.append(dsrc.DefaultView[r].Row[i])
+		    					out.append(l)
+	    				self.values.append(out)
+	    			if f.GetType() == TreeView:
+	    				ls = []
+	    				nds = f.Nodes[0]
+	    				iterateThroughNodes(nds,ls)
+	    				self.values.append(ls)	 
 	    	else:
 	    		self.values = None
 	    		self.cancelled = True
@@ -153,17 +200,19 @@ try:
 	    	parent = sender.Parent
 	    	fptextbox = parent.GetChildAtPoint(Point(parent.Location.X,sender.Location.Y+5))
 	    	dataGrid = parent.GetChildAtPoint(Point(parent.Location.X,parent.Location.Y+23))
-	    	dataTable = dataGrid.Tag
+	    	dataTable = dataGrid.DataSource
 	    	fptext = fptextbox.Text
 	    	titletext = parent.GetChildAtPoint(Point(0,0)).Text
 	    	dr = fbd.ShowDialog()
-	    	if sender.Tag[0]:
+	    	frstRwTtle = sender.Tag[0]
+	    	if frstRwTtle:
 	    		_header = Excel.XlYesNoGuess.xlYes
 	    	else:
 	    		_header = Excel.XlYesNoGuess.xlNo
 	    	if dr == DialogResult.OK:
 	    		workbk = ex.Workbooks.Add()
 	    		worksheet = workbk.Worksheets.Add()
+	    		#Writing title and doc info
 	    		if sender.Tag[2]:
 		    		titleCell = worksheet.Cells[1,1]
 		    		worksheet.Cells[2,1].Value2 = sender.Tag[3]
@@ -174,12 +223,19 @@ try:
 		    		endR = 3
 		    	else:
 		    		startR = 1
-		    		endR = 0
-		    		
-	    		for i in range(0,dataTable.Rows.Count):
-	    			for j in range(0,dataTable.Columns.Count):
-		    			worksheet.Cells[i+startR,j+1] = dataTable.Rows[i][j].ToString()
-		    	xlrange = ex.get_Range(worksheet.Cells[startR,1],worksheet.Cells[dataTable.Rows.Count+endR,dataTable.Columns.Count])
+		    		endR = 0	
+		    	if frstRwTtle:
+		    		for j in range(0,dataTable.Columns.Count):
+		    			worksheet.Cells[startR,j+1] = dataTable.Columns[j].ColumnName		    	
+		    		for i in range(0,dataTable.Rows.Count):
+		    			for j in range(0,dataTable.Columns.Count):
+			    			worksheet.Cells[i+startR+1,j+1] = dataTable.DefaultView[i].Row[j].ToString()
+		    		xlrange = ex.get_Range(worksheet.Cells[startR,1],worksheet.Cells[dataTable.Rows.Count+endR+1,dataTable.Columns.Count])			    			
+		    	else :
+		    		for i in range(0,dataTable.Rows.Count):
+		    			for j in range(0,dataTable.Columns.Count):
+			    			worksheet.Cells[i+startR,j+1] = dataTable.DefaultView[i].Row[j].ToString()		    	
+		    		xlrange = ex.get_Range(worksheet.Cells[startR,1],worksheet.Cells[dataTable.Rows.Count+endR,dataTable.Columns.Count])
 		    	xlrange.Columns.AutoFit()
 		    	worksheet.ListObjects.Add(Excel.XlListObjectSourceType.xlSrcRange, xlrange, SType.Missing, _header, SType.Missing).Name = "DataShapesTable"
 		    	worksheet.ListObjects["DataShapesTable"].TableStyle =  "TableStyleMedium16"
@@ -187,7 +243,37 @@ try:
 	    		if not sender.Tag[1]:
 	    			workbk.Close()
 	    			ex.Quit()
-	
+
+	    def startCell(self, sender, event ):
+			sender.startcell["X"] = event.ColumnIndex
+			sender.startcell["Y"] = event.RowIndex	
+
+	    def endCell(self, sender, event ):
+	    	try:
+				sender.endcell["X"] = event.ColumnIndex
+				sender.endcell["Y"] = event.RowIndex 
+				startval = sender.Rows[sender.startcell["Y"]].Cells[sender.startcell["X"]].Value
+				endNum = regexEndNum(startval)
+				if endNum != "":
+					if sender.endcell["Y"] == sender.startcell["Y"]:
+						for e,i in enumerate(range(sender.startcell["X"],sender.endcell["X"] + 1)):
+							sender.Rows[sender.startcell["Y"]].Cells[i].Value = startval[:-len(endNum)] + str(int(endNum) + e)
+					elif sender.endcell["X"] == sender.startcell["X"]:
+						for e,i in enumerate(range(sender.startcell["Y"],sender.endcell["Y"] + 1)):
+							sender.Rows[i].Cells[sender.endcell["X"]].Value = startval[:-len(endNum)] + str(int(endNum) + e)
+				else:				
+					if sender.endcell["Y"] == sender.startcell["Y"]:
+						for i in range(sender.startcell["X"],sender.endcell["X"] + 1):
+							sender.Rows[sender.startcell["Y"]].Cells[i].Value = startval
+					elif sender.endcell["X"] == sender.startcell["X"]:
+						for i in range(sender.startcell["Y"],sender.endcell["Y"] + 1):
+							sender.Rows[i].Cells[sender.endcell["X"]].Value = startval
+	    	except:
+	    		pass
+	    		    	
+	    def startRowDrag(self, sender, event ):
+	    	shmak
+			
 	    def opendirectory(self, sender, event):
 			fbd = FolderBrowserDialog()
 			fbd.SelectedPath = sender.Text
@@ -481,6 +567,12 @@ try:
 		def __init__(self,startval,step):
 			self.startval = startval
 			self.step = step
+
+	class myDataGridView(DataGridView):
+	
+		def __init__(self):
+			self.startcell = {}
+			self.endcell = {}
 			
 	class mygroupbox(GroupBox):
 	
@@ -631,6 +723,78 @@ try:
 				formbody.Controls.Add(cb)
 				form.output.append(cb)
 				y = label.Bottom + 25
+			'''
+			if j.__class__.__name__ == 'uichart':
+				ch = Chart()
+				ch.Width = formwidth - rightmargin - xlabel
+				ch.Location = Point(xlabel,y)
+				ch.Height = 600
+				ch.Series.Add("test")
+				ch.Series["test"].XValueMember = "Date"
+				ch.Series["test"].YValueMembers = "Percent"
+				ch.Series[0].ChartType = SeriesChartType.ChartType.Bar
+				dt = DataTable()
+				dl = j.datalist
+				for rindex in range(rngstart,len(dl)):
+					row = dt.NewRow()
+					for i in range(len(dl[rindex])):
+						row[i] = dl[rindex][i]
+					dt.Rows.Add(row)
+				ch.DataSource = table
+				ch.DataBind()
+				formbody.Controls.Add(ch)
+				y = ch.Bottom + 25
+			'''
+			if j.__class__.__name__ == 'uitreeview':
+				tv = TreeView()
+				tv.CheckBoxes = True
+				titles = j._hastitles
+				if j.inputname != "":
+					tv.Width = formwidth - rightmargin - xinput
+					tv.Location = Point(xinput,y)
+				else:
+					tv.Width = formwidth - rightmargin - xlabel
+					tv.Location = Point(xlabel,y)
+				tv.Height = 500
+				def treeIterationTitle(control, input):
+					if isinstance(input,list):
+						try:
+							currentNode = TreeNode(str(input[0]))
+							currentNode.Tag = input[0]
+							input.pop(0)
+						except:
+							currentNode = TreeNode(control.Text +"."+ str(len(control.Nodes)+1))
+							currentNode.Tag = input[0]
+						control.Nodes.Add(currentNode)
+						for i in input:
+							treeIterationTitle(currentNode, i)
+					else:
+						item = TreeNode(str(input))
+						item.Tag = input
+						control.Nodes.Add(item)	
+				def treeIteration(control, input):
+					if isinstance(input,list):
+						currentNode = TreeNode(control.Text +"."+ str(len(control.Nodes)+1))
+						currentNode.Tag = input
+						control.Nodes.Add(currentNode)
+						for i in input:
+							treeIteration(currentNode, i)
+					else:
+						item = TreeNode(str(input))
+						item.Tag = input
+						control.Nodes.Add(item)
+				currentNode = TreeNode("List1")						
+				if titles:
+					tv.Nodes.Add(currentNode)								
+					for dl in j.datalist:
+						treeIterationTitle(currentNode,dl)	
+				else:
+					tv.Nodes.Add(currentNode)								
+					for dl in j.datalist:
+						treeIteration(currentNode,dl)							
+				formbody.Controls.Add(tv)
+				form.output.append(tv)
+				y = tv.Bottom + 25
 			elif j.__class__.__name__ == 'listview':
 				lvp = Panel()
 				if j.inputname != "":
@@ -723,7 +887,11 @@ try:
 				tvp = Panel()
 				tvp.Location = Point(xlabel,y)
 				tvp.Width = formwidth - rightmargin - xlabel
-				tvp.Height = 50 + len(j.dataList) * 15 + 73
+				if 50 + len(j.dataList) * 15 &gt; 800:
+					autoheight = 800
+				else:
+					autoheight = 50 + len(j.dataList) * 15				
+				tvp.Height = autoheight + 73
 				#Creating title
 				titlep = Label()
 				titlep.Text = j._tabletitle
@@ -735,11 +903,11 @@ try:
 				titlep.Location = Point(0,0)
 				tvp.Controls.Add(titlep)
 				#Creating data structure
-				dg = DataGridView()
+				dg = myDataGridView()
+				#dg.SelectionMode = DataGridViewSelectionMode.CellSelect
 				dg.EnableHeadersVisualStyles = False				
 				dt = DataTable()
 				dl = j.dataList
-				dtexl = DataTable()
 				for i in range(len(dl[0])):
 					if j._hasTitle:
 						dt.Columns.Add(str(dl[0][i]))
@@ -751,20 +919,19 @@ try:
 					row = dt.NewRow()
 					for i in range(len(dl[rindex])):
 						row[i] = dl[rindex][i]
-					dt.Rows.Add(row)				
-				#DataTable for Excel export (always includes first row)
-				for i in range(len(dl[0])):
-					dtexl.Columns.Add(str(i))						
-				for rindex in range(0,len(dl)):
-					erow = dtexl.NewRow()
-					for i in range(len(dl[rindex])):
-						erow[i] = dl[rindex][i]
-					dtexl.Rows.Add(erow)				
-				dg.Tag = dtexl				
+					dt.Rows.Add(row)						
+				dg.Tag = j._hasTitle				
 				dg.DataSource = dt
+				dg.ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableWithAutoHeaderText
+				dg.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells
 				dg.Width = formwidth - rightmargin - xlabel
 				dg.Location = Point(0,23)
-				dg.Height = 50 + len(j.dataList) * 15
+				dg.Height = autoheight
+				#Creatin Excel like drag copy functionalities
+				dg.CellMouseDown += form.startCell
+				dg.CellMouseUp += form.endCell
+				#dg.MouseDown += form.startRowDrag
+				#dg.MouseUp = 			
 				tvp.Controls.Add(dg)			
 				y = tvp.Bottom + 15
 				#Adding export to excel button
@@ -786,6 +953,8 @@ try:
 				filepathtb.Location = Point(0 ,dg.Bottom + 20)
 				filepathtb.Width = formwidth - xlabel - 125
 				tvp.Controls.Add(filepathtb)
+				#Adding copy to clipboard button
+				cb = Button()
 				#Adding panel to form
 				formbody.Controls.Add(tvp)
 				form.output.append(dg)
@@ -1282,6 +1451,6 @@ except:
   <Annotations />
   <Presets />
   <Cameras>
-    <Camera Name="Background Preview" eyeX="-8.85110473632813" eyeY="62.712718963623" eyeZ="35.0303497314453" lookX="-4.98105955123901" lookY="12.2142581939697" lookZ="-59.1861534118652" upX="0.0341100469231606" upY="0.913545429706573" upZ="0.405303835868835" />
+    <Camera Name="Background Preview" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
   </Cameras>
 </Workspace>

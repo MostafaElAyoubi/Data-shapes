@@ -1,0 +1,47 @@
+<Workspace Version="1.3.0.875" X="349.244851808855" Y="225.765175" zoom="1.33823125" ScaleFactor="1" Name="UI.InputGroup Data" Description="Creates a group of inputs for UI.MultipleInputForm ++ . Check out www.data-shapes.net for more infos !" ID="0dd4bbc7-3594-4c4f-8e7d-760421e4bc9b" Category="Data-Shapes.UI">
+  <NamespaceResolutionMap />
+  <Elements>
+    <PythonNodeModels.PythonNode guid="26f6d7d8-00ec-4a3a-97cc-f431883c095e" type="PythonNodeModels.PythonNode" nickname="Python Script" x="250" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="2">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi ,  2017
+#Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
+
+class uigroup():
+
+    def __init__(self,inputname,groupname,inputgroup):
+    	self.inputname = inputname
+        self.groupname = groupname
+        self.inputgroup = inputgroup
+
+    def __repr__(self):
+        return 'UI.InputGroup'
+        
+x = uigroup("",IN[0],IN[1])
+
+
+OUT = x</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="da6e83aa-0d2f-458c-9244-e4c7bf12def5" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-106.857465778056" y="-50.8133403699846" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="GroupTitle : string = &quot;&quot;" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="121acaf1-1432-4856-a8f9-d26407d1c154" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-32.131965233961" y="105.164699673543" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Inputs" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="f0a8cb70-59a4-457a-b268-d7060f8688e3" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="449" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Input Group " />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="26f6d7d8-00ec-4a3a-97cc-f431883c095e" start_index="0" end="f0a8cb70-59a4-457a-b268-d7060f8688e3" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="da6e83aa-0d2f-458c-9244-e4c7bf12def5" start_index="0" end="26f6d7d8-00ec-4a3a-97cc-f431883c095e" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="121acaf1-1432-4856-a8f9-d26407d1c154" start_index="0" end="26f6d7d8-00ec-4a3a-97cc-f431883c095e" end_index="1" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Aperçu en arrière-plan" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+  </Cameras>
+</Workspace>

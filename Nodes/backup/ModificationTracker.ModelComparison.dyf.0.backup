@@ -1,0 +1,119 @@
+<Workspace Version="1.2.1.3083" X="454" Y="333" zoom="1" Name="ModificationTracker.ModelComparison" Description="Compares elements from documents A and B (A is the current document by default) and returns existing elements data, new elements, deleted elements and a report. Check out www.Data-Shapes.net for more infos. " ID="72542d24-2ab5-4cc0-bd6c-848b9276a7fa" Category="Data-Shapes.ModificationTracker">
+  <NamespaceResolutionMap />
+  <Elements>
+    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="c67ba703-5bd2-40a2-830b-e97eead608af" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="446.630463328747" y="0.126256819772269" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="//existing elements&#xA;x[0];&#xA;//new&#xA;x[1];&#xA;//deleted&#xA;x[2];&#xA;//report&#xA;x[3];" ShouldFocus="false">
+      <PortInfo index="0" default="False" />
+    </Dynamo.Graph.Nodes.CodeBlockNodeModel>
+    <PythonNodeModels.PythonNode guid="25a0dba7-5e38-49b7-88ff-a03a8c02c177" type="PythonNodeModels.PythonNode" nickname="Python Script" x="243" y="-2" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="3">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <PortInfo index="2" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi ,  2016
+#Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
+
+import clr
+clr.AddReference('RevitAPI')
+from Autodesk.Revit.DB import*
+clr.AddReference('RevitServices')
+from RevitServices.Persistence import DocumentManager
+import System
+from System.Collections.Generic import*
+
+if IN[0] == False:
+	docA = DocumentManager.Instance.CurrentDBDocument
+else:
+	docA = IN[0]
+docB = IN[1]
+CategorySet = IN[2]
+
+def reportformat(x):
+	val = [UnwrapElement(e).Category.Name for e in x]
+	values = set(val)
+	newlist = [len([y for y in val if y==x]) for x in values]
+	strreport = []
+	for i,j in zip(values,newlist):
+		strreport.append('%d %s element(s)'%(j,i))
+	return ', '.join(strreport)
+	
+#getting list of categories
+
+if isinstance(IN[2],list):
+	categories = IN[2]
+else:
+	categories = [IN[2]]
+
+#Getting All elements of wanted category set
+
+catfilters = []
+for i in categories:
+	catfilters.append(ElementCategoryFilter(System.Enum.ToObject(BuiltInCategory, int(str(i.Id)))))
+
+
+catfilterlist = List[ElementFilter](catfilters)
+filter = LogicalOrFilter(catfilterlist)
+
+docAcollector = FilteredElementCollector(docA).WherePasses(filter).WhereElementIsNotElementType().ToElements()
+docBcollector = FilteredElementCollector(docB).WherePasses(filter).WhereElementIsNotElementType().ToElements()
+
+#GUID lists
+
+docAguid = [e.UniqueId for e in docAcollector]
+docBguid = [e.UniqueId for e in docBcollector]
+
+#Sorting existing elements, new elements and deleted elements
+
+existingguid = [e for e in docAguid if e in docBguid]
+newguid = [e for e in docAguid if e not in docBguid]
+deletedguid = [e for e in docBguid if e not in docAguid]
+
+existingA = [docA.GetElement(e) for e in existingguid]
+existingB = [docB.GetElement(e) for e in existingguid]
+new = [docA.GetElement(e) for e in newguid]
+deleted = [docB.GetElement(e) for e in deletedguid]
+newreport = reportformat(new)
+deletedreport = reportformat(deleted)
+
+report = 'The model contains %d elements of the selected categories, there are %d new elements and %d deleted elements compared to the previous indice. \nNew elements : ' %(len(docAcollector),len(new),len(deleted)) + newreport + '\nDeleted elements : ' + deletedreport
+
+OUT = (existingA, existingB) ,  new, deleted, report</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="2885e014-ec8a-49a4-bcba-b6d6089911c5" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-441" y="-67" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="//Most recent version of the model, current document by default&#xD;&#xA;CurrentVersionDocument : var = false" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="1a600a51-db4e-41e7-873e-d3ab5fb6f268" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-313" y="70" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="//Previous version of the model&#xD;&#xA;PreviousVersionDocument" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="af99eddb-fff6-4dd5-96e2-f3ecef8820bc" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-45" y="240" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Categories" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="3306ada7-5b8c-4130-9d70-f8dac1761f49" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="812.5" y="-133" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Report" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="c36802c8-9b1c-43e3-a364-dd3acfde5020" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="805.5" y="-33" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="ExistingElements Data" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="17dd17d9-cb34-4dd4-b18b-2a11182c3249" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="806.5" y="55" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="New elements" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="de3f0293-406c-4948-a8e5-c0d0687c1f57" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="808.5" y="148" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Deleted elements" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="c67ba703-5bd2-40a2-830b-e97eead608af" start_index="0" end="c36802c8-9b1c-43e3-a364-dd3acfde5020" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="c67ba703-5bd2-40a2-830b-e97eead608af" start_index="1" end="17dd17d9-cb34-4dd4-b18b-2a11182c3249" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="c67ba703-5bd2-40a2-830b-e97eead608af" start_index="2" end="de3f0293-406c-4948-a8e5-c0d0687c1f57" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="c67ba703-5bd2-40a2-830b-e97eead608af" start_index="3" end="3306ada7-5b8c-4130-9d70-f8dac1761f49" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="25a0dba7-5e38-49b7-88ff-a03a8c02c177" start_index="0" end="c67ba703-5bd2-40a2-830b-e97eead608af" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="2885e014-ec8a-49a4-bcba-b6d6089911c5" start_index="0" end="25a0dba7-5e38-49b7-88ff-a03a8c02c177" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="1a600a51-db4e-41e7-873e-d3ab5fb6f268" start_index="0" end="25a0dba7-5e38-49b7-88ff-a03a8c02c177" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="af99eddb-fff6-4dd5-96e2-f3ecef8820bc" start_index="0" end="25a0dba7-5e38-49b7-88ff-a03a8c02c177" end_index="2" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+</Workspace>

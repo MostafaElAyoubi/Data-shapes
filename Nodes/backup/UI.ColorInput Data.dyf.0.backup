@@ -1,0 +1,47 @@
+<Workspace Version="1.3.1.1736" X="164" Y="330" zoom="1" ScaleFactor="1" Name="UI.ColorInput Data" Description="Create a color selection input for UI.MultiInputForm++ . Check out www.data-shapes.net for more infos! Warning : Only works with Revit 2017" ID="85d047a5-c05a-4aa2-954a-b84d04aa3859" Category="Data-Shapes.UI">
+  <NamespaceResolutionMap />
+  <Elements>
+    <PythonNodeModels.PythonNode guid="a6e8fb5f-d699-44cd-ba96-a3c30c7cfede" type="PythonNodeModels.PythonNode" nickname="Python Script" x="467.887240356083" y="33.4302670623147" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="2">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi ,  2016
+#Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
+#This input was inspired by Adrien_P and John Pierson @60secondrevit 
+
+class uicolorpick():
+
+    def __init__(self,inputname,buttontext):
+        self.inputname = inputname
+        self.buttontext = buttontext
+
+    def __repr__(self):
+        return 'UI.ColorPick input'
+
+x = uicolorpick(IN[0],IN[1])
+
+
+OUT = x</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="398c24bc-7be9-4b13-ab2e-9e95c9c1cdf7" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="653.887240356083" y="35" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="ColorSelection Input" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="46e4f8ad-95e4-40f4-a78c-2a27610fa20c" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="101.5" y="14" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="InputName : string = &quot;&quot;" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="3073d201-bd40-471e-abdc-48d39105ec31" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="35.5" y="95" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="ButtonText : string = &quot;Select Color&quot;" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="a6e8fb5f-d699-44cd-ba96-a3c30c7cfede" start_index="0" end="398c24bc-7be9-4b13-ab2e-9e95c9c1cdf7" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="46e4f8ad-95e4-40f4-a78c-2a27610fa20c" start_index="0" end="a6e8fb5f-d699-44cd-ba96-a3c30c7cfede" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="3073d201-bd40-471e-abdc-48d39105ec31" start_index="0" end="a6e8fb5f-d699-44cd-ba96-a3c30c7cfede" end_index="1" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Aperçu en arrière-plan" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+  </Cameras>
+</Workspace>

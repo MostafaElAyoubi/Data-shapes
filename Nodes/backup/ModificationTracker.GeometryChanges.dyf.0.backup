@@ -1,0 +1,136 @@
+<Workspace Version="1.2.1.3083" X="170" Y="126" zoom="1" Name="ModificationTracker.GeometryChanges" Description="Takes ExistingElements Data as input and outputs elements with same geometry and elements with changed geometry . Check out www.Data-Shapes.net for more infos" ID="93018d35-bdfb-4fa8-8a2f-9914e5842d24" Category="Data-Shapes.ModificationTracker">
+  <NamespaceResolutionMap />
+  <Elements>
+    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="67e767ab-16a2-4a3d-8a00-65df607aac3e" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="474.204508774351" y="3.20975714883241" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="//same geometry&#xA;x[0];&#xA;//different geometry&#xA;x[1];&#xA;//report&#xA;x[2];" ShouldFocus="false">
+      <PortInfo index="0" default="False" />
+    </Dynamo.Graph.Nodes.CodeBlockNodeModel>
+    <PythonNodeModels.PythonNode guid="11de816c-6dec-4710-9b2d-65b1c98253db" type="PythonNodeModels.PythonNode" nickname="Python Script" x="250" y="-1" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="2">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi ,  2016
+#Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
+#This node was inspired by Jeremy Tammik @Jeremytammik
+
+import clr
+clr.AddReference('RevitAPI')
+from Autodesk.Revit.DB import*
+import sys
+pyt_path = r'C:\Program Files (x86)\IronPython 2.7\Lib'
+sys.path.append(pyt_path)
+import collections
+
+if isinstance(IN[0][0],list):
+	elementsA = UnwrapElement(IN[0][0])
+	elementsB = UnwrapElement(IN[0][1])
+else :
+	elementsA = [UnwrapElement(IN[0][0])]
+	elementsB = [UnwrapElement(IN[0][1])]
+
+def flatten(l):
+    for el in l:
+        if isinstance(el, collections.Iterable) and not isinstance(el, basestring):
+            for sub in flatten(el):
+                yield sub
+        else:
+            yield el
+
+def tostring(x):
+	return x.ToString()
+def getgeomlist(x):
+	return list(x.get_Geometry(Options()))
+
+
+def getvertices(x):
+	#getting geometryelements as list
+	geomelems = getgeomlist(x)
+	#getting nested instance geometry for all geometry instances
+	while any('GeometryInstance' in g for g in map(tostring,geomelems)):
+		for index,i in enumerate(geomelems):
+			if 'GeometryInstance' in i.ToString():
+				geomelems[index] = i.GetInstanceGeometry()
+			else:
+				continue
+	geomelems = list(flatten(geomelems))
+	#getting all faces, keeping meshes
+	faces = []
+	for i in geomelems:
+		if 'Solid' in i.ToString():
+			faces.append(list(i.Faces))
+		elif 'Mesh' in i.ToString():
+			faces.append(i)
+		else:
+			continue
+	faces = list(flatten(faces))
+	#getting all meshes
+	meshes = []
+	for f in faces:
+		if 'Mesh' in f.ToString():
+			meshes.append(f)
+		else:
+			meshes.append(f.Triangulate())
+	#getting all vertices
+	vertexlist = []
+	for m in meshes:
+		vertexlist.append(list(m.Vertices))
+	vertexlist = list(flatten(vertexlist))
+	#creating sorted vertex string representation of object for comparison with other indice of element
+	vertexstr = ', '.join(sorted(set(map(tostring,vertexlist))))
+	return vertexstr
+
+
+
+geomtest = []
+categories = set([e.Category.Name for e in elementsA])
+
+for eA,eB in zip(elementsA,elementsB):
+	geomtest.append(getvertices(eA) == getvertices(eB))
+
+samegeometry = [i for (i,gt) in zip(elementsA,geomtest) if gt]
+differentgeometry = [i for (i,gt) in zip(elementsA,geomtest) if not gt]
+samegeometrybycat = []
+differentgeometrybycat = []
+for c in categories:
+	samegeometrybycat.append([s for s in samegeometry if s.Category.Name == c])
+	differentgeometrybycat.append([d for d in differentgeometry if d.Category.Name == c])
+	
+
+report = '%d element(s) tested, \n%d element(s) with same geometry, \n%d element(s) with geometry modifications' %(len(elementsA),len(samegeometry),len(differentgeometry))
+if IN[1] == True:
+	OUT = samegeometrybycat , differentgeometrybycat , report
+else:
+	OUT = samegeometry , differentgeometry , report</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="fbb87b1d-5942-4035-b71b-22892ed668eb" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-43" y="-2" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="ExistingElements Data" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="2ad961e7-da1a-4dd3-8d48-7a16229a4fd4" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="810.5" y="-8" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Report" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="66c04d35-0734-4b20-a631-afea72986194" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="808.5" y="71" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Elements with same geometry" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="73d2f43e-f49d-4026-9476-1370eb8437c9" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="808.5" y="145" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Elements with changed geometry" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="16605459-a275-4174-bb73-833d77a163d1" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-81" y="75" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="SortByCategory : bool = false" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="67e767ab-16a2-4a3d-8a00-65df607aac3e" start_index="0" end="66c04d35-0734-4b20-a631-afea72986194" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="67e767ab-16a2-4a3d-8a00-65df607aac3e" start_index="1" end="73d2f43e-f49d-4026-9476-1370eb8437c9" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="67e767ab-16a2-4a3d-8a00-65df607aac3e" start_index="2" end="2ad961e7-da1a-4dd3-8d48-7a16229a4fd4" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="11de816c-6dec-4710-9b2d-65b1c98253db" start_index="0" end="67e767ab-16a2-4a3d-8a00-65df607aac3e" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="fbb87b1d-5942-4035-b71b-22892ed668eb" start_index="0" end="11de816c-6dec-4710-9b2d-65b1c98253db" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="16605459-a275-4174-bb73-833d77a163d1" start_index="0" end="11de816c-6dec-4710-9b2d-65b1c98253db" end_index="1" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Background Preview" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+  </Cameras>
+</Workspace>

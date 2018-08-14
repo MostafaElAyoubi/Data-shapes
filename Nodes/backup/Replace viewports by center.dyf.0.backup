@@ -1,0 +1,70 @@
+<Workspace Version="1.2.0.2831" X="586.131342864856" Y="298.251735714286" zoom="1.33823125" Name="Replace viewports by center" Description="Replaces vieports on sheets according to list of points. (0,0) is bottom left of sheets" ID="77f080a0-f2e0-44d4-ac89-cb1f41669ec0" Category="Data-Shapes.Revit.Sheets">
+  <NamespaceResolutionMap />
+  <Elements>
+    <PythonNodeModels.PythonNode guid="b8f75384-863f-4a12-9d8e-b2782a864ad2" type="PythonNodeModels.PythonNode" nickname="Python Script" x="164.065674374291" y="8.11305434478749" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="2">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi
+#Node-mode 2016 elayoub.mostafa@gmail.com
+
+
+import clr
+clr.AddReference('RevitApi')
+from Autodesk.Revit.DB import*
+clr.AddReference('RevitServices')
+from RevitServices.Persistence import DocumentManager
+from RevitServices.Transactions import TransactionManager
+
+doc = DocumentManager.Instance.CurrentDBDocument
+
+pts = IN[1]
+sheets = []
+viewports = []
+centers = []
+
+t = Transaction(doc , 'recenter views')
+t.Start()
+
+for i in IN[0]:
+	sheets.append(UnwrapElement(i))
+for s in sheets:
+	vpid = s.GetAllViewports()
+	for id in vpid:
+		viewports.append(doc.GetElement(id))
+for p in pts:
+	centers.append(XYZ(p.X,p.Y,p.Z))
+
+for indice,vp in enumerate(viewports):
+	vp.SetBoxCenter(centers[indice])
+
+t.Commit()
+
+OUT = 'You have successfully recentered %d viewports.' % (len(viewports))</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="5abf3e1b-d4ca-41b6-b21d-70794de55d88" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="514.281126006542" y="-7.79280219959853" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="OUT" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="2147a103-a28d-4067-808c-cbe67e8378ea" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-311.202991155036" y="-166.738254585777" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Sheet(s)" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="29505a0e-7b53-408e-9617-64144afb5cce" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="-163.911002596044" y="-162.735117449138" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="Flatten({x});" ShouldFocus="false">
+      <PortInfo index="0" default="False" />
+    </Dynamo.Graph.Nodes.CodeBlockNodeModel>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="2a27aee1-dc53-4d5c-a3e9-cf9318df200a" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-152.883808518574" y="97.5918199595815" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Point(s)" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="b8f75384-863f-4a12-9d8e-b2782a864ad2" start_index="0" end="5abf3e1b-d4ca-41b6-b21d-70794de55d88" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="2147a103-a28d-4067-808c-cbe67e8378ea" start_index="0" end="29505a0e-7b53-408e-9617-64144afb5cce" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="29505a0e-7b53-408e-9617-64144afb5cce" start_index="0" end="b8f75384-863f-4a12-9d8e-b2782a864ad2" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="2a27aee1-dc53-4d5c-a3e9-cf9318df200a" start_index="0" end="b8f75384-863f-4a12-9d8e-b2782a864ad2" end_index="1" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Background Preview" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+  </Cameras>
+</Workspace>
