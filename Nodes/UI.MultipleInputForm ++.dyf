@@ -1,7 +1,7 @@
-<Workspace Version="1.3.2.2480" X="599.055947736091" Y="135.028993366667" zoom="0.66275978056841" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
+<Workspace Version="1.3.3.4111" X="642.231797218026" Y="-12.8311173319486" zoom="0.528197949740684" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
   <NamespaceResolutionMap />
   <Elements>
-    <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="202.943738590106" y="83.8985284563486" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="9">
+    <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="205.180454524533" y="83.8985284563486" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="9">
       <PortInfo index="0" default="False" />
       <PortInfo index="1" default="False" />
       <PortInfo index="2" default="False" />
@@ -173,6 +173,10 @@ try:
 	    				nds = f.Nodes[0]
 	    				iterateThroughNodes(nds,ls)
 	    				self.values.append(ls)	 
+	    			if f.GetType() == GroupBox:
+	    				rb = [c for c in f.Controls if c.GetType() == RadioButton and c.Checked][0]
+	    				self.values.append(rb.Text)
+	    				f.Controls.Remove(rb)
 	    	else:
 	    		self.values = None
 	    		self.cancelled = True
@@ -555,7 +559,23 @@ try:
 					pass
 			else:	    
 				pass
-					
+
+	    def CheckChildren(self, sender, event ):
+			evNode = event.Node	    
+			checkState = evNode.Checked	
+			for n in event.Node.Nodes:	   	
+				n.Checked = checkState			
+				
+	    def ActivateOption(self, sender, event ):
+	    	parent = sender.Parent
+	    	associatedControls = [p for p in parent.Controls if p.Name == sender.Text and p.GetType() == Panel][0]
+	    	restofcontrols = [p for p in parent.Controls if p.Name != sender.Text and p.GetType() == Panel]
+	    	if sender.Checked:
+	    		associatedControls.Enabled = True
+	    		for c in restofcontrols:
+	    			c.Enabled = False
+				
+			
 
 	class mylistview(ListView):
 	
@@ -703,7 +723,10 @@ try:
 			if j.__class__.__name__ == 'listview' and j.element_count &gt; 0:
 				label.Text = j.inputname + '\n(' + str(j.element_count) + ' element' + ("s" if j.element_count &gt; 1 else "") + ')'
 			else:
-				label.Text = j.inputname
+				try:
+					label.Text = j.inputname
+				except:
+					pass
 			formbody.Controls.Add(label)
 	
 			if j.__class__.__name__ == 'dropdown':
@@ -723,6 +746,7 @@ try:
 				formbody.Controls.Add(cb)
 				form.output.append(cb)
 				y = label.Bottom + 25
+			#CHARTS is a work in progress
 			'''
 			if j.__class__.__name__ == 'uichart':
 				ch = Chart()
@@ -755,21 +779,21 @@ try:
 				else:
 					tv.Width = formwidth - rightmargin - xlabel
 					tv.Location = Point(xlabel,y)
-				tv.Height = 500
+				tv.Height = j._height
 				def treeIterationTitle(control, input):
 					if isinstance(input,list):
 						try:
-							currentNode = TreeNode(str(input[0]))
-							currentNode.Tag = input[0]
+							currentNode = TreeNode(input[0].ToString())
+							currentNode.Tag = ""
 							input.pop(0)
 						except:
 							currentNode = TreeNode(control.Text +"."+ str(len(control.Nodes)+1))
-							currentNode.Tag = input[0]
+							currentNode.Tag = ""
 						control.Nodes.Add(currentNode)
 						for i in input:
 							treeIterationTitle(currentNode, i)
 					else:
-						item = TreeNode(str(input))
+						item = TreeNode(input.ToString())
 						item.Tag = input
 						control.Nodes.Add(item)	
 				def treeIteration(control, input):
@@ -780,10 +804,11 @@ try:
 						for i in input:
 							treeIteration(currentNode, i)
 					else:
-						item = TreeNode(str(input))
+						item = TreeNode(input.ToString())
 						item.Tag = input
 						control.Nodes.Add(item)
-				currentNode = TreeNode("List1")						
+				currentNode = TreeNode("List1")
+				currentNode.Expand()				
 				if titles:
 					tv.Nodes.Add(currentNode)								
 					for dl in j.datalist:
@@ -791,7 +816,8 @@ try:
 				else:
 					tv.Nodes.Add(currentNode)								
 					for dl in j.datalist:
-						treeIteration(currentNode,dl)							
+						treeIteration(currentNode,dl)
+				tv.AfterCheck += form.CheckChildren						
 				formbody.Controls.Add(tv)
 				form.output.append(tv)
 				y = tv.Bottom + 25
@@ -1276,6 +1302,47 @@ try:
 				addinput(grouppanel,j.inputgroup,25,xinput-25,80,90,importcolorselection)
 				formbody.Controls.Add(grouppanel)
 				y = grouppanel.Bottom + 25
+			elif j.__class__.__name__ == 'uiconditional':
+				grouppanelcond = GroupBox()
+				grouppanelcond.Location = Point(xlabel,y)
+				grouppanelcond.Width = formwidth - 65	
+				form.output.append(grouppanelcond)				
+				#recursive implementation of the definition to process conditional groups of inputs
+				panlist = []
+				rblist = []
+				yp = 25
+				xrb = 25
+				for i,d in zip(j._Conditions,j._GroupedInputs):	
+					rb = RadioButton()
+					rb.CheckedChanged += form.ActivateOption
+					rb.Text = i
+					rb.Location	= Point(xrb,10)
+					rb.Width = 95
+					rblist.append(rb)					
+					grouppanelcond.Controls.Add(rb)				
+					condition_pannel = Panel()
+					condition_pannel.Name = i
+					condition_pannel.Top = yp
+					condition_pannel.Width = formwidth - 65
+					condition_pannel.BackColor = Color.Transparent
+					condition_pannel.BringToFront()					
+					addinput(condition_pannel,d,25,xinput-25,80,90,importcolorselection)
+					panlist.append(condition_pannel)
+					yp = condition_pannel.Bottom - 25
+					xrb += 100
+				for pan in panlist:
+					grouppanelcond.Controls.Add(pan)
+				for e,pan in enumerate(panlist):
+					if e != j._defaultOptionIndex:
+						pan.Enabled = False
+					else:
+						continue
+				rblist[j._defaultOptionIndex].Checked = True
+				grouppanelcond.Height = sum([p.Height for p in panlist]) - (len(panlist)-2)*25
+				grouppanelcond.BackColor = Color.Transparent				
+				formbody.Controls.Add(grouppanelcond)
+				y = grouppanelcond.Bottom + 25		
+								
 			formbody.Height = y
 
 
@@ -1451,6 +1518,6 @@ except:
   <Annotations />
   <Presets />
   <Cameras>
-    <Camera Name="Background Preview" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+    <Camera Name="Background Preview" eyeX="-618.035766601563" eyeY="2744.03686523438" eyeZ="6805.05859375" lookX="618.035766601563" lookY="-2744.03686523438" lookZ="-6805.05859375" upX="0.0149281928315759" upY="0.986285626888275" upZ="-0.164371103048325" />
   </Cameras>
 </Workspace>

@@ -1,0 +1,53 @@
+<Workspace Version="1.3.3.4111" X="645" Y="303" zoom="1" ScaleFactor="1" Name="UI.ConditionalInput Data" Description="Allows to create inputs that are enabled/disabled by a condition dor UI.MultipleInputForm++. " ID="557b8803-4f27-44c8-ac3d-c6d8439c1e51" Category="Data-Shapes.UI">
+  <NamespaceResolutionMap />
+  <Elements>
+    <PythonNodeModels.PythonNode guid="0dab75fb-93d1-40e7-ab1c-983243c6f5f8" type="PythonNodeModels.PythonNode" nickname="Python Script" x="250" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="true" inputcount="3">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <PortInfo index="2" default="False" />
+      <Script>#Copyright (c) mostafa el ayoubi ,  2017
+#Data-Shapes www.data-shapes.net , elayoubi.mostafa@gmail.com
+
+class uiconditional():
+
+    def __init__(self,inputname,_Conditions,_GroupedInputs,_defaultOptionIndex):
+    	self.inputname = inputname
+        self._Conditions = _Conditions
+        self._GroupedInputs = _GroupedInputs
+        self._defaultOptionIndex = _defaultOptionIndex
+
+    def __repr__(self):
+        return 'UI.Conditional input'
+        
+x = uiconditional("",IN[0],IN[1],IN[2])
+
+
+OUT = x</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="58bd1588-b596-447e-be0f-155992f68615" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="10" y="-63" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Options : var[]" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="553c7814-e04b-4c75-a5a9-6875e48e21df" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-134" y="99" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Inputs Groupes by Option : var[][]" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="977d1969-9ff0-479c-adc8-ca018dc3c58a" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-42" y="255" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Default Option Index" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="960e54ba-fa60-4b5d-a2d0-060e4fc852ef" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="449" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="OUT" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="0dab75fb-93d1-40e7-ab1c-983243c6f5f8" start_index="0" end="960e54ba-fa60-4b5d-a2d0-060e4fc852ef" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="58bd1588-b596-447e-be0f-155992f68615" start_index="0" end="0dab75fb-93d1-40e7-ab1c-983243c6f5f8" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="553c7814-e04b-4c75-a5a9-6875e48e21df" start_index="0" end="0dab75fb-93d1-40e7-ab1c-983243c6f5f8" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="977d1969-9ff0-479c-adc8-ca018dc3c58a" start_index="0" end="0dab75fb-93d1-40e7-ab1c-983243c6f5f8" end_index="2" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Background Preview" eyeX="-618.035766601563" eyeY="2744.03686523438" eyeZ="6805.05859375" lookX="618.035766601563" lookY="-2744.03686523438" lookZ="-6805.05859375" upX="0.0149281928315759" upY="0.986285626888275" upZ="-0.164371103048325" />
+  </Cameras>
+</Workspace>

@@ -1,0 +1,44 @@
+<Workspace Version="1.3.3.4111" X="222.313243263466" Y="167.957746108838" zoom="1.78359936238281" ScaleFactor="1" Name="Room.Height" Description="Returns room height." ID="78ef4e25-eb17-4761-8b14-645590cc2029" Category="Data-Shapes.Revit.Rooms">
+  <NamespaceResolutionMap />
+  <Elements>
+    <PythonNodeModels.PythonNode guid="a38283ae-aa94-486c-85e5-bceef2146da3" type="PythonNodeModels.PythonNode" nickname="Room Height" x="214.117502310329" y="-0.560664026401099" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="1">
+      <PortInfo index="0" default="False" />
+      <Script>import clr
+clr.AddReference('RevitAPI')
+from Autodesk.Revit.DB import *
+clr.AddReference('RevitServices')
+from RevitServices.Transactions import TransactionManager
+from RevitServices.Persistence import DocumentManager
+clr.AddReference('RevitNodes')
+import Revit
+clr.ImportExtensions(Revit.GeometryConversion)
+
+doc = DocumentManager.Instance.CurrentDBDocument
+
+def ToList(input):
+	if isinstance(input,list):
+		return input
+	else:
+		return [input]
+rooms = ToList(IN[0])
+OUT =  [(r.BoundingBox.MaxPoint.Z - r.BoundingBox.MinPoint.Z) for r in rooms]</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="bc8324ac-d622-4028-a300-6e592fd452c7" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="0" y="0" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="Room(s)" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="dea5cb16-d456-4149-8078-fa4b29417186" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="441.150703630384" y="-2.80332013200555" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="Height(s)" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="a38283ae-aa94-486c-85e5-bceef2146da3" start_index="0" end="dea5cb16-d456-4149-8078-fa4b29417186" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="bc8324ac-d622-4028-a300-6e592fd452c7" start_index="0" end="a38283ae-aa94-486c-85e5-bceef2146da3" end_index="0" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Background Preview" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
+  </Cameras>
+</Workspace>

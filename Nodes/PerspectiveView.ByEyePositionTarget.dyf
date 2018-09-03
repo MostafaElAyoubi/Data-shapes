@@ -1,0 +1,101 @@
+<Workspace Version="1.2.1.3083" X="341.205" Y="109.16" zoom="1.1575" Name="PerspectiveView.ByEyePositionTarget" Description="Create perspective view " ID="0f78cf04-a797-4487-9a0c-b4c4d3bc91f7" Category="Data-Shapes.Revit.View">
+  <NamespaceResolutionMap>
+    <ClassMap partialName="Point" resolvedName="Autodesk.DesignScript.Geometry.Point" assemblyName="ProtoGeometry.dll" />
+  </NamespaceResolutionMap>
+  <Elements>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="bf36195b-b2f3-46b5-8427-e8a2a8ae957c" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-3" y="211" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="ViewFamilyTypesName : string" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="76b28491-af15-4736-a2d9-1386f50904aa" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="0" y="300" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="EyePositions : Point" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="8ddaffa2-2c4d-4f44-a853-33325ea172d5" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="0" y="450" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="TargetPositions : Point" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+    <Dynamo.Graph.Nodes.CustomNodes.Output guid="5640f695-da25-42ac-84e5-788f1825d131" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="711" y="133" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
+      <PortInfo index="0" default="False" />
+      <Symbol value="OUT" />
+    </Dynamo.Graph.Nodes.CustomNodes.Output>
+    <PythonNodeModels.PythonNode guid="3a0872ef-672d-431d-9860-fe2e40849b87" type="PythonNodeModels.PythonNode" nickname="Python Script" x="424" y="288" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="4">
+      <PortInfo index="0" default="False" />
+      <PortInfo index="1" default="False" />
+      <PortInfo index="2" default="False" />
+      <PortInfo index="3" default="False" />
+      <Script>import clr
+clr.AddReference('RevitAPI')
+from Autodesk.Revit.DB import*
+clr.AddReference('RevitServices')
+from RevitServices.Persistence import DocumentManager
+from RevitServices.Transactions import TransactionManager
+clr.AddReference('RevitNodes')
+import Revit
+clr.ImportExtensions(Revit.Elements)
+clr.AddReference('ProtoGeometry')
+from Autodesk.DesignScript.Geometry import*
+
+doc = DocumentManager.Instance.CurrentDBDocument
+UIunit = Document.GetUnits(doc).GetFormatOptions(UnitType.UT_Length).DisplayUnits
+
+def convert(x):
+	return  UnitUtils.ConvertToInternalUnits(x,UIunit)
+
+ftypecollection = FilteredElementCollector(doc).OfClass(ViewFamilyType).ToElements()
+
+if isinstance(IN[0],list):
+	viewfamilytypes = IN[0]
+else:
+	viewfamilytypes = [IN[0]]
+if isinstance(IN[1],list):
+	eyepositions = IN[1]
+else:
+	eyepositions = [IN[1]]
+if isinstance(IN[2],list):
+	targets = IN[2]
+else:
+	targets = [IN[2]]
+if isinstance(IN[3],list):
+	templates = IN[3]
+else:
+	templates = [IN[3]]
+
+views = []
+
+for vft,ep,t,temp in zip(viewfamilytypes,eyepositions,targets,templates):
+	ftype = [f for f in ftypecollection if f.ToDSType(True).Name == vft][0]
+	persview = View3D.CreatePerspective(doc,ftype.Id)
+	eyeposition = XYZ(convert(ep.X),convert(ep.Y),convert(ep.Z))
+	vforward = Vector.ByTwoPoints(ep,t)
+	lforward = Line.ByStartPointEndPoint(ep,t)
+	normal = lforward.NormalAtParameter(0)
+	forwarddirection = XYZ(convert(vforward.X),convert(vforward.Y),convert(vforward.Z))
+	up = normal.Cross(vforward)
+	updirection = XYZ(convert(up.X),convert(up.Y),convert(up.Z))
+	orientation = ViewOrientation3D(eyeposition,updirection,forwarddirection)
+	persview.SetOrientation(orientation)
+	persview.SaveOrientation()
+	if temp != None:
+		persview.ViewTemplateId = temp.Id
+	else:
+		pass
+	views.append(persview)
+
+OUT = views</Script>
+    </PythonNodeModels.PythonNode>
+    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="13b72d95-ce9c-4503-a01b-8b47aacac179" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="22" y="559" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
+      <Symbol value="ViewTemplates : var = null" />
+    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
+  </Elements>
+  <Connectors>
+    <Dynamo.Graph.Connectors.ConnectorModel start="bf36195b-b2f3-46b5-8427-e8a2a8ae957c" start_index="0" end="3a0872ef-672d-431d-9860-fe2e40849b87" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="76b28491-af15-4736-a2d9-1386f50904aa" start_index="0" end="3a0872ef-672d-431d-9860-fe2e40849b87" end_index="1" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="8ddaffa2-2c4d-4f44-a853-33325ea172d5" start_index="0" end="3a0872ef-672d-431d-9860-fe2e40849b87" end_index="2" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="3a0872ef-672d-431d-9860-fe2e40849b87" start_index="0" end="5640f695-da25-42ac-84e5-788f1825d131" end_index="0" portType="0" />
+    <Dynamo.Graph.Connectors.ConnectorModel start="13b72d95-ce9c-4503-a01b-8b47aacac179" start_index="0" end="3a0872ef-672d-431d-9860-fe2e40849b87" end_index="3" portType="0" />
+  </Connectors>
+  <Notes />
+  <Annotations />
+  <Presets />
+  <Cameras>
+    <Camera Name="Background Preview" eyeX="-0.0527027877320564" eyeY="5.80993561530574" eyeZ="-0.287439553922201" lookX="-0.696062797902581" lookY="-9.28599737750748" lookZ="3.51879948778424" upX="-0.161817507709385" upY="0.551936993146155" upZ="0.818034630397758" />
+  </Cameras>
+</Workspace>
