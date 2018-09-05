@@ -1,7 +1,7 @@
-<Workspace Version="1.3.3.4111" X="642.231797218026" Y="-12.8311173319486" zoom="0.528197949740684" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
+<Workspace Version="1.3.3.4111" X="314.205101982838" Y="62.560463005739" zoom="0.832737936913071" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
   <NamespaceResolutionMap />
   <Elements>
-    <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="205.180454524533" y="83.8985284563486" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="9">
+    <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="206.381312508387" y="83.8985284563486" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="9">
       <PortInfo index="0" default="False" />
       <PortInfo index="1" default="False" />
       <PortInfo index="2" default="False" />
@@ -34,7 +34,7 @@ try:
 	from System.Collections.Generic import List as iList
 	from System.Windows.Forms import View as vi
 	clr.AddReference('System')
-	from System import IntPtr
+	from System import IntPtr , Char
 	from System import Type as SType
 	from System.ComponentModel import Container
 	clr.AddReference('System.Data')
@@ -116,8 +116,12 @@ try:
 	    	cbindexread = 0
 	    	if sender.Name != "Cancel":
 	    		for f in self.output:
-	    			if f.GetType() == TextBox:
-	    				self.values.append(f.Text)
+	    			if f.GetType() == myTextBox:
+	    				if f._isNum :
+	    					val = float(f.Text)
+	    				else:
+	    					val = f.Text
+	    				self.values.append(val)
 	    			if f.GetType() == CheckBox:
 	    				self.values.append(f.Checked)
 	    			if f.GetType() == Button:
@@ -574,8 +578,16 @@ try:
 	    		associatedControls.Enabled = True
 	    		for c in restofcontrols:
 	    			c.Enabled = False
+
+	    def numsOnly(self, sender, event ):
+	    	if Char.IsDigit(event.KeyChar)==False and event.KeyChar != ".":
+	    		event.Handled = True
 				
 			
+	class myTextBox(TextBox):
+	
+		def __init__(self):
+			self._isNum = False
 
 	class mylistview(ListView):
 	
@@ -896,7 +908,7 @@ try:
 					form.output.append(lv)
 				y = lvp.Bottom + 25
 			elif j.__class__.__name__ == 'uitext':
-				tb = TextBox()
+				tb = myTextBox()
 				tb.Text = j.defaultvalue
 				if j.inputname != "":
 					tb.Width = formwidth  - rightmargin - xinput
@@ -904,6 +916,9 @@ try:
 				else:
 					tb.Width = formwidth - rightmargin - xlabel
 					tb.Location = Point(xlabel,y)
+				if j._isnum:
+					tb._isNum = True
+					tb.KeyPress += form.numsOnly
 				formbody.Controls.Add(tb)
 				formbody.Controls.Add(label)
 				form.output.append(tb)
@@ -1518,6 +1533,6 @@ except:
   <Annotations />
   <Presets />
   <Cameras>
-    <Camera Name="Background Preview" eyeX="-618.035766601563" eyeY="2744.03686523438" eyeZ="6805.05859375" lookX="618.035766601563" lookY="-2744.03686523438" lookZ="-6805.05859375" upX="0.0149281928315759" upY="0.986285626888275" upZ="-0.164371103048325" />
+    <Camera Name="Background Preview" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
   </Cameras>
 </Workspace>
