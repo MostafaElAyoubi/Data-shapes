@@ -1,4 +1,4 @@
-<Workspace Version="1.3.3.4111" X="314.205101982838" Y="62.560463005739" zoom="0.832737936913071" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
+<Workspace Version="1.3.3.4111" X="398.205101982838" Y="86.560463005739" zoom="0.832737936913071" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
   <NamespaceResolutionMap />
   <Elements>
     <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="206.381312508387" y="83.8985284563486" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="9">
@@ -579,6 +579,11 @@ try:
 	    		for c in restofcontrols:
 	    			c.Enabled = False
 
+	    def showtooltip(self, sender, event ):
+	    	ttp = ToolTip()
+	    	ttp.AutoPopDelay = 10000
+	    	ttp.SetToolTip(sender , sender.Tag)	
+
 	    def numsOnly(self, sender, event ):
 	    	if Char.IsDigit(event.KeyChar)==False and event.KeyChar != "." and Char.IsControl(event.KeyChar)==False:
 	    		event.Handled = True
@@ -1078,10 +1083,10 @@ try:
 					fp.Width = formwidth - xlabel - rightmargin		
 					fp.Location = Point(xlabel,y)					
 				fp.Tag = j.defaultvalue
-				if j.defaultvalue == "FilePath":
+				if not j.defaultvalue == "FilePath":
 					fp.Text = j.buttontext
-				else:
-					fp.Text = j.defaultvalue
+					fp.Tag = j.defaultvalue
+					fp.MouseHover += form.showtooltip					
 				formbody.Controls.Add(fp)
 				fp.Click += form.openfile
 				form.output.append(fp)
@@ -1093,12 +1098,13 @@ try:
 					dp.Location = Point(xinput,y)
 				else:
 					dp.Width = formwidth - xlabel - rightmargin		
-					dp.Location = Point(xlabel,y)
+					dp.Location = Point(xlabel,y)				
 				dp.Tag = j.defaultvalue
-				if j.defaultvalue == "DirectoryPath":
+				dp.Text = j.buttontext
+				if not j.defaultvalue == "DirectoryPath":
 					dp.Text = j.buttontext
-				else:
-					dp.Text = j.defaultvalue
+					dp.Tag = j.defaultvalue
+					dp.MouseHover += form.showtooltip								
 				formbody.Controls.Add(dp)
 				dp.Click += form.opendirectory
 				form.output.append(dp)
