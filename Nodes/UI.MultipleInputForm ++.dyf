@@ -580,7 +580,7 @@ try:
 	    			c.Enabled = False
 
 	    def numsOnly(self, sender, event ):
-	    	if Char.IsDigit(event.KeyChar)==False and event.KeyChar != ".":
+	    	if Char.IsDigit(event.KeyChar)==False and event.KeyChar != "." and Char.IsControl(event.KeyChar)==False:
 	    		event.Handled = True
 				
 			
