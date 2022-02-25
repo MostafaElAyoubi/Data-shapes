@@ -1,1544 +1,750 @@
-<Workspace Version="1.3.3.4111" X="398.205101982838" Y="86.560463005739" zoom="0.832737936913071" ScaleFactor="1" Name="UI.MultipleInputForm ++" Description="Create a form with multiple inputs. &#xD;&#xA;see www.data-shapes.net for tutorials and infos!" ID="9fbd05c0-ec1f-4bd3-bf37-969a1552eab8" Category="Data-Shapes.UI">
-  <NamespaceResolutionMap />
-  <Elements>
-    <PythonNodeModels.PythonNode guid="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" type="PythonNodeModels.PythonNode" nickname="Python Script" x="206.381312508387" y="83.8985284563486" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" inputcount="9">
-      <PortInfo index="0" default="False" />
-      <PortInfo index="1" default="False" />
-      <PortInfo index="2" default="False" />
-      <PortInfo index="3" default="False" />
-      <PortInfo index="4" default="False" />
-      <PortInfo index="5" default="False" />
-      <PortInfo index="6" default="False" />
-      <PortInfo index="7" default="False" />
-      <PortInfo index="8" default="False" />
-      <Script>#Copyright (c) Data Shapes,  2018
-#Data-Shapes www.data-shapes.net , elayoubi.mostafa@data-shapes.io @data_shapes
-	
-import clr
-import sys
-pyt_path = r'C:\Program Files (x86)\IronPython 2.7\Lib'
-sys.path.append(pyt_path)
-import os
-import webbrowser
-import unicodedata
-	
-try:
-	clr.AddReference('System.Windows.Forms')
-	clr.AddReference('System.Drawing')
-	clr.AddReference('System.Windows.Forms.DataVisualization')
-	
-	from System.Drawing import Point , Size , Graphics, Bitmap, Image, Font, FontStyle, Icon, Color, Region , Rectangle , ContentAlignment
-	from System.Windows.Forms import Application, DockStyle, Button, Form, Label, TrackBar , ToolTip, ColumnHeader, TextBox, CheckBox, FolderBrowserDialog, OpenFileDialog, DialogResult, ComboBox, FormBorderStyle, FormStartPosition, ListView, ListViewItem , SortOrder, Panel, ImageLayout, GroupBox, RadioButton, BorderStyle, PictureBox, PictureBoxSizeMode, LinkLabel, CheckState, ColumnHeaderStyle , ImageList, VScrollBar, DataGridView, DataGridViewSelectionMode, DataGridViewAutoSizeColumnsMode , DataGridViewClipboardCopyMode , TreeView , TreeNode , TreeNodeCollection
-	from System.Windows.Forms.DataVisualization.Charting import Chart , SeriesChartType
-	from System.Collections.Generic import *
-	from System.Collections.Generic import List as iList
-	from System.Windows.Forms import View as vi
-	clr.AddReference('System')
-	from System import IntPtr , Char
-	from System import Type as SType
-	from System.ComponentModel import Container
-	clr.AddReference('System.Data')
-	from System.Data import DataTable , DataView
-
-	
-	clr.AddReference('RevitAPIUI')
-	from  Autodesk.Revit.UI import Selection , TaskDialog 
-	from  Autodesk.Revit.UI.Selection import ISelectionFilter
-	
-	importcolorselection = 0
-	
-	try:
-		from  Autodesk.Revit.UI import ColorSelectionDialog
-	except:
-		importcolorselection = 1
-	
-	clr.AddReference('RevitNodes')
-	import Revit
-	clr.ImportExtensions(Revit.Elements)
-	clr.ImportExtensions(Revit.GeometryConversion)
-	
-	clr.AddReference('RevitServices')
-	from RevitServices.Persistence import DocumentManager
-	doc = DocumentManager.Instance.CurrentDBDocument
-	uidoc = DocumentManager.Instance.CurrentUIApplication.ActiveUIDocument
-
-	clr.AddReference('RevitAPI')
-	from Autodesk.Revit.DB import FilteredElementCollector , View , ViewType , ElementId , FamilyInstance , Document , UnitType , UnitUtils
-	dbviews = [v for v in FilteredElementCollector(doc).OfClass(View).ToElements() if (v.ViewType == ViewType.FloorPlan or v.ViewType == ViewType.CeilingPlan or v.ViewType == ViewType.Section or v.ViewType == ViewType.Elevation or v.ViewType == ViewType.ThreeD)]
-	viewindex = 0
-	
-	clr.AddReference('ProtoGeometry')
-	from Autodesk.DesignScript.Geometry import Point as dsPoint
-
-	from System.Reflection import Assembly
-	import xml.etree.ElementTree as et
-	
-	UIunit = Document.GetUnits(doc).GetFormatOptions(UnitType.UT_Length).DisplayUnits
-	
-	import re	
-	def regexEndNum(input):
-		try:
-			return 	re.search('(\d+)$', input).group(0)
-		except:
-			return ""
-
-	def iterateThroughNodes(collection,li):
-		if hasattr(collection,'Nodes'):
-			ntest = collection.Nodes
-			if len(ntest) &gt; 0:
-				for i in ntest:
-					iterateThroughNodes(i,li)
-			else:
-				if collection.Checked:
-					li.append(collection.Tag)
-		return li
-		
-	class selectionfilter(ISelectionFilter):
-		def __init__(self,category):
-			self.category = category
-		def AllowElement(self,element):
-			if element.Category.Name in [c.Name for c in self.category]:
-				return True
-			else:
-				return False
-		def AllowReference(reference,point):
-			return False
-	
-	class MultiTextBoxForm(Form):
-		
-	    def __init__(self):
-	        self.Text = 'Data-Shapes | Multi Input UI ++'
-	        self.output = []
-	        self.values = []
-	        self.cancelled = False
-	
-	    def setclose(self, sender, event):
-	    	cbindexread = 0
-	    	if sender.Name != "Cancel":
-	    		for f in self.output:
-	    			if f.GetType() == myTextBox:
-	    				if f._isNum :
-	    					val = float(f.Text)
-	    				else:
-	    					val = f.Text
-	    				self.values.append(val)
-	    			if f.GetType() == CheckBox:
-	    				self.values.append(f.Checked)
-	    			if f.GetType() == Button:
-	    				if isinstance(f.Tag ,list):
-	    					self.values.append([e for e in f.Tag if e.__class__.__name__ != "Category"])
-	    				else:	    					
-	    					if f.Tag.__class__.__name__ != "Category":
-	    						self.values.append(f.Tag)
-	    					else:
-    							self.values.append([])
-
-	    			if f.GetType() == ComboBox:
-	    				try:
-	    					key = f.Text
-	    					self.values.append(f.Tag[key])
-	    				except:
-	    					self.values.append(None)
-	    			if f.GetType() == mylistview:
-	    				self.values.append([f.Values[i.Text] for i in f.CheckedItems])
-	    			if f.GetType() == mytrackbar:
-	    				self.values.append(f.startval+f.Value*f.step)
-	    			if f.GetType() == mygroupbox:
-	    				try:
-	    					key = [j.Text for j in f.Controls if j.Checked == True][0]
-	    					self.values.append(f.Tag[key])
-	    				except:
-	    					self.values.append(None)
-	    			if f.GetType() == myDataGridView:
-	    				f.EndEdit()
-	    				dsrc = f.DataSource
-	    				out = []
-	    				colcount = f.ColumnCount
-	    				rowcount = f.RowCount - 1
-	    				if f.Tag:
-		    				l = []
-	    					for i in range(colcount):	    						
-	    						l.append(dsrc.Columns[i].ColumnName)
-	    					out.append(l)	    						
-		    				for r in range(rowcount):
-		    					l = []
-		    					for i in range(colcount):
-		    						l.append(dsrc.DefaultView[r].Row[i])
-		    					out.append(l)
-	    				else: 
-		    				for r in range(rowcount):
-		    					l = []
-		    					for i in range(colcount):
-		    						l.append(dsrc.DefaultView[r].Row[i])
-		    					out.append(l)
-	    				self.values.append(out)
-	    			if f.GetType() == TreeView:
-	    				ls = []
-	    				nds = f.Nodes[0]
-	    				iterateThroughNodes(nds,ls)
-	    				self.values.append(ls)	 
-	    			if f.GetType() == GroupBox:
-	    				rb = [c for c in f.Controls if c.GetType() == RadioButton and c.Checked][0]
-	    				self.values.append(rb.Text)
-	    				f.Controls.Remove(rb)
-	    	else:
-	    		self.values = None
-	    		self.cancelled = True
-	    	self.Close()
-	
-	    def reset(self, sender, event):
-			pass
-	
-	    def openfile(self, sender, event):
-			ofd = OpenFileDialog()
-			dr = ofd.ShowDialog()
-			if dr == DialogResult.OK:
-				sender.Text = ofd.FileName
-				sender.Tag = ofd.FileName
-
-	    def exportToExcel(self, sender, event):
-	    	#importing Excel IronPython libraries
-	    	clr.AddReferenceByName('Microsoft.Office.Interop.Excel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c')
-	    	from Microsoft.Office.Interop import Excel
-	    	ex = Excel.ApplicationClass()
-	    	ex.Visible = sender.Tag[1]
-	    	ex.DisplayAlerts = False
-	    	fbd = FolderBrowserDialog()
-	    	fbd.SelectedPath = sender.Text
-	    	parent = sender.Parent
-	    	fptextbox = parent.GetChildAtPoint(Point(parent.Location.X,sender.Location.Y+5))
-	    	dataGrid = parent.GetChildAtPoint(Point(parent.Location.X,parent.Location.Y+23))
-	    	dataTable = dataGrid.DataSource
-	    	fptext = fptextbox.Text
-	    	titletext = parent.GetChildAtPoint(Point(0,0)).Text
-	    	dr = fbd.ShowDialog()
-	    	frstRwTtle = sender.Tag[0]
-	    	if frstRwTtle:
-	    		_header = Excel.XlYesNoGuess.xlYes
-	    	else:
-	    		_header = Excel.XlYesNoGuess.xlNo
-	    	if dr == DialogResult.OK:
-	    		workbk = ex.Workbooks.Add()
-	    		worksheet = workbk.Worksheets.Add()
-	    		#Writing title and doc info
-	    		if sender.Tag[2]:
-		    		titleCell = worksheet.Cells[1,1]
-		    		worksheet.Cells[2,1].Value2 = sender.Tag[3]
-		    		titleCell.Value2 = titletext
-		    		titleCell.Font.Size = 18
-		    		titleCell.Font.Bold = True
-		    		startR = 3
-		    		endR = 3
-		    	else:
-		    		startR = 1
-		    		endR = 0	
-		    	if frstRwTtle:
-		    		for j in range(0,dataTable.Columns.Count):
-		    			worksheet.Cells[startR,j+1] = dataTable.Columns[j].ColumnName		    	
-		    		for i in range(0,dataTable.Rows.Count):
-		    			for j in range(0,dataTable.Columns.Count):
-			    			worksheet.Cells[i+startR+1,j+1] = dataTable.DefaultView[i].Row[j].ToString()
-		    		xlrange = ex.get_Range(worksheet.Cells[startR,1],worksheet.Cells[dataTable.Rows.Count+endR+1,dataTable.Columns.Count])			    			
-		    	else :
-		    		for i in range(0,dataTable.Rows.Count):
-		    			for j in range(0,dataTable.Columns.Count):
-			    			worksheet.Cells[i+startR,j+1] = dataTable.DefaultView[i].Row[j].ToString()		    	
-		    		xlrange = ex.get_Range(worksheet.Cells[startR,1],worksheet.Cells[dataTable.Rows.Count+endR,dataTable.Columns.Count])
-		    	xlrange.Columns.AutoFit()
-		    	worksheet.ListObjects.Add(Excel.XlListObjectSourceType.xlSrcRange, xlrange, SType.Missing, _header, SType.Missing).Name = "DataShapesTable"
-		    	worksheet.ListObjects["DataShapesTable"].TableStyle =  "TableStyleMedium16"
-	    		workbk.SaveAs(fbd.SelectedPath + "\\" + fptext)
-	    		if not sender.Tag[1]:
-	    			workbk.Close()
-	    			ex.Quit()
-
-	    def startCell(self, sender, event ):
-			sender.startcell["X"] = event.ColumnIndex
-			sender.startcell["Y"] = event.RowIndex	
-
-	    def endCell(self, sender, event ):
-	    	try:
-				sender.endcell["X"] = event.ColumnIndex
-				sender.endcell["Y"] = event.RowIndex 
-				startval = sender.Rows[sender.startcell["Y"]].Cells[sender.startcell["X"]].Value
-				endNum = regexEndNum(startval)
-				if endNum != "":
-					if sender.endcell["Y"] == sender.startcell["Y"]:
-						for e,i in enumerate(range(sender.startcell["X"],sender.endcell["X"] + 1)):
-							sender.Rows[sender.startcell["Y"]].Cells[i].Value = startval[:-len(endNum)] + str(int(endNum) + e)
-					elif sender.endcell["X"] == sender.startcell["X"]:
-						for e,i in enumerate(range(sender.startcell["Y"],sender.endcell["Y"] + 1)):
-							sender.Rows[i].Cells[sender.endcell["X"]].Value = startval[:-len(endNum)] + str(int(endNum) + e)
-				else:				
-					if sender.endcell["Y"] == sender.startcell["Y"]:
-						for i in range(sender.startcell["X"],sender.endcell["X"] + 1):
-							sender.Rows[sender.startcell["Y"]].Cells[i].Value = startval
-					elif sender.endcell["X"] == sender.startcell["X"]:
-						for i in range(sender.startcell["Y"],sender.endcell["Y"] + 1):
-							sender.Rows[i].Cells[sender.endcell["X"]].Value = startval
-	    	except:
-	    		pass
-	    		    	
-	    def startRowDrag(self, sender, event ):
-	    	shmak
-			
-	    def opendirectory(self, sender, event):
-			fbd = FolderBrowserDialog()
-			fbd.SelectedPath = sender.Text
-			dr = fbd.ShowDialog()
-			if dr == DialogResult.OK:
-				sender.Text = fbd.SelectedPath
-				sender.Tag = fbd.SelectedPath
-	
-	    def pickobjects(self, sender, event):
-			for c in self.Controls:
-				c.Enabled = False
-			try:
-				sel = uidoc.Selection.PickObjects(Selection.ObjectType.Element,'')
-				selelem = [doc.GetElement(s.ElementId) for s in sel]
-				sender.Tag = (selelem)
-			except:
-				pass
-			for c in self.Controls:
-				c.Enabled = True
-	    def pickobjectsordered(self, sender, event):
-			for c in self.Controls:
-				c.Enabled = False
-			output = []
-			test = True
-			TaskDialog.Show("Data|Shapes", 'Pick elements in order, then hit ESC to exit.')
-			while test:
-				try:
-					sel = doc.GetElement(uidoc.Selection.PickObject(Selection.ObjectType.Element, 'Pick elements in order').ElementId)
-					output.append(sel.ToDSType(True))
-				except : 
-					test = False
-				sender.Tag = output
-			for c in self.Controls:
-				c.Enabled = True
-	    
-	    def pickobjectsofcatordered(self, sender, event):
-			for c in self.Controls:
-				c.Enabled = False
-			output = []
-			test = True
-			if isinstance(sender.Tag,list):			
-				category = UnwrapElement(sender.Tag)
-			else:
-				category = [UnwrapElement(sender.Tag)]
-			TaskDialog.Show("Data|Shapes", 'Select %s in order, then press ESC to exit.' %(', '.join([c.Name for c in category])))
-			while test:
-				try:
-					selfilt = selectionfilter(category)
-					sel = doc.GetElement(uidoc.Selection.PickObject(Selection.ObjectType.Element,selfilt, 'Select %s' %(', '.join([c.Name for c in category]))).ElementId)				
-					output.append(sel.ToDSType(True))
-				except : 
-					test = False
-				sender.Tag = (output)
-			for c in self.Controls:
-				c.Enabled = True
-			
-	    def picklinkedobjects(self, sender, event):
-			#This part was made easier by Dimitar Venkov's work
-			for c in self.Controls:
-				c.Enabled = False
-			try:
-				linkref = uidoc.Selection.PickObject(Selection.ObjectType.Element,'Select the link instance.')
-				link = doc.GetElement(linkref.ElementId).GetLinkDocument()
-				td = TaskDialog.Show('Data-Shapes','Select the linked elements and press Finish.')
-				sel = uidoc.Selection.PickObjects(Selection.ObjectType.LinkedElement,'Select the linked elements and press Finish.')
-				selelem = [link.GetElement(s.LinkedElementId) for s in sel]
-				sender.Tag = (selelem)
-			except:
-				pass
-			for c in self.Controls:
-				c.Enabled = True		
-
-	    def pickobject(self, sender, event):
-			for c in self.Controls:
-				c.Enabled = False
-			try:
-				sel = uidoc.Selection.PickObject(Selection.ObjectType.Element,'')
-				selelem = doc.GetElement(sel.ElementId) 
-				sender.Tag = (selelem)
-			except:
-				pass
-			for c in self.Controls:
-				c.Enabled = True
-			
-	    def picklinkedobject(self, sender, event):
-			#This part was made easier by Dimitar Venkov's work
-			for c in self.Controls:
-				c.Enabled = False
-			try:
-				linkref = uidoc.Selection.PickObject(Selection.ObjectType.Element,'Select the link instance.')
-				link = doc.GetElement(linkref.ElementId).GetLinkDocument()
-				td = TaskDialog.Show('Data-Shapes','Select the linked element.')
-				sel = uidoc.Selection.PickObject(Selection.ObjectType.LinkedElement,'Select the linked element.')
-				selelem = link.GetElement(sel.LinkedElementId)
-				sender.Tag = (selelem)
-			except:
-				pass				
-			for c in self.Controls:
-				c.Enabled = True
-			
-	    def pickobjectsofcat(self, sender, event):
-			for c in self.Controls:
-				c.Enabled = False
-			if isinstance(sender.Tag,list):	    
-				category = UnwrapElement(sender.Tag)
-			else:
-				category = [UnwrapElement(sender.Tag)]
-			try:
-				selfilt = selectionfilter(category)
-				sel = uidoc.Selection.PickObjects(Selection.ObjectType.Element,selfilt,'Select %s' %(', '.join([c.Name for c in category])))
-				selelem = [doc.GetElement(s.ElementId) for s in sel]
-				sender.Tag = (selelem)
-			except:
-				pass
-			for c in self.Controls:
-				c.Enabled = True
-
-	    def pickobjectofcat(self, sender, event):
-			for c in self.Controls:
-				c.Enabled = False
-			if isinstance(sender.Tag,list):	    
-				category = UnwrapElement(sender.Tag)
-			else:
-				category = [UnwrapElement(sender.Tag)]
-			try:
-				selfilt = selectionfilter(category)
-				sel = uidoc.Selection.PickObject(Selection.ObjectType.Element,selfilt,'Select %s' %(', '.join([c.Name for c in category])))
-				selelem = doc.GetElement(sel.ElementId) 
-				sender.Tag = (selelem)
-			except:
-				pass
-			for c in self.Controls:
-				c.Enabled = True
-			
-	    def pickfaces(self, sender, event):
-			faces = []	    	
-			for c in self.Controls:
-				c.Enabled = False
-			try:
-				selface = uidoc.Selection.PickObjects(Selection.ObjectType.Face,'')
-				for s in selface:
-					f = uidoc.Document.GetElement(s).GetGeometryObjectFromReference(s).ToProtoType(True)
-					[i.Tags.AddTag("RevitFaceReference", s) for i in f]
-					faces.append(f)
-				sender.Tag = [i for j in faces for i in j]
-			except:
-				pass
-			for c in self.Controls:
-				c.Enabled = True
-				
-	    def pickpointsonface(self, sender, event):
-			faces = []	    	
-			for c in self.Controls:
-				c.Enabled = False
-			selpoints = uidoc.Selection.PickObjects(Selection.ObjectType.PointOnElement,'')
-			points = []
-			for s in selpoints:
-				pt = s.GlobalPoint
-				points.append(dsPoint.ByCoordinates(UnitUtils.ConvertFromInternalUnits(pt.X,UIunit),UnitUtils.ConvertFromInternalUnits(pt.Y,UIunit),UnitUtils.ConvertFromInternalUnits(pt.Z,UIunit)))
-			sender.Tag = points
-			for c in self.Controls:
-				c.Enabled = True
-				
-	    def pickedges(self, sender, event):
-			edges = []
-			for c in self.Controls:
-				c.Enabled = False	
-			try:				
-				seledge = uidoc.Selection.PickObjects(Selection.ObjectType.Edge,'')
-				for s in seledge:
-					e = uidoc.Document.GetElement(s).GetGeometryObjectFromReference(s).AsCurve().ToProtoType(True)
-					e.Tags.AddTag("RevitFaceReference", s)
-					edges.append(e)
-				sender.Tag = edges
-			except:
-				pass
-			for c in self.Controls:
-				c.Enabled = True
-
-	    def colorpicker(self, sender, event):
-			dialog = ColorSelectionDialog()
-			selection = ColorSelectionDialog.Show(dialog)
-			selected = dialog.SelectedColor
-			sender.Tag = selected
-			sender.BackColor = Color.FromArgb(selected.Red,selected.Green,selected.Blue)
-			sender.ForeColor = Color.FromArgb(selected.Red,selected.Green,selected.Blue)
-	
-	    def topmost(self):
-			self.TopMost = True
-	
-	    def lvadd(self, sender, event):
-			sender.Tag = [i for i in sender.CheckedItems]
-			
-	    def scroll(self, sender, event):
-			parent = sender.Parent
-			child = parent.GetChildAtPoint(Point(0,5))
-			child.Text = str(sender.startval+sender.Value*sender.step)
-
-	    def openurl(self, sender, event):
-			webbrowser.open(sender.Tag)
-	
-	    def selectall(self, sender, event):
-			if sender.Checked:
-				parent = sender.Parent
-				listview = parent.GetChildAtPoint(Point(0,0))
-				for i in listview.Items:
-					i.Checked = True
-			else:
-				pass
-				
-	    def selectnone(self, sender, event):
-			if sender.Checked:
-				parent = sender.Parent
-				listview = parent.GetChildAtPoint(Point(0,0))
-				for i in listview.Items:
-					i.Checked = False
-			else:
-				pass		
-
-	    def updateallnone(self, sender, event):
-	    	try:
-	    		parent = sender.Parent
-	    		rball = parent.GetChildAtPoint(Point(0,sender.Height + 5))
-	    		rbnone = parent.GetChildAtPoint(Point(80,sender.Height + 5))
-	    		if sender.CheckedItems.Count == 0 and event.NewValue == CheckState.Unchecked:
-	    			rbnone.Checked = False
-	    			rball.Checked = False
-	    		elif sender.CheckedItems.Count == sender.Items.Count and event.NewValue == CheckState.Unchecked:
-	    			rball.Checked = False
-	    			rbnone.Checked = False
-	    		elif sender.CheckedItems.Count == sender.Items.Count-1 and event.NewValue == CheckState.Checked:
-	    			rball.Checked = True
-	    			rbnone.Checked = False
-	    		elif sender.CheckedItems.Count == 1 and event.NewValue == CheckState.Unchecked:
-	    			rball.Checked = False
-	    			rbnone.Checked = True	    	
-	    		else :
-	    			rball.Checked = False
-	    			rbnone.Checked = False
-	    	except:
-	    		pass
-
-	    def zoomcenter(self, sender, event ):
-			if event.X &gt; 15:	    
-				try:
-					uiviews = uidoc.GetOpenUIViews()
-					element = doc.GetElement(uidoc.Selection.GetElementIds()[0])
-					activeview = doc.ActiveView
-					bbox = element.get_BoundingBox(activeview)	
-					activeuiview = [v for v in uiviews if v.ViewId == activeview.Id][0]
-					activeuiview.ZoomAndCenterRectangle(bbox.Min, bbox.Max)
-					uidoc.RefreshActiveView()
-				except:
-					pass
-			else:
-				pass
-				
-			
-	    def setviewforelement(self, sender, event ):    
-			if event.X &gt; 15:	    		
-				try:
-					item = sender.GetItemAt(event.X,event.Y).Text
-					element = UnwrapElement(sender.Values[item])
-					try:
-						viewsforelement = [v for v in dbviews if (not v.IsTemplate) and (element.Id in [e.Id for e in FilteredElementCollector(doc,v.Id).OfClass(element.__class__).ToElements()])]
-					except:
-						viewsforelement = [v for v in dbviews if (not v.IsTemplate) and (element.Id in [e.Id for e in FilteredElementCollector(doc,v.Id).OfClass(FamilyInstance).ToElements()])]
-					global viewindex
-					dbView = viewsforelement[viewindex]
-					id = [element.Id]
-					icollection = iList[ElementId](id)
-					uidoc.Selection.SetElementIds(icollection)
-					if (viewindex &gt;= len(viewsforelement) -1) or not (element.Id in uidoc.Selection.GetElementIds()):
-						viewindex = 0
-					else:
-						viewindex += 1
-					uidoc.RequestViewChange(dbView)
-				except:
-					pass
-			else:	    
-				pass
-
-	    def CheckChildren(self, sender, event ):
-			evNode = event.Node	    
-			checkState = evNode.Checked	
-			for n in event.Node.Nodes:	   	
-				n.Checked = checkState			
-				
-	    def ActivateOption(self, sender, event ):
-	    	parent = sender.Parent
-	    	associatedControls = [p for p in parent.Controls if p.Name == sender.Text and p.GetType() == Panel][0]
-	    	restofcontrols = [p for p in parent.Controls if p.Name != sender.Text and p.GetType() == Panel]
-	    	if sender.Checked:
-	    		associatedControls.Enabled = True
-	    		for c in restofcontrols:
-	    			c.Enabled = False
-
-	    def showtooltip(self, sender, event ):
-	    	ttp = ToolTip()
-	    	ttp.AutoPopDelay = 10000
-	    	ttp.SetToolTip(sender , sender.Tag)	
-
-	    def numsOnly(self, sender, event ):
-	    	if Char.IsDigit(event.KeyChar)==False and event.KeyChar != "." and Char.IsControl(event.KeyChar)==False:
-	    		event.Handled = True
-				
-			
-	class myTextBox(TextBox):
-	
-		def __init__(self):
-			self._isNum = False
-
-	class mylistview(ListView):
-	
-		def __init__(self):
-			self.Values = []
-
-	class mytrackbar(TrackBar):
-	
-		def __init__(self,startval,step):
-			self.startval = startval
-			self.step = step
-
-	class myDataGridView(DataGridView):
-	
-		def __init__(self):
-			self.startcell = {}
-			self.endcell = {}
-			
-	class mygroupbox(GroupBox):
-	
-		def __init__(self):
-			self.Values = []
-	
-	#Form initialization
-	
-	form = MultiTextBoxForm()
-	form.topmost()	
-	form.ControlBox = False
-	xlabel = 25
-	xinput = 150
-	formy = 10
-	if IN[8] &gt; 350:	formwidth = IN[8]
-	else: formwidth = 350
-	fields = []
-	error = 0
-	
-	#Description 
-	
-	if IN[3] != "":
-		des = Label()
-		des.Font = Font("Arial", 15,FontStyle.Bold)
-		des.Location = Point(xlabel,formy)
-		des.AutoSize = True
-		des.MaximumSize = Size(formwidth - 2 * xlabel,0)
-		des.Text = IN[3]
-		form.Controls.Add(des)
-		formy = des.Bottom + 15
-	formheaderheight = formy
-	
-	#Input form
-	
-	# Create a container panel for all inputs
-	body = Panel()
-	body.Location = Point(0,formy)
-	body.Width = formwidth - 15
-	
-	
-	# Process form inputs
-	if isinstance(IN[0],list):
-		inputtypes = IN[0]
-	else:
-		inputtypes = [IN[0]]
-	# This definition is to handle the sorting of special characters
-	def remove_accents(input_str):
-	    nfkd_form = unicodedata.normalize('NFKD', input_str)
-	    only_ascii = nfkd_form.encode('ASCII', 'ignore')
-	    return only_ascii	
-
-	#Adding Logo 
-	#default logo in case no input	
-	def getImageByName(ImName):
-		dynamo = Assembly.Load('DynamoCore')
-		version = str(dynamo.GetName().Version)[:3]		
-		dynPath = os.getenv('APPDATA')+"\\Dynamo\Dynamo Revit\\" + version 
-		root = et.parse(dynPath + "\DynamoSettings.xml").getroot()
-		logopaths = []
-		for child in root:
-			if child.tag == "CustomPackageFolders":
-				for path in child:
-					logopaths.append(path.text + "\packages\Data-Shapes\extra\\" + ImName)
-					logopaths.append(path.text + "\Data-Shapes\extra\\" + ImName)
-		deflogopath = ""
-		for path in logopaths:
-			if deflogopath == "":
-				if os.path.isfile(path):
-					deflogopath = path
-					try:
-						ima = Image.FromFile(deflogopath)
-						bmp = Bitmap.FromFile(deflogopath)
-						return ima,bmp
-					except: 
-						pass
-						
-	try:
-		if IN[4] != '':
-			try:
-				ima = Image.FromFile(IN[4])
-				bmp = Bitmap.FromFile(IN[4])
-			except:
-				ima = IN[4]
-				bmp = IN[4]
-
-		else :
-			_ims = getImageByName("a.png")
-			ima = _ims[0]
-			bmp = _ims[1]
-			
-		logo = Panel()
-		if IN[6] == None:
-			xlogo = 20
-			ylogo = formy+10
-		else:
-			xlogo = 30
-			ylogo = formy
-		size = 110
-		logo = PictureBox()
-		ratio = (ima.Height)/(ima.Width)
-		h = float(ima.Height)
-		w = float(ima.Width)
-		ratio = h/w
-		logo.Size = Size(size,size*ratio)
-		scaledimage = Bitmap(size,size*ratio)
-		gr = Graphics.FromImage(scaledimage)
-		gr.DrawImage(ima,0,0,size,size*ratio)
-		logo.Image = ima
-		logo.SizeMode = PictureBoxSizeMode.Zoom
-		form.Controls.Add(logo)
-		logo.Location = Point(xlogo,ylogo)
-		#Setting icon 
-		thumb = bmp.GetThumbnailImage(64, 64, bmp.GetThumbnailImageAbort,IntPtr.Zero)
-		thumb.MakeTransparent();
-		icon = Icon.FromHandle(thumb.GetHicon())
-		form.Icon = icon
-
-	except :
-		pass
-	
-	def addinput(formbody,inputs,starty,xinput,rightmargin,labelsize,importcolorselection):
-		y = starty
-		for j in inputs:
-			label = Label()
-			label.Location = Point(xlabel,y+4)
-			label.AutoSize = True
-			label.MaximumSize = Size(labelsize,0)
-			if j.__class__.__name__ == 'listview' and j.element_count &gt; 0:
-				label.Text = j.inputname + '\n(' + str(j.element_count) + ' element' + ("s" if j.element_count &gt; 1 else "") + ')'
-			else:
-				try:
-					label.Text = j.inputname
-				except:
-					pass
-			formbody.Controls.Add(label)
-	
-			if j.__class__.__name__ == 'dropdown':
-				cb = ComboBox()
-				if j.inputname != "":
-					cb.Width = formwidth - rightmargin - xinput
-					cb.Location = Point(xinput,y)
-				else:
-					cb.Width = formwidth - rightmargin - xlabel
-					cb.Location = Point(xlabel,y)
-				cb.Sorted = j._sorted
-				[cb.Items.Add(i) for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'defaultvalue' or i == 'highlight' or i == '_sorted' )]
-				cb.Tag = j
-				if j.defaultvalue != None:
-					defindex = [i for i in cb.Items].index([i for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'defaultvalue' or i == 'highlight' or i == '_sorted' )][j.defaultvalue])
-					cb.SelectedIndex = defindex
-				formbody.Controls.Add(cb)
-				form.output.append(cb)
-				y = label.Bottom + 25
-			#CHARTS is a work in progress
-			'''
-			if j.__class__.__name__ == 'uichart':
-				ch = Chart()
-				ch.Width = formwidth - rightmargin - xlabel
-				ch.Location = Point(xlabel,y)
-				ch.Height = 600
-				ch.Series.Add("test")
-				ch.Series["test"].XValueMember = "Date"
-				ch.Series["test"].YValueMembers = "Percent"
-				ch.Series[0].ChartType = SeriesChartType.ChartType.Bar
-				dt = DataTable()
-				dl = j.datalist
-				for rindex in range(rngstart,len(dl)):
-					row = dt.NewRow()
-					for i in range(len(dl[rindex])):
-						row[i] = dl[rindex][i]
-					dt.Rows.Add(row)
-				ch.DataSource = table
-				ch.DataBind()
-				formbody.Controls.Add(ch)
-				y = ch.Bottom + 25
-			'''
-			if j.__class__.__name__ == 'uitreeview':
-				tv = TreeView()
-				tv.CheckBoxes = True
-				titles = j._hastitles
-				if j.inputname != "":
-					tv.Width = formwidth - rightmargin - xinput
-					tv.Location = Point(xinput,y)
-				else:
-					tv.Width = formwidth - rightmargin - xlabel
-					tv.Location = Point(xlabel,y)
-				tv.Height = j._height
-				def treeIterationTitle(control, input):
-					if isinstance(input,list):
-						try:
-							currentNode = TreeNode(input[0].ToString())
-							currentNode.Tag = ""
-							input.pop(0)
-						except:
-							currentNode = TreeNode(control.Text +"."+ str(len(control.Nodes)+1))
-							currentNode.Tag = ""
-						control.Nodes.Add(currentNode)
-						for i in input:
-							treeIterationTitle(currentNode, i)
-					else:
-						item = TreeNode(input.ToString())
-						item.Tag = input
-						control.Nodes.Add(item)	
-				def treeIteration(control, input):
-					if isinstance(input,list):
-						currentNode = TreeNode(control.Text +"."+ str(len(control.Nodes)+1))
-						currentNode.Tag = input
-						control.Nodes.Add(currentNode)
-						for i in input:
-							treeIteration(currentNode, i)
-					else:
-						item = TreeNode(input.ToString())
-						item.Tag = input
-						control.Nodes.Add(item)
-				currentNode = TreeNode("List1")
-				currentNode.Expand()				
-				if titles:
-					tv.Nodes.Add(currentNode)								
-					for dl in j.datalist:
-						treeIterationTitle(currentNode,dl)	
-				else:
-					tv.Nodes.Add(currentNode)								
-					for dl in j.datalist:
-						treeIteration(currentNode,dl)
-				tv.AfterCheck += form.CheckChildren						
-				formbody.Controls.Add(tv)
-				form.output.append(tv)
-				y = tv.Bottom + 25
-			elif j.__class__.__name__ == 'listview':
-				lvp = Panel()
-				if j.inputname != "":
-					lvp.Location = Point(xinput,y)
-					lvp.Width = formwidth - rightmargin - xinput				
-				elif j.inputname == "" and j.element_count != 0:
-					lvp.Location = Point(xlabel,y+35)
-					lvp.Width = formwidth - rightmargin - xlabel
-				else : 
-					lvp.Location = Point(xlabel,y)
-					lvp.Width = formwidth - rightmargin - xlabel				
-				lvp.Height = j.height + 25
-				#Creating the listview box
-				lv = mylistview()
-				lv.Scrollable = True
-				dummyheader = ColumnHeader()
-				dummyheader.Text = ""
-				dummyheader.Name = ""
-				dummyheader.Width = -2
-				lv.HeaderStyle = ColumnHeaderStyle.None
-				lv.Columns.Add(dummyheader)
-				lv.Values = j
-				if not j.display_mode:
-					lv.CheckBoxes = True
-				lv.View = vi.Details
-				lvItems =  [i for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'highlight' or i == 'display_mode' or i == 'element_count' or i == 'default_values' or i == 'sorted' or i == 'showId')]
-				if j.sorted :
-					lvItems = sorted(lvItems,key = remove_accents)
-				else:
-					pass
-				[lv.Items.Add(i) for i in lvItems]
-				lv.Location = Point(0,0)
-				if j.inputname != "" and j.element_count != 0:
-					lv.Width = formwidth - rightmargin - xinput
-				elif j.inputname != "" and j.element_count == 0:
-					lv.Width = formwidth - rightmargin - xinput
-				else:
-					lv.Width = formwidth - rightmargin - xlabel
-				lv.Height = j.height
-				lv.Scrollable = True
-				lv.ItemCheck += form.updateallnone
-				for i in j.default_values:
-					defInd = lvItems.index([x for x in j.keys() if not (x == 'inputname' or x == 'height' or x == 'highlight' or x == 'display_mode' or x == 'element_count' or x == 'default_values' or x == 'sorted' or x == 'showId')][i])
-					lv.Items[defInd].Checked = True
-				#Click listview items to hilight and center in appropriate view
-				if j.highlight :
-					lv.MouseDown += form.setviewforelement
-					lv.MouseUp += form.zoomcenter
-					items = list(lv.Items)
-					lv.FullRowSelect = True
-					del items[::2]
-					for item in items:
-						item.BackColor = Color.FromArgb(230,243,255)
-				#Creating select all and select none radiobuttons
-				if not j.display_mode:
-					rball = RadioButton()
-					rball.Location = Point(0,(j.height)+5)
-					rball.Width = 70
-					rball.Text = "Select all"
-					rball.Click += form.selectall
-					rbnone = RadioButton()
-					rbnone.Location = Point(80,(j.height)+5)
-					rbnone.Width = 90
-					rbnone.Text = "Select none"			
-					rbnone.Click += form.selectnone			
-				#Adding controls to panel
-				lvp.Controls.Add(lv)
-				if not j.display_mode:
-					lvp.Controls.Add(rball)
-					lvp.Controls.Add(rbnone)
-				formbody.Controls.Add(lvp)
-				if not j.display_mode:
-					form.output.append(lv)
-				y = lvp.Bottom + 25
-			elif j.__class__.__name__ == 'uitext':
-				tb = myTextBox()
-				tb.Text = j.defaultvalue
-				if j.inputname != "":
-					tb.Width = formwidth  - rightmargin - xinput
-					tb.Location = Point(xinput,y)
-				else:
-					tb.Width = formwidth - rightmargin - xlabel
-					tb.Location = Point(xlabel,y)
-				if j._isnum:
-					tb._isNum = True
-					tb.KeyPress += form.numsOnly
-				formbody.Controls.Add(tb)
-				formbody.Controls.Add(label)
-				form.output.append(tb)
-				y = label.Bottom + 25
-			elif j.__class__.__name__ == 'tableview':
-				#Creating grouping panel
-				tvp = Panel()
-				tvp.Location = Point(xlabel,y)
-				tvp.Width = formwidth - rightmargin - xlabel
-				if 50 + len(j.dataList) * 15 &gt; 800:
-					autoheight = 800
-				else:
-					autoheight = 50 + len(j.dataList) * 15				
-				tvp.Height = autoheight + 73
-				#Creating title
-				titlep = Label()
-				titlep.Text = j._tabletitle
-				titlep.Width = formwidth - rightmargin - xlabel
-				titlep.BackColor = Color.FromArgb(153,180,209)
-				titlep.Font = Font("Arial", 11, FontStyle.Bold)
-				titlep.TextAlign = ContentAlignment.MiddleLeft
-				titlep.BorderStyle = BorderStyle.FixedSingle
-				titlep.Location = Point(0,0)
-				tvp.Controls.Add(titlep)
-				#Creating data structure
-				dg = myDataGridView()
-				#dg.SelectionMode = DataGridViewSelectionMode.CellSelect
-				dg.EnableHeadersVisualStyles = False				
-				dt = DataTable()
-				dl = j.dataList
-				for i in range(len(dl[0])):
-					if j._hasTitle:
-						dt.Columns.Add(str(dl[0][i]))
-						rngstart = 1
-					else:
-						dt.Columns.Add("Column " + str(i))
-						rngstart = 0						
-				for rindex in range(rngstart,len(dl)):
-					row = dt.NewRow()
-					for i in range(len(dl[rindex])):
-						row[i] = dl[rindex][i]
-					dt.Rows.Add(row)						
-				dg.Tag = j._hasTitle				
-				dg.DataSource = dt
-				dg.ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableWithAutoHeaderText
-				dg.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells
-				dg.Width = formwidth - rightmargin - xlabel
-				dg.Location = Point(0,23)
-				dg.Height = autoheight
-				#Creatin Excel like drag copy functionalities
-				dg.CellMouseDown += form.startCell
-				dg.CellMouseUp += form.endCell
-				#dg.MouseDown += form.startRowDrag
-				#dg.MouseUp = 			
-				tvp.Controls.Add(dg)			
-				y = tvp.Bottom + 15
-				#Adding export to excel button
-				ex = Button()
-				ex.Tag = [j._hasTitle , j._openExcel , j._showinfo , j._fileInfo]
-				try:
-					expImage = getImageByName("exp.png")[0]
-					ex.BackgroundImage = expImage
-				except:
-					ex.Text = "Export"					
-				ex.Width = 60	
-				ex.Height = 30
-				ex.Location = Point(formwidth - 125 ,dg.Bottom + 15)					
-				tvp.Controls.Add(ex)
-				ex.Click += form.exportToExcel
-				#Adding filepath export textbox
-				filepathtb = TextBox()
-				filepathtb.Text = "ExportFileName"
-				filepathtb.Location = Point(0 ,dg.Bottom + 20)
-				filepathtb.Width = formwidth - xlabel - 125
-				tvp.Controls.Add(filepathtb)
-				#Adding copy to clipboard button
-				cb = Button()
-				#Adding panel to form
-				formbody.Controls.Add(tvp)
-				form.output.append(dg)
-				y = tvp.Bottom + 25
-				form.topmost()
-			elif j.__class__.__name__ == 'uitextnote':
-				gb = GroupBox()
-				gb.Text = j.title
-				gb.Parent = form
-				gb.SendToBack()
-				gb.BackColor = Color.Transparent
-				gb.Location = Point(xlabel, y)
-				tn = Label()
-				tn.Location = Point(xlabel,18)
-				tn.AutoSize = True
-				tn.MaximumSize = Size(formwidth - rightmargin - 45 ,0)
-				tn.Text = j.textnote
-				tn.BringToFront()
-				gb.Controls.Add(tn)
-				gb.Size = Size(formwidth  - rightmargin - 25, tn.Bottom-tn.Top+25)  
-				y = gb.Bottom + 25
-				formbody.Controls.Add(gb)
-			elif j.__class__.__name__ == 'uibool':
-				yn = CheckBox()
-				yn.Width = formwidth - xinput - rightmargin + 10
-				yn.Location = Point(xinput,y)
-				yn.Text = j.booltext
-				g = yn.CreateGraphics()
-				sizetext = g.MeasureString(yn.Text,yn.Font, formwidth - xinput - rightmargin -20)
-				heighttext = sizetext.Height
-				yn.Height = heighttext + 15
-				yn.Checked = j.defaultvalue
-				formbody.Controls.Add(yn)
-				form.output.append(yn)
-				y = yn.Bottom + 25
-			elif j.__class__.__name__ == 'uiradio':
-				yrb = 20
-				rbs = []
-				rbgroup = mygroupbox()
-				if j.inputname != "":
-					rbgroup.Width = formwidth - xinput - rightmargin
-					rbgroup.Location = Point(xinput,y)
-				else:
-					rbgroup.Width = formwidth - xlabel - rightmargin
-					rbgroup.Location = Point(xlabel,y)					
-				rbgroup.Tag = j
-				rbcounter = 0
-				for key in j.keys():
-					if key != 'inputname' and key != 'defaultvalue':
-						rb = RadioButton()
-						rb.Text = key 
-						if j.inputname != "":
-							rb.Width = formwidth - xinput - rightmargin - 35
-						else:
-							rb.Width = formwidth - xlabel - rightmargin - 35
-						rb.Location = Point(20,yrb)
-						if rbcounter == j.defaultvalue:
-							rb.Checked = True
-						rbgroup.Controls.Add(rb)
-						g = rb.CreateGraphics()
-						sizetext = g.MeasureString(key,rb.Font, formwidth - xinput - 90)
-						heighttext = sizetext.Height
-						rb.Height = heighttext + 15
-						ybot = rb.Bottom
-						yrb += heighttext + 12
-						rbcounter += 1
-					else:
-						pass
-				rbgroup.Height = ybot +20
-				[rbgroup.Controls.Add(rb) for rb in rbs]
-				formbody.Controls.Add(rbgroup)
-				form.output.append(rbgroup)
-				y = rbgroup.Bottom + 25
-			elif j.__class__.__name__  == 'uifilepath':
-				fp = Button()
-				if j.inputname != "":
-					fp.Width = formwidth - xinput - rightmargin
-					fp.Location = Point(xinput,y)
-				else:
-					fp.Width = formwidth - xlabel - rightmargin		
-					fp.Location = Point(xlabel,y)					
-				fp.Tag = j.defaultvalue
-				if not j.defaultvalue == "FilePath":
-					fp.Text = j.buttontext
-					fp.Tag = j.defaultvalue
-					fp.MouseHover += form.showtooltip					
-				formbody.Controls.Add(fp)
-				fp.Click += form.openfile
-				form.output.append(fp)
-				y = label.Bottom + 25
-			elif j.__class__.__name__ == 'uidirectorypath':
-				dp = Button()
-				if j.inputname != "":
-					dp.Width = formwidth - xinput - rightmargin
-					dp.Location = Point(xinput,y)
-				else:
-					dp.Width = formwidth - xlabel - rightmargin		
-					dp.Location = Point(xlabel,y)				
-				dp.Tag = j.defaultvalue
-				dp.Text = j.buttontext
-				if not j.defaultvalue == "DirectoryPath":
-					dp.Text = j.buttontext
-					dp.Tag = j.defaultvalue
-					dp.MouseHover += form.showtooltip								
-				formbody.Controls.Add(dp)
-				dp.Click += form.opendirectory
-				form.output.append(dp)
-				y = label.Bottom + 30
-			elif j.__class__.__name__ == 'uiselectelements':
-				se = Button()
-				if j.inputname != "":
-					se.Width = formwidth - xinput - rightmargin
-					se.Location = Point(xinput,y)
-				else:
-					se.Width = formwidth - xlabel - rightmargin		
-					se.Location = Point(xlabel,y)
-				se.Text = j.buttontext
-
-				formbody.Controls.Add(se)
-				if j.multi == False:
-					se.Click += form.pickobjects
-				else:
-					se.Click  += form.pickobject
-				form.output.append(se)
-				y = label.Bottom + 25
-			elif j.__class__.__name__ == 'uiselectOrderedelements':
-				se = Button()
-				if j.inputname != "":
-					se.Width = formwidth - xinput - rightmargin
-					se.Location = Point(xinput,y)
-				else:
-					se.Width = formwidth - xlabel - rightmargin		
-					se.Location = Point(xlabel,y)
-				se.Text = j.buttontext
-				formbody.Controls.Add(se)
-				se.Click  += form.pickobjectsordered
-				form.output.append(se)
-				y = label.Bottom + 25
-			elif j.__class__.__name__ == 'uiselectlinkedelements':
-				se = Button()
-				if j.inputname != "":
-					se.Width = formwidth - xinput - rightmargin
-					se.Location = Point(xinput,y)
-				else:
-					se.Width = formwidth - xlabel - rightmargin		
-					se.Location = Point(xlabel,y)
-				se.Text = j.buttontext
-				formbody.Controls.Add(se)
-				if j.multi == False:
-					se.Click += form.picklinkedobjects
-				else:
-					se.Click  += form.picklinkedobject
-				form.output.append(se)
-				y = label.Bottom + 25
-			elif j.__class__.__name__ == 'uiselectlinkedelementsofcat':
-				sec = Button()
-				if j.inputname != "":
-					sec.Width = formwidth - xinput - rightmargin
-					sec.Location = Point(xinput,y)
-				else:
-					sec.Width = formwidth - xlabel - rightmargin		
-					sec.Location = Point(xlabel,y)
-				sec.Text = j.buttontext
-				sec.Tag = j.category
-				formbody.Controls.Add(sec)
-				if j.multi == False:
-					sec.Click += form.picklinkedobjectsofcat
-				else:
-					sec.Click += form.picklinkedobjectofcat
-				form.output.append(sec)
-				y = label.Bottom + 25
-			elif j.__class__.__name__ == 'uiselectelementsofcat':
-				sec = Button()
-				if j.inputname != "":
-					sec.Width = formwidth - xinput - rightmargin
-					sec.Location = Point(xinput,y)
-				else:
-					sec.Width = formwidth - xlabel - rightmargin		
-					sec.Location = Point(xlabel,y)
-				sec.Text = j.buttontext
-				sec.Tag = j.category
-				formbody.Controls.Add(sec)
-				if j.multi == False:
-					sec.Click += form.pickobjectsofcat
-				else:
-					sec.Click += form.pickobjectofcat
-				form.output.append(sec)
-				y = label.Bottom + 25
-			elif j.__class__.__name__ == 'uiselectOrderedelementsofcat':
-				sec = Button()
-				if j.inputname != "":
-					sec.Width = formwidth - xinput - rightmargin
-					sec.Location = Point(xinput,y)
-				else:
-					sec.Width = formwidth - xlabel - rightmargin		
-					sec.Location = Point(xlabel,y)
-				sec.Text = j.buttontext
-				sec.Tag = j.category
-				formbody.Controls.Add(sec)
-				sec.Click += form.pickobjectsofcatordered
-				form.output.append(sec)
-				y = label.Bottom + 25
-			elif j.__class__.__name__ == 'uiselectfaces':
-				sf = Button()
-				if j.inputname != "":
-					sf.Width = formwidth - xinput - rightmargin
-					sf.Location = Point(xinput,y)
-				else:
-					sf.Width = formwidth - xlabel - rightmargin		
-					sf.Location = Point(xlabel,y)
-				sf.Text = j.buttontext
-				formbody.Controls.Add(sf)
-				sf.Click += form.pickfaces
-				form.output.append(sf)
-				y = label.Bottom + 25
-			elif j.__class__.__name__ == 'uiselectpointsonface':
-				spf = Button()
-				if j.inputname != "":
-					spf.Width = formwidth - xinput - rightmargin
-					spf.Location = Point(xinput,y)
-				else:
-					spf.Width = formwidth - xlabel - rightmargin		
-					spf.Location = Point(xlabel,y)
-				spf.Text = j.buttontext
-				formbody.Controls.Add(spf)
-				spf.Click += form.pickpointsonface
-				form.output.append(spf)
-				y = label.Bottom + 25
-			elif j.__class__.__name__ == 'uiselectedges':
-				sed = Button()
-				if j.inputname != "":
-					sed.Width = formwidth - xinput - rightmargin
-					sed.Location = Point(xinput,y)
-				else:
-					sed.Width = formwidth - xlabel - rightmargin		
-					sed.Location = Point(xlabel,y)
-				sed.Text = j.buttontext
-				formbody.Controls.Add(sed)
-				sed.Click += form.pickedges
-				form.output.append(sed)
-				y = label.Bottom + 25
-				
-			elif j.__class__.__name__ == 'uislider':
-				gb = Panel()
-				if j.defaultvalue == '':
-					defval = j.minimum
-				else:
-					defval = j.defaultvalue
-				sl = mytrackbar(j.minimum,j.step)
-				if j.inputname != "":
-					gb.Width = formwidth - xinput - rightmargin
-					gb.Location = Point(xinput,y)
-				else:
-					gb.Width = formwidth - xlabel - rightmargin		
-					gb.Location = Point(xlabel,y)
-				gb.Height = 40
-				sl.Minimum = 0
-				sl.Maximum = (j.maximum-j.minimum)/j.step
-				sl.Value = (defval - j.minimum) / j.step
-				sl.TickFrequency = (j.maximum-j.minimum)/j.step/10
-				sl.Location = Point(40,0)
-				if j.inputname != "":
-					sl.Width = formwidth - xinput - rightmargin - 35
-				else:
-					sl.Width = formwidth - xlabel -rightmargin - 35
-				gb.Controls.Add(sl)
-				form.output.append(sl)
-				displabel = Label()
-				displabel.Width = 50
-				displabel.Location = Point(0,5)
-				displabel.Text = str(defval)
-				displabel.BringToFront()
-				gb.Controls.Add(displabel)	
-				formbody.Controls.Add(gb)			
-				sl.Scroll += form.scroll
-				y = label.Bottom + 25
-			elif j.__class__.__name__ == 'uiimage':
-				pic = Image.FromFile(j.image)
-				im = PictureBox()
-				if j.showborder:
-					im.BorderStyle = BorderStyle.Fixed3D
-				else:
-					im.BorderStyle = BorderStyle.None
-				ratio = (pic.Height)/(pic.Width)
-				h = float(pic.Height)
-				w = float(pic.Width)
-				ratio = h/w
-				image_maxsize = formwidth - xlabel - rightmargin
-				im.Size = Size(image_maxsize,image_maxsize*ratio)
-				scaledimage = Bitmap(image_maxsize,image_maxsize*ratio)
-				gr = Graphics.FromImage(scaledimage)
-				gr.DrawImage(pic,0,0,image_maxsize,image_maxsize*ratio)
-				im.Image = pic
-				im.SizeMode = PictureBoxSizeMode.Zoom
-				formbody.Controls.Add(im)
-				im.Location = Point(25,y+25)
-				y = im.Bottom + 25
-		
-			elif j.__class__.__name__ == 'uicolorpick' and importcolorselection == 0:
-				cp = Button()
-				if j.inputname != "":
-					cp.Width = formwidth - xinput - rightmargin
-					cp.Location = Point(xinput,y)
-				else:
-					cp.Width = formwidth - xlabel - rightmargin		
-					cp.Location = Point(xlabel,y)
-				cp.Text = j.buttontext
-				formbody.Controls.Add(cp)
-				cp.Click += form.colorpicker
-				form.output.append(cp)
-				y = label.Bottom + 25			
-			elif j.__class__.__name__ == 'uicolorpick' and importcolorselection == 1:
-				importcolorselection = 2
-			elif j.__class__.__name__ == 'uigroup':
-				grouppanel = GroupBox()
-				grouppanel.Text = j.groupname
-				grouppanel.Location = Point(xlabel,y)
-				grouppanel.Width = formwidth - 65
-				#recursive implementation of the definition to process grouped inputs
-				addinput(grouppanel,j.inputgroup,25,xinput-25,80,90,importcolorselection)
-				formbody.Controls.Add(grouppanel)
-				y = grouppanel.Bottom + 25
-			elif j.__class__.__name__ == 'uiconditional':
-				grouppanelcond = GroupBox()
-				grouppanelcond.Location = Point(xlabel,y)
-				grouppanelcond.Width = formwidth - 65	
-				form.output.append(grouppanelcond)				
-				#recursive implementation of the definition to process conditional groups of inputs
-				panlist = []
-				rblist = []
-				yp = 25
-				xrb = 25
-				for i,d in zip(j._Conditions,j._GroupedInputs):	
-					rb = RadioButton()
-					rb.CheckedChanged += form.ActivateOption
-					rb.Text = i
-					rb.Location	= Point(xrb,10)
-					rb.Width = 95
-					rblist.append(rb)					
-					grouppanelcond.Controls.Add(rb)				
-					condition_pannel = Panel()
-					condition_pannel.Name = i
-					condition_pannel.Top = yp
-					condition_pannel.Width = formwidth - 65
-					condition_pannel.BackColor = Color.Transparent
-					condition_pannel.BringToFront()					
-					addinput(condition_pannel,d,25,xinput-25,80,90,importcolorselection)
-					panlist.append(condition_pannel)
-					yp = condition_pannel.Bottom - 25
-					xrb += 100
-				for pan in panlist:
-					grouppanelcond.Controls.Add(pan)
-				for e,pan in enumerate(panlist):
-					if e != j._defaultOptionIndex:
-						pan.Enabled = False
-					else:
-						continue
-				rblist[j._defaultOptionIndex].Checked = True
-				grouppanelcond.Height = sum([p.Height for p in panlist]) - (len(panlist)-2)*25
-				grouppanelcond.BackColor = Color.Transparent				
-				formbody.Controls.Add(grouppanelcond)
-				y = grouppanelcond.Bottom + 25		
-								
-			formbody.Height = y
-
-
-
-	# process input lists 
-	addinput(body,inputtypes,0,xinput,40,120,importcolorselection)
-	
-	#add the formbody panel to the form
-	form.Controls.Add(body)		
-	
-
-	if IN[6] != None:
-		if IN[8] &gt; 400:
-			formy += 50
-			xinput = 270
-		else:
-			formy = logo.Bottom + 20
-	else:
-		formy += 50
-
-
-
-	#Adding validation button
-	
-	button = Button()
-	button.Text = IN[1]
-	button.Width = formwidth - xinput - 40
-	button.Location = Point (xinput,formy)
-	button.Click += form.setclose
-	form.Controls.Add(button)
-	form.MaximizeBox = False
-	form.MinimizeBox = False
-	form.FormBorderStyle = FormBorderStyle.FixedSingle
-	
-	#Adding Cancel button
-	if IN[6] != None:
-		cancelbutton = Button()
-		cancelbutton.Text = IN[6]
-		cancelbutton.Width = 120
-		cancelbutton.Name = "Cancel"
-		cancelbutton.Location = Point (xinput -120 ,formy)
-		cancelbutton.Click += form.setclose
-		form.Controls.Add(cancelbutton)
-		form.CancelButton = cancelbutton
-	
-	#Adding link to help
-	
-	if IN[5] != None :
-		helplink = LinkLabel()
-		helplink.Text = "Help"
-		helplink.Tag = IN[5]
-		helplink.Click += form.openurl
-		helplink.Location = Point(formwidth - 65,formy+30)
-		form.Controls.Add(helplink)
-	else:
-		pass	
-			
-	form.ShowIcon = True
-	form.Width = formwidth
-	form.Height = formy + 120
-	formfooterheight = form.Height - formheaderheight
-	
-	# Make formbody scrollable
-	
-	# if the form is longer than its maximum height, do the following:
-	# modify the form height
-	# make the formbody panel scrollable
-	if form.Height + body.Height &gt; IN[7] and IN[7] &gt; 0:
-		formbody_calculatedheight = IN[7] - form.Height
-		# make sure the formbody is at least 100 px high
-		if formbody_calculatedheight &lt; 100: formbody_calculatedheight = 100
-		body.Height = formbody_calculatedheight
-		form.Height = form.Height + formbody_calculatedheight
-		# this (and apparently only this) will implement a vertical AutoScroll *only*
-		# http://stackoverflow.com/a/28583501
-		body.HorizontalScroll.Maximum = 0
-		body.AutoScroll = False
-		body.VerticalScroll.Visible = False
-		body.AutoScroll = True
-		body.BorderStyle = BorderStyle.Fixed3D
-	else:
-		form.Height = form.Height + body.Height
-	# Move footer elements
-	logo.Location = Point(logo.Location.X, logo.Location.Y + body.Height)
-	button.Location = Point(button.Location.X, button.Location.Y + body.Height)
-	if IN[6] != None: cancelbutton.Location = Point(cancelbutton.Location.X, cancelbutton.Location.Y + body.Height)
-	if IN[5] != None: helplink.Location = Point(helplink.Location.X, helplink.Location.Y + body.Height)
-
-	#Positionning the form at top left of current view
-	uiviews = uidoc.GetOpenUIViews()
-	if doc.ActiveView.IsValidType(doc.ActiveView.GetTypeId()):
-		activeviewid = doc.ActiveView.Id
-		activeUIView = [v for v in uiviews if v.ViewId == activeviewid][0]
-	else:
-		activeUIView = uiviews[0]
-	rect = activeUIView.GetWindowRectangle()
-	form.StartPosition = FormStartPosition.Manual
-	form.Location = Point(rect.Left-7,rect.Top)
-		
-	if IN[2]:
-		if importcolorselection != 2:
-			Application.Run(form)
-			result = form.values
-			OUT = result,True, form.cancelled
-		else:
-			OUT = ['ColorSelection input is only available With Revit 2017'] , False, False
-	else :
-		OUT = ['Set toggle to true!'] , False, False
-except:
-	import traceback
-	OUT = traceback.format_exc() , "error", "error"
-</Script>
-    </PythonNodeModels.PythonNode>
-    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="aee876f4-fa60-4b94-b682-9f495e2af792" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-237.818921203124" y="-64.1119899707852" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
-      <Symbol value="Description_optional : string = &quot;&quot; " />
-    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
-    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="eb6d92c4-51e8-4b3c-8461-eb2623034eb8" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-186.312667703512" y="101.831728823146" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
-      <Symbol value="Logo_optional : var = &quot;&quot;;" />
-    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
-    <Dynamo.Graph.Nodes.CustomNodes.Output guid="47e0a031-4356-4447-ad0a-ba20606d99f4" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="630.459274273106" y="40.5188746455886" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
-      <PortInfo index="0" default="False" />
-      <Symbol value="User Inputs" />
-    </Dynamo.Graph.Nodes.CustomNodes.Output>
-    <Dynamo.Graph.Nodes.CodeBlockNodeModel guid="6827a40a-d078-4ecb-a5f7-ac83d1a8b7a4" type="Dynamo.Graph.Nodes.CodeBlockNodeModel" nickname="Code Block" x="362.902015533628" y="76.9283353103305" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false" CodeText="OUT[0];&#xA;OUT[1];&#xA;OUT[2];" ShouldFocus="false">
-      <PortInfo index="0" default="False" />
-    </Dynamo.Graph.Nodes.CodeBlockNodeModel>
-    <Dynamo.Graph.Nodes.CustomNodes.Output guid="eb9fddf6-8cda-490b-b149-93f1cf2ce43b" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="634.459274273106" y="150.518874645589" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
-      <PortInfo index="0" default="False" />
-      <Symbol value="Was Run " />
-    </Dynamo.Graph.Nodes.CustomNodes.Output>
-    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="44f805f4-2c46-4774-b18f-9ecc58e06f34" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-300.393511931116" y="22.4304834658233" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
-      <Symbol value="ButtonText_optional : string = &quot;Set Values&quot;" />
-    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
-    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="252f2b99-90bb-4a0d-a17f-36e0d7608dec" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-74.5633536801465" y="170.364943880508" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
-      <Symbol value="Inputs" />
-    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
-    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="0a6977c9-a3ce-4e62-9bc9-be1fd8cf25f9" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-187.187155577556" y="234.174081182144" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
-      <Symbol value="Toggle : bool = false" />
-    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
-    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="a2f12833-18a2-47e4-b81e-05d7a1af165b" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-290.467474843354" y="314.330860684578" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
-      <Symbol value="LinkToHelp_optional : string = null" />
-    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
-    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="54fa9d32-b20b-49d7-aab8-946482548269" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-597.573404707885" y="408.9216537817" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
-      <Symbol value="// Cancel button will only be displayed if a label text is entered here&#xD;&#xA;CancelButtonText_optional : string = null" />
-    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
-    <Dynamo.Graph.Nodes.CustomNodes.Output guid="f3d565e5-379a-4207-9558-4e2319983692" type="Dynamo.Graph.Nodes.CustomNodes.Output" nickname="Output" x="635.56506851444" y="227.039411349449" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="False" IsFrozen="false" isPinned="false">
-      <PortInfo index="0" default="False" />
-      <Symbol value="Was Cancelled" />
-    </Dynamo.Graph.Nodes.CustomNodes.Output>
-    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="cb9cd769-fdcd-479c-8868-c89365616091" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-241.01121323173" y="498.353792414835" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
-      <Symbol value="MaxHeight_optional : int = 0" />
-    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
-    <Dynamo.Graph.Nodes.CustomNodes.Symbol guid="024ed433-d62b-4a2a-b573-5399dd344fcd" type="Dynamo.Graph.Nodes.CustomNodes.Symbol" nickname="Input" x="-245.116104881934" y="577.973198975489" isVisible="true" isUpstreamVisible="true" lacing="Disabled" isSelectedInput="True" IsFrozen="false" isPinned="false">
-      <Symbol value="Width_optional : int = 350" />
-    </Dynamo.Graph.Nodes.CustomNodes.Symbol>
-  </Elements>
-  <Connectors>
-    <Dynamo.Graph.Connectors.ConnectorModel start="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" start_index="0" end="6827a40a-d078-4ecb-a5f7-ac83d1a8b7a4" end_index="0" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="aee876f4-fa60-4b94-b682-9f495e2af792" start_index="0" end="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" end_index="3" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="eb6d92c4-51e8-4b3c-8461-eb2623034eb8" start_index="0" end="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" end_index="4" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="6827a40a-d078-4ecb-a5f7-ac83d1a8b7a4" start_index="0" end="47e0a031-4356-4447-ad0a-ba20606d99f4" end_index="0" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="6827a40a-d078-4ecb-a5f7-ac83d1a8b7a4" start_index="1" end="eb9fddf6-8cda-490b-b149-93f1cf2ce43b" end_index="0" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="6827a40a-d078-4ecb-a5f7-ac83d1a8b7a4" start_index="2" end="f3d565e5-379a-4207-9558-4e2319983692" end_index="0" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="44f805f4-2c46-4774-b18f-9ecc58e06f34" start_index="0" end="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" end_index="1" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="252f2b99-90bb-4a0d-a17f-36e0d7608dec" start_index="0" end="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" end_index="0" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="0a6977c9-a3ce-4e62-9bc9-be1fd8cf25f9" start_index="0" end="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" end_index="2" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="a2f12833-18a2-47e4-b81e-05d7a1af165b" start_index="0" end="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" end_index="5" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="54fa9d32-b20b-49d7-aab8-946482548269" start_index="0" end="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" end_index="6" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="cb9cd769-fdcd-479c-8868-c89365616091" start_index="0" end="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" end_index="7" portType="0" />
-    <Dynamo.Graph.Connectors.ConnectorModel start="024ed433-d62b-4a2a-b573-5399dd344fcd" start_index="0" end="652ef6e6-fd19-4bd6-a3c0-f96e7445d3e4" end_index="8" portType="0" />
-  </Connectors>
-  <Notes />
-  <Annotations />
-  <Presets />
-  <Cameras>
-    <Camera Name="Background Preview" eyeX="-17" eyeY="24" eyeZ="50" lookX="12" lookY="-13" lookZ="-58" upX="0" upY="1" upZ="0" />
-  </Cameras>
-</Workspace>
+{
+  "Uuid": "9fbd05c0-ec1f-4bd3-bf37-969a1552eab8",
+  "IsCustomNode": true,
+  "Category": "Data-Shapes.UI",
+  "Description": "Create a form with multiple inputs. \r\nsee www.data-shapes.net for tutorials and infos!",
+  "Name": "MultipleInputForm ++",
+  "ElementResolver": {
+    "ResolutionMap": {}
+  },
+  "Inputs": [],
+  "Outputs": [],
+  "Nodes": [
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "#Copyright (c) Data Shapes,  2020\r\n#Data-Shapes www.data-shapes.io , elayoubi.mostafa@data-shapes.io @data_shapes\r\n\t\r\nimport clr\r\nimport sys\r\npyt_path = r'C:\\Program Files (x86)\\IronPython 2.7\\Lib'\r\nsys.path.append(pyt_path)\r\nimport os\r\nimport webbrowser\r\nimport unicodedata\r\nimport io\r\nimport tempfile\r\nimport System\r\n\t\r\ntry:\r\n\tclr.AddReference('System.Windows.Forms')\r\n\tclr.AddReference('System.Drawing')\r\n\tclr.AddReference('System.Windows.Forms.DataVisualization')\r\n\t\r\n\tfrom System.Drawing import Point , Size , Graphics, Bitmap, Image, Font, FontStyle, Icon, Color, Region , Rectangle , ContentAlignment , SystemFonts, FontFamily\r\n\tfrom System.Windows.Forms import Application, DockStyle, Button, Form, Label, TrackBar , ToolTip, ColumnHeader, TextBox, CheckBox, FolderBrowserDialog, OpenFileDialog, DialogResult, ComboBox, FormBorderStyle, FormStartPosition, ListView, ListViewItem , SortOrder, Panel, ImageLayout, GroupBox, RadioButton, BorderStyle, PictureBox, PictureBoxSizeMode, LinkLabel, CheckState, ColumnHeaderStyle , ImageList, VScrollBar, DataGridView, DataGridViewSelectionMode, DataGridViewAutoSizeColumnsMode , DataGridViewClipboardCopyMode , TreeView , TreeNode , TreeNodeCollection , AutoScaleMode , Screen, Padding\r\n\tfrom System.Windows.Forms.DataVisualization.Charting import *#Chart , SeriesChartType\r\n\tfrom System.Collections.Generic import *\r\n\tfrom System.Collections.Generic import List as iList\r\n\tfrom System.Windows.Forms import View as vi\r\n\tclr.AddReference('System')\r\n\tfrom System import IntPtr , Char\r\n\tfrom System import Type as SType, IO\r\n\tfrom System import Array\r\n\tfrom System.ComponentModel import Container\r\n\tclr.AddReference('System.Data')\r\n\tfrom System.Data import DataTable , DataView\r\n\r\n\ttry: #try to import All Revit dependencies\r\n\t\tclr.AddReference('RevitAPIUI')\r\n\t\tfrom  Autodesk.Revit.UI import Selection , TaskDialog \r\n\t\tfrom  Autodesk.Revit.UI.Selection import ISelectionFilter\r\n\t\tclr.AddReference('RevitNodes')\r\n\t\timport Revit\r\n\t\tclr.ImportExtensions(Revit.Elements)\r\n\t\tclr.ImportExtensions(Revit.GeometryConversion)\r\n\t\t\r\n\t\tclr.AddReference('RevitServices')\r\n\t\tfrom RevitServices.Persistence import DocumentManager\r\n\t\tdoc = DocumentManager.Instance.CurrentDBDocument\r\n\t\tuidoc = DocumentManager.Instance.CurrentUIApplication.ActiveUIDocument\r\n\t\r\n\t\tclr.AddReference('RevitAPI')\r\n\t\ttry:\r\n\t\t\tfrom Autodesk.Revit.DB import ImageImportOptions\t\r\n\t\texcept:\r\n\t\t\tfrom Autodesk.Revit.DB import ImageTypeOptions , ImageType, ImagePlacementOptions , ImageInstance\r\n\t\tfrom Autodesk.Revit.DB import FilteredElementCollector , Transaction, View , ViewType , ViewFamily, ViewDrafting, ViewFamilyType, Element, ElementId , FamilyInstance , Document , XYZ, BoxPlacement, UnitUtils\r\n\t\t\r\n\t\ttry:\r\n\t\t\tfrom Autodesk.Revit.DB import  UnitType\r\n\t\texcept:\r\n\t\t\tfrom Autodesk.Revit.DB import SpecTypeId\r\n\r\n\t\tdbviews = [v for v in FilteredElementCollector(doc).OfClass(View).ToElements() if (v.ViewType == ViewType.FloorPlan or v.ViewType == ViewType.CeilingPlan or v.ViewType == ViewType.Section or v.ViewType == ViewType.Elevation or v.ViewType == ViewType.ThreeD)]\r\n\t\tviewindex = 0\r\n\t\ttry:\r\n\t\t\tUIunit = Document.GetUnits(doc).GetFormatOptions(UnitType.UT_Length).DisplayUnits\r\n\t\texcept:\r\n\t\t\tUIunit = Document.GetUnits(doc).GetFormatOptions(SpecTypeId.Length).GetUnitTypeId()\r\n\t\t\t\r\n\t\tclass selectionfilter(ISelectionFilter):\r\n\t\t\tdef __init__(self,category):\r\n\t\t\t\tself.category = category\r\n\t\t\tdef AllowElement(self,element):\r\n\t\t\t\tif element.Category.Name in [c.Name for c in self.category]:\r\n\t\t\t\t\treturn True\r\n\t\t\t\telse:\r\n\t\t\t\t\treturn False\r\n\t\t\tdef AllowReference(reference,point):\r\n\t\t\t\treturn False\r\n\r\n\r\n\t\t\t\r\n\texcept: #in case we are in the Sandbox, Formit or Civil 3D environment\r\n\t\tpass\r\n\t\r\n\timportcolorselection = 0\r\n\t\r\n\ttry:\r\n\t\tfrom  Autodesk.Revit.UI import ColorSelectionDialog\r\n\texcept:\r\n\t\timportcolorselection = 1\r\n\t\r\n\r\n\t\r\n\tclr.AddReference('ProtoGeometry')\r\n\tfrom Autodesk.DesignScript.Geometry import Point as dsPoint\r\n\r\n\tfrom System.Reflection import Assembly\r\n\timport xml.etree.ElementTree as et\r\n\t\r\n\r\n\t\r\n\timport re\t\r\n\tdef regexEndNum(input):\r\n\t\ttry:\r\n\t\t\treturn \tre.search('(\\d+)$', input).group(0)\r\n\t\texcept:\r\n\t\t\treturn \"\"\r\n\r\n\tdef iterateThroughNodes(collection,li):\r\n\t\tif hasattr(collection,'Nodes'):\r\n\t\t\tntest = collection.Nodes\r\n\t\t\tif len(ntest) > 0:\r\n\t\t\t\tfor i in ntest:\r\n\t\t\t\t\titerateThroughNodes(i,li)\r\n\t\t\telse:\r\n\t\t\t\tif collection.Checked:\r\n\t\t\t\t\tli.append(collection.Tag)\r\n\t\treturn li\r\n\t\t\r\n\r\n\t\r\n\tclass MultiTextBoxForm(Form):\r\n\t\t\r\n\t    def __init__(self):\r\n\t        self.Text = 'Data-Shapes | Multi Input UI ++'\r\n\t        self.output = []\r\n\t        self.values = []\r\n\t        self.cancelled = False\r\n\t\r\n\t    def setclose(self, sender, event):\r\n\t    \tcbindexread = 0\r\n\t    \tif sender.Name != \"Cancel\":\r\n\t    \t\tfor f in self.output:\r\n\t    \t\t\tif f.GetType() == myTextBox:\r\n\t    \t\t\t\tif f._isNum :\r\n\t    \t\t\t\t\tval = float(f.Text)\r\n\t    \t\t\t\telse:\r\n\t    \t\t\t\t\tval = f.Text\r\n\t    \t\t\t\tself.values.append(val)\r\n\t    \t\t\tif f.GetType() == CheckBox:\r\n\t    \t\t\t\tself.values.append(f.Checked)\r\n\t    \t\t\tif f.GetType() == Button:\r\n\t    \t\t\t\tif isinstance(f.Tag ,list):\r\n\t    \t\t\t\t\ttry:\r\n\t    \t\t\t\t\t\tself.values.append([e for e in f.Tag if e.__class__.__name__ != \"Category\"])\t    \t\t\t\t\t\r\n\t    \t\t\t\t\texcept:\r\n\t    \t\t\t\t\t\tself.values.append(f.Tag)\t    \t\t\t\t\t\r\n\t    \t\t\t\telse:\r\n\t    \t\t\t\t\ttry:\t    \t\t\t\t\r\n\t    \t\t\t\t\t\tif f.Tag.__class__.__name__ != \"Category\":\r\n\t    \t\t\t\t\t\t\tself.values.append(f.Tag)\r\n\t    \t\t\t\t\t\telse:\r\n    \t\t\t\t\t\t\t\tself.values.append([])\r\n\t    \t\t\t\t\texcept:\r\n\t    \t\t\t\t\t\tself.values.append(f.Tag)\t\r\n\t    \t\t\tif f.GetType() == ComboBox:\r\n\t    \t\t\t\ttry:\r\n\t    \t\t\t\t\tkey = f.Text\r\n\t    \t\t\t\t\tself.values.append(f.Tag[key])\r\n\t    \t\t\t\texcept:\r\n\t    \t\t\t\t\tself.values.append(None)\r\n\t    \t\t\tif f.GetType() == mylistview:\r\n\t    \t\t\t\tself.values.append([f.Values[i.Text] for i in f.CheckedItems])\r\n\t    \t\t\tif f.GetType() == mytrackbar:\r\n\t    \t\t\t\tself.values.append(f.startval+f.Value*f.step)\r\n\t    \t\t\tif f.GetType() == mygroupbox:\r\n\t    \t\t\t\ttry:\r\n\t    \t\t\t\t\tkey = [j.Text for j in f.Controls if j.Checked == True][0]\r\n\t    \t\t\t\t\tself.values.append(f.Tag[key])\r\n\t    \t\t\t\texcept:\r\n\t    \t\t\t\t\tself.values.append(None)\r\n\t    \t\t\tif f.GetType() == myDataGridView:\r\n\t    \t\t\t\tf.EndEdit()\r\n\t    \t\t\t\tdsrc = f.DataSource\r\n\t    \t\t\t\tout = []\r\n\t    \t\t\t\tcolcount = f.ColumnCount\r\n\t    \t\t\t\trowcount = f.RowCount - 1\r\n\t    \t\t\t\tif f.Tag:\r\n\t\t    \t\t\t\tl = []\r\n\t    \t\t\t\t\tfor i in range(colcount):\t    \t\t\t\t\t\t\r\n\t    \t\t\t\t\t\tl.append(dsrc.Columns[i].ColumnName)\r\n\t    \t\t\t\t\tout.append(l)\t    \t\t\t\t\t\t\r\n\t\t    \t\t\t\tfor r in range(rowcount):\r\n\t\t    \t\t\t\t\tl = []\r\n\t\t    \t\t\t\t\tfor i in range(colcount):\r\n\t\t    \t\t\t\t\t\tl.append(dsrc.DefaultView[r].Row[i])\r\n\t\t    \t\t\t\t\tout.append(l)\r\n\t    \t\t\t\telse: \r\n\t\t    \t\t\t\tfor r in range(rowcount):\r\n\t\t    \t\t\t\t\tl = []\r\n\t\t    \t\t\t\t\tfor i in range(colcount):\r\n\t\t    \t\t\t\t\t\tl.append(dsrc.DefaultView[r].Row[i])\r\n\t\t    \t\t\t\t\tout.append(l)\r\n\t    \t\t\t\tself.values.append(out)\r\n\t    \t\t\tif f.GetType() == TreeView:\r\n\t    \t\t\t\tls = []\r\n\t    \t\t\t\tnds = f.Nodes[0]\r\n\t    \t\t\t\titerateThroughNodes(nds,ls)\r\n\t    \t\t\t\tself.values.append(ls)\r\n\t    \t\t\tif f.GetType() == GroupBox:\r\n\t    \t\t\t\trb = [c for c in f.Controls if c.GetType() == RadioButton and c.Checked][0]\r\n\t    \t\t\t\tself.values.append(rb.Text)\r\n\t    \t\t\t\tf.Controls.Remove(rb)\r\n\t    \telse:\r\n\t    \t\tself.values = None\r\n\t    \t\tself.cancelled = True\r\n\t    \tself.Close()\r\n\t\r\n\t    def reset(self, sender, event):\r\n\t\t\tpass\r\n\t\r\n\t    def openfile(self, sender, event):\r\n\t\t\tofd = OpenFileDialog()\r\n\t\t\tdr = ofd.ShowDialog()\r\n\t\t\tif dr == DialogResult.OK:\r\n\t\t\t\tsender.Text = ofd.FileName\r\n\t\t\t\tsender.Tag = ofd.FileName\r\n\r\n\t    def exportToExcel(self, sender, event):\r\n\t    \t#importing Excel IronPython libraries\r\n\t    \tclr.AddReferenceByName('Microsoft.Office.Interop.Excel, Version=11.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c')\r\n\t    \tfrom Microsoft.Office.Interop import Excel\r\n\t    \tex = Excel.ApplicationClass()\r\n\t    \tex.Visible = sender.Tag[1]\r\n\t    \tex.DisplayAlerts = False\r\n\t    \tfbd = FolderBrowserDialog()\r\n\t    \tfbd.SelectedPath = sender.Text\r\n\t    \tparent = sender.Parent\r\n\t    \tfptextbox = parent.GetChildAtPoint(Point(parent.Location.X,sender.Location.Y+5*yRatio))\r\n\t    \tdataGrid = parent.GetChildAtPoint(Point(parent.Location.X,parent.Location.Y+23*xRatio))\r\n\t    \tdataTable = dataGrid.DataSource\r\n\t    \tfptext = fptextbox.Text\r\n\t    \ttitletext = parent.GetChildAtPoint(Point(0,0)).Text\r\n\t    \tdr = fbd.ShowDialog()\r\n\t    \tfrstRwTtle = sender.Tag[0]\r\n\t    \tif frstRwTtle:\r\n\t    \t\t_header = Excel.XlYesNoGuess.xlYes\r\n\t    \telse:\r\n\t    \t\t_header = Excel.XlYesNoGuess.xlNo\r\n\t    \tif dr == DialogResult.OK:\r\n\t    \t\tworkbk = ex.Workbooks.Add()\r\n\t    \t\tworksheet = workbk.Worksheets.Add()\r\n\t    \t\t#Writing title and doc info\r\n\t    \t\tif sender.Tag[2]:\r\n\t\t    \t\ttitleCell = worksheet.Cells[1,1]\r\n\t\t    \t\tworksheet.Cells[2,1].Value2 = sender.Tag[3]\r\n\t\t    \t\ttitleCell.Value2 = titletext\r\n\t\t    \t\ttitleCell.Font.Size = 18\r\n\t\t    \t\ttitleCell.Font.Bold = True\r\n\t\t    \t\tstartR = 3\r\n\t\t    \t\tendR = 3\r\n\t\t    \telse:\r\n\t\t    \t\tstartR = 1\r\n\t\t    \t\tendR = 0\t\r\n\t\t    \tif frstRwTtle:\r\n\t\t    \t\tfor j in range(0,dataTable.Columns.Count):\r\n\t\t    \t\t\tworksheet.Cells[startR,j+1] = dataTable.Columns[j].ColumnName\t\t    \t\r\n\t\t    \t\tfor i in range(0,dataTable.Rows.Count):\r\n\t\t    \t\t\tfor j in range(0,dataTable.Columns.Count):\r\n\t\t\t    \t\t\tworksheet.Cells[i+startR+1,j+1] = dataTable.DefaultView[i].Row[j].ToString()\r\n\t\t    \t\txlrange = ex.get_Range(worksheet.Cells[startR,1],worksheet.Cells[dataTable.Rows.Count+endR+1,dataTable.Columns.Count])\t\t\t    \t\t\t\r\n\t\t    \telse :\r\n\t\t    \t\tfor i in range(0,dataTable.Rows.Count):\r\n\t\t    \t\t\tfor j in range(0,dataTable.Columns.Count):\r\n\t\t\t    \t\t\tworksheet.Cells[i+startR,j+1] = dataTable.DefaultView[i].Row[j].ToString()\t\t    \t\r\n\t\t    \t\txlrange = ex.get_Range(worksheet.Cells[startR,1],worksheet.Cells[dataTable.Rows.Count+endR,dataTable.Columns.Count])\r\n\t\t    \txlrange.Columns.AutoFit()\r\n\t\t    \tworksheet.ListObjects.Add(Excel.XlListObjectSourceType.xlSrcRange, xlrange, SType.Missing, _header, SType.Missing).Name = \"DataShapesTable\"\r\n\t\t    \tworksheet.ListObjects[\"DataShapesTable\"].TableStyle =  \"TableStyleMedium16\"\r\n\t    \t\tworkbk.SaveAs(fbd.SelectedPath + \"\\\\\" + fptext)\r\n\t    \t\tif not sender.Tag[1]:\r\n\t    \t\t\tworkbk.Close()\r\n\t    \t\t\tex.Quit()\r\n\r\n\t    def startCell(self, sender, event ):\r\n\t\t\tsender.startcell[\"X\"] = event.ColumnIndex\r\n\t\t\tsender.startcell[\"Y\"] = event.RowIndex\t\r\n\r\n\t    def endCell(self, sender, event ):\r\n\t    \ttry:\r\n\t\t\t\tsender.endcell[\"X\"] = event.ColumnIndex\r\n\t\t\t\tsender.endcell[\"Y\"] = event.RowIndex \r\n\t\t\t\tstartval = sender.Rows[sender.startcell[\"Y\"]].Cells[sender.startcell[\"X\"]].Value\r\n\t\t\t\tendNum = regexEndNum(startval)\r\n\t\t\t\tif endNum != \"\":\r\n\t\t\t\t\tif sender.endcell[\"Y\"] == sender.startcell[\"Y\"]:\r\n\t\t\t\t\t\tfor e,i in enumerate(range(sender.startcell[\"X\"],sender.endcell[\"X\"] + 1)):\r\n\t\t\t\t\t\t\tsender.Rows[sender.startcell[\"Y\"]].Cells[i].Value = startval[:-len(endNum)] + str(int(endNum) + e)\r\n\t\t\t\t\telif sender.endcell[\"X\"] == sender.startcell[\"X\"]:\r\n\t\t\t\t\t\tfor e,i in enumerate(range(sender.startcell[\"Y\"],sender.endcell[\"Y\"] + 1)):\r\n\t\t\t\t\t\t\tsender.Rows[i].Cells[sender.endcell[\"X\"]].Value = startval[:-len(endNum)] + str(int(endNum) + e)\r\n\t\t\t\telse:\t\t\t\t\r\n\t\t\t\t\tif sender.endcell[\"Y\"] == sender.startcell[\"Y\"]:\r\n\t\t\t\t\t\tfor i in range(sender.startcell[\"X\"],sender.endcell[\"X\"] + 1):\r\n\t\t\t\t\t\t\tsender.Rows[sender.startcell[\"Y\"]].Cells[i].Value = startval\r\n\t\t\t\t\telif sender.endcell[\"X\"] == sender.startcell[\"X\"]:\r\n\t\t\t\t\t\tfor i in range(sender.startcell[\"Y\"],sender.endcell[\"Y\"] + 1):\r\n\t\t\t\t\t\t\tsender.Rows[i].Cells[sender.endcell[\"X\"]].Value = startval\r\n\t    \texcept:\r\n\t    \t\tpass\r\n\t    \t\t    \t\r\n\t    def startRowDrag(self, sender, event ):\r\n\t    \tshmak\r\n\t\t\t\r\n\t    def opendirectory(self, sender, event):\r\n\t\t\tfbd = FolderBrowserDialog()\r\n\t\t\tfbd.SelectedPath = sender.Text\r\n\t\t\tdr = fbd.ShowDialog()\r\n\t\t\tif dr == DialogResult.OK:\r\n\t\t\t\tsender.Text = fbd.SelectedPath\r\n\t\t\t\tsender.Tag = fbd.SelectedPath\r\n\t\r\n\t    def pickobjects(self, sender, event):   \r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = False\r\n\t\t\ttry:\r\n\t\t\t\tsel = uidoc.Selection.PickObjects(Selection.ObjectType.Element,'')\r\n\t\t\t\tselelem = [doc.GetElement(s.ElementId) for s in sel]\r\n\t\t\t\tsender.Tag = (selelem)\r\n\t\t\texcept:\r\n\t\t\t\tpass\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = True\r\n\t\t#THIS METHOD IS FOR CIVIL 3D EVIRONMENT\r\n\t    def pickautocadobjects(self, sender, event):   \r\n\t\t\tselelem = []\t\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = False\r\n\t\t\ttry:\r\n\t\t\t\tacadDoc = System.Runtime.InteropServices.Marshal.GetActiveObject(\"Autocad.Application\").ActiveDocument\r\n\t\t\t\tacadDoc.Activate()\r\n\t\t\t\tacadUser = acadDoc.GetVariable(\"users5\")\t\r\n\t\t\t\tacadDoc.SendCommand(\"(and(princ\\042\"+ sender.Text + \"\\042)(setq ss(ssget))(setvar\\042users5\\042\\042LinkDWGUIOK\\042)(command\\042_.Select\\042ss\\042\\042)) \")\r\n\t\t\t\tselection_ = acadDoc.ActiveSelectionSet\r\n\t\t\t\tacadDoc.SendCommand(\"(setq ss nil) \")\r\n\t\t\t\tif acadDoc.GetVariable(\"users5\") == \"LinkDWGUIOK\" and selection_ != None:\r\n\t\t\t\t\tfor sel in selection_:\t\t\t\t\r\n\t\t\t\t\t\tselelem.append(sel)\t\t\r\n\t\t\t\t\tacadDoc.SetVariable(\"users5\", acadUser)\r\n\t\t\t\tsender.Tag = list(selelem)\t\t\r\n\t\t\texcept:\r\n\t\t\t\tpass\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = True\t\r\n\r\n\t    def pickautocadobject(self, sender, event):   \r\n\t\t\tselelem = None\t\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = False\r\n\t\t\ttry:\r\n\t\t\t\tacadDoc = System.Runtime.InteropServices.Marshal.GetActiveObject(\"Autocad.Application\").ActiveDocument\r\n\t\t\t\tacadUser = acadDoc.GetVariable(\"users5\")\r\n\t\t\t\tacadPickBox = acadDoc.GetVariable(\"pickbox\")\r\n\t\t\t\tacadDoc.SetVariable(\"pickbox\", 5)\r\n\t\t\t\tacadDoc.Activate()\r\n\t\t\t\tacadDoc.SendCommand(\"(setq obj(car(entsel\\042\" + sender.Text + \"\\042))) \")\r\n\t\t\t\tacadDoc.SendCommand(\"(and obj(setvar\\042users5\\042(cdr(assoc 5(entget obj))))(setq obj nil)) \")\t\t\r\n\t\t\t\tselection_ = acadDoc.GetVariable(\"users5\")\r\n\t\t\t\tacadDoc.SetVariable(\"pickbox\", acadPickBox)\r\n\t\t\t\tacadDoc.SetVariable(\"users5\", acadUser)\r\n\t\t\t\tselelem = acadDoc.HandleToObject(selection_)\r\n\t\t\t\tsender.Tag = selelem\t\t\r\n\t\t\texcept:\r\n\t\t\t\tpass\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = True\t\r\n\r\n\t    def pickobjectsordered(self, sender, event):\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = False\r\n\t\t\toutput = []\r\n\t\t\ttest = True\r\n\t\t\tTaskDialog.Show(\"Data|Shapes\", 'Pick elements in order, then hit ESC to exit.')\r\n\t\t\twhile test:\r\n\t\t\t\ttry:\r\n\t\t\t\t\tsel = doc.GetElement(uidoc.Selection.PickObject(Selection.ObjectType.Element, 'Pick elements in order').ElementId)\r\n\t\t\t\t\toutput.append(sel.ToDSType(True))\r\n\t\t\t\texcept : \r\n\t\t\t\t\ttest = False\r\n\t\t\t\tsender.Tag = output\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = True\r\n\t    \r\n\t    def pickobjectsofcatordered(self, sender, event):\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = False\r\n\t\t\toutput = []\r\n\t\t\ttest = True\r\n\t\t\tif isinstance(sender.Tag,list):\t\t\t\r\n\t\t\t\tcategory = UnwrapElement(sender.Tag)\r\n\t\t\telse:\r\n\t\t\t\tcategory = [UnwrapElement(sender.Tag)]\r\n\t\t\tTaskDialog.Show(\"Data|Shapes\", 'Select %s in order, then press ESC to exit.' %(', '.join([c.Name for c in category])))\r\n\t\t\twhile test:\r\n\t\t\t\ttry:\r\n\t\t\t\t\tselfilt = selectionfilter(category)\r\n\t\t\t\t\tsel = doc.GetElement(uidoc.Selection.PickObject(Selection.ObjectType.Element,selfilt, 'Select %s' %(', '.join([c.Name for c in category]))).ElementId)\t\t\t\t\r\n\t\t\t\t\toutput.append(sel.ToDSType(True))\r\n\t\t\t\texcept : \r\n\t\t\t\t\ttest = False\r\n\t\t\t\tsender.Tag = (output)\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = True\r\n\t\t\t\r\n\t    def picklinkedobjects(self, sender, event):\r\n\t\t\t#This part was made easier by Dimitar Venkov's work\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = False\r\n\t\t\ttry:\r\n\t\t\t\tlinkref = uidoc.Selection.PickObject(Selection.ObjectType.Element,'Select the link instance.')\r\n\t\t\t\tlink = doc.GetElement(linkref.ElementId).GetLinkDocument()\r\n\t\t\t\ttd = TaskDialog.Show('Data-Shapes','Select the linked elements and press Finish.')\r\n\t\t\t\tsel = uidoc.Selection.PickObjects(Selection.ObjectType.LinkedElement,'Select the linked elements and press Finish.')\r\n\t\t\t\tselelem = [link.GetElement(s.LinkedElementId) for s in sel]\r\n\t\t\t\tsender.Tag = (selelem)\r\n\t\t\texcept:\r\n\t\t\t\tpass\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = True\t\t\r\n\r\n\t    def pickobject(self, sender, event):\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = False\r\n\t\t\ttry:\r\n\t\t\t\tsel = uidoc.Selection.PickObject(Selection.ObjectType.Element,'')\r\n\t\t\t\tselelem = doc.GetElement(sel.ElementId) \r\n\t\t\t\tsender.Tag = (selelem)\r\n\t\t\texcept:\r\n\t\t\t\tpass\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = True\r\n\t\t\t\r\n\t    def picklinkedobject(self, sender, event):\r\n\t\t\t#This part was made easier by Dimitar Venkov's work\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = False\r\n\t\t\ttry:\r\n\t\t\t\tlinkref = uidoc.Selection.PickObject(Selection.ObjectType.Element,'Select the link instance.')\r\n\t\t\t\tlink = doc.GetElement(linkref.ElementId).GetLinkDocument()\r\n\t\t\t\ttd = TaskDialog.Show('Data-Shapes','Select the linked element.')\r\n\t\t\t\tsel = uidoc.Selection.PickObject(Selection.ObjectType.LinkedElement,'Select the linked element.')\r\n\t\t\t\tselelem = link.GetElement(sel.LinkedElementId)\r\n\t\t\t\tsender.Tag = (selelem)\r\n\t\t\texcept:\r\n\t\t\t\tpass\t\t\t\t\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = True\r\n\t\t\t\r\n\t    def pickobjectsofcat(self, sender, event):\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = False\r\n\t\t\tif isinstance(sender.Tag,list):\t    \r\n\t\t\t\tcategory = UnwrapElement(sender.Tag)\r\n\t\t\telse:\r\n\t\t\t\tcategory = [UnwrapElement(sender.Tag)]\r\n\t\t\ttry:\r\n\t\t\t\tselfilt = selectionfilter(category)\r\n\t\t\t\tsel = uidoc.Selection.PickObjects(Selection.ObjectType.Element,selfilt,'Select %s' %(', '.join([c.Name for c in category])))\r\n\t\t\t\tselelem = [doc.GetElement(s.ElementId) for s in sel]\r\n\t\t\t\tsender.Tag = (selelem)\r\n\t\t\texcept:\r\n\t\t\t\tpass\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = True\r\n\r\n\t    def pickobjectofcat(self, sender, event):\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = False\r\n\t\t\tif isinstance(sender.Tag,list):\t    \r\n\t\t\t\tcategory = UnwrapElement(sender.Tag)\r\n\t\t\telse:\r\n\t\t\t\tcategory = [UnwrapElement(sender.Tag)]\r\n\t\t\ttry:\r\n\t\t\t\tselfilt = selectionfilter(category)\r\n\t\t\t\tsel = uidoc.Selection.PickObject(Selection.ObjectType.Element,selfilt,'Select %s' %(', '.join([c.Name for c in category])))\r\n\t\t\t\tselelem = doc.GetElement(sel.ElementId) \r\n\t\t\t\tsender.Tag = (selelem)\r\n\t\t\texcept:\r\n\t\t\t\tpass\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = True\r\n\t\t\t\r\n\t    def pickfaces(self, sender, event):\r\n\t\t\tfaces = []\t    \t\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = False\r\n\t\t\ttry:\r\n\t\t\t\tselface = uidoc.Selection.PickObjects(Selection.ObjectType.Face,'')\r\n\t\t\t\tfor s in selface:\r\n\t\t\t\t\telemId = s.ElementId\r\n\t\t\t\t\telem = uidoc.Document.GetElement(elemId)\r\n\t\t\t\t\tif isinstance(elem,FamilyInstance):\r\n\t\t\t\t\t\ttransf = elem.GetTransform().ToCoordinateSystem()\r\n\t\t\t\t\t\tgeob = elem.GetGeometryObjectFromReference(s)\r\n\t\t\t\t\t\tnew = geob.Convert(s, transf)\r\n\t\t\t\t\t\t[i.Tags.AddTag(\"RevitFaceReference\", s) for i in new]\r\n\t\t\t\t\t\tfaces.append(new)\r\n\t\t\t\t\telse:\r\n\t\t\t\t\t\tf = uidoc.Document.GetElement(s).GetGeometryObjectFromReference(s).ToProtoType(True)\r\n\t\t\t\t\t\t[i.Tags.AddTag(\"RevitFaceReference\", s) for i in f]\r\n\t\t\t\t\t\tfaces.append(f)\r\n\t\t\t\tsender.Tag = [i for j in faces for i in j]\r\n\t\t\texcept:\r\n\t\t\t\tpass\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = True\r\n\t\t\t\t\r\n\t    def pickpointsonface(self, sender, event):\r\n\t\t\tfaces = []\t    \t\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = False\r\n\t\t\tselpoints = uidoc.Selection.PickObjects(Selection.ObjectType.PointOnElement,'')\r\n\t\t\tpoints = []\r\n\t\t\tfor s in selpoints:\r\n\t\t\t\tpt = s.GlobalPoint\r\n\t\t\t\tpoints.append(dsPoint.ByCoordinates(UnitUtils.ConvertFromInternalUnits(pt.X,UIunit),UnitUtils.ConvertFromInternalUnits(pt.Y,UIunit),UnitUtils.ConvertFromInternalUnits(pt.Z,UIunit)))\r\n\t\t\tsender.Tag = points\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = True\r\n\t\t\t\t\r\n\t    def pickedges(self, sender, event):\r\n\t\t\tedges = []\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = False\t\r\n\t\t\ttry:\t\t\t\t\r\n\t\t\t\tseledge = uidoc.Selection.PickObjects(Selection.ObjectType.Edge,'')\r\n\t\t\t\tfor s in seledge:\r\n\t\t\t\t\te = uidoc.Document.GetElement(s).GetGeometryObjectFromReference(s).AsCurve().ToProtoType(True)\r\n\t\t\t\t\te.Tags.AddTag(\"RevitFaceReference\", s)\r\n\t\t\t\t\tedges.append(e)\r\n\t\t\t\tsender.Tag = edges\r\n\t\t\texcept:\r\n\t\t\t\tpass\r\n\t\t\tfor c in self.Controls:\r\n\t\t\t\tc.Enabled = True\r\n\r\n\t    def colorpicker(self, sender, event):\r\n\t\t\tdialog = ColorSelectionDialog()\r\n\t\t\tselection = ColorSelectionDialog.Show(dialog)\r\n\t\t\tselected = dialog.SelectedColor\r\n\t\t\tsender.Tag = selected\r\n\t\t\tsender.BackColor = Color.FromArgb(selected.Red,selected.Green,selected.Blue)\r\n\t\t\tsender.ForeColor = Color.FromArgb(selected.Red,selected.Green,selected.Blue)\r\n\t\r\n\t    def topmost(self):\r\n\t\t\tself.TopMost = True\r\n\t\r\n\t    def lvadd(self, sender, event):\r\n\t\t\tsender.Tag = [i for i in sender.CheckedItems]\r\n\t\t\t\r\n\t    def scroll(self, sender, event):\r\n\t\t\tparent = sender.Parent\r\n\t\t\tchild = parent.GetChildAtPoint(Point(0,5*yRatio))\r\n\t\t\tchild.Text = str(sender.startval+sender.Value*sender.step)\r\n\r\n\t    def openurl(self, sender, event):\r\n\t\t\twebbrowser.open(sender.Tag)\r\n\t\r\n\t    def selectall(self, sender, event):\r\n\t\t\tif sender.Checked:\r\n\t\t\t\tparent = sender.Parent\r\n\t\t\t\tlistview = parent.GetChildAtPoint(Point(0,0))\r\n\t\t\t\tfor i in listview.Items:\r\n\t\t\t\t\ti.Checked = True\r\n\t\t\telse:\r\n\t\t\t\tpass\r\n\t\t\t\t\r\n\t    def selectnone(self, sender, event):\r\n\t\t\tif sender.Checked:\r\n\t\t\t\tparent = sender.Parent\r\n\t\t\t\tlistview = parent.GetChildAtPoint(Point(0,0))\r\n\t\t\t\tfor i in listview.Items:\r\n\t\t\t\t\ti.Checked = False\r\n\t\t\telse:\r\n\t\t\t\tpass\t\t\r\n\r\n\t    def updateallnone(self, sender, event):\r\n\t    \ttry:\r\n\t    \t\tparent = sender.Parent\r\n\t    \t\trball = parent.GetChildAtPoint(Point(0,sender.Height + 5*yRatio))\r\n\t    \t\trbnone = parent.GetChildAtPoint(Point(80 * xRatio,sender.Height + 5*yRatio))\r\n\t    \t\tif sender.CheckedItems.Count == 0 and event.NewValue == CheckState.Unchecked:\r\n\t    \t\t\trbnone.Checked = False\r\n\t    \t\t\trball.Checked = False\r\n\t    \t\telif sender.CheckedItems.Count == sender.Items.Count and event.NewValue == CheckState.Unchecked:\r\n\t    \t\t\trball.Checked = False\r\n\t    \t\t\trbnone.Checked = False\r\n\t    \t\telif sender.CheckedItems.Count == sender.Items.Count-1 and event.NewValue == CheckState.Checked:\r\n\t    \t\t\trball.Checked = True\r\n\t    \t\t\trbnone.Checked = False\r\n\t    \t\telif sender.CheckedItems.Count == 1 and event.NewValue == CheckState.Unchecked:\r\n\t    \t\t\trball.Checked = False\r\n\t    \t\t\trbnone.Checked = True\t    \t\r\n\t    \t\telse :\r\n\t    \t\t\trball.Checked = False\r\n\t    \t\t\trbnone.Checked = False\r\n\t    \texcept:\r\n\t    \t\tpass\r\n\r\n\t    def zoomcenter(self, sender, event ):\r\n\t\t\tif event.X > 15:\t    \r\n\t\t\t\ttry:\r\n\t\t\t\t\telement = doc.GetElement(uidoc.Selection.GetElementIds()[0])\r\n\t\t\t\t\tuidoc.ShowElements(element)\r\n\t\t\t\texcept:\r\n\t\t\t\t\tpass\r\n\t\t\telse:\r\n\t\t\t\tpass\r\n\t\t\t\t\r\n\t\t\t\r\n\t    def setviewforelement(self, sender, event ):    \r\n\t\t\tif event.X > 15*xRatio:\t    \t\t\r\n\t\t\t\ttry:\r\n\t\t\t\t\titem = sender.GetItemAt(event.X,event.Y).Text\r\n\t\t\t\t\telement = UnwrapElement(sender.Values[item])\r\n\t\t\t\t\ttry:\r\n\t\t\t\t\t\tviewsforelement = [v for v in dbviews if (not v.IsTemplate) and (element.Id in [e.Id for e in FilteredElementCollector(doc,v.Id).OfClass(element.__class__).ToElements()])]\r\n\t\t\t\t\texcept:\r\n\t\t\t\t\t\tviewsforelement = [v for v in dbviews if (not v.IsTemplate) and (element.Id in [e.Id for e in FilteredElementCollector(doc,v.Id).OfClass(FamilyInstance).ToElements()])]\r\n\t\t\t\t\tglobal viewindex\r\n\t\t\t\t\tdbView = viewsforelement[viewindex]\r\n\t\t\t\t\tid = [element.Id]\r\n\t\t\t\t\ticollection = iList[ElementId](id)\r\n\t\t\t\t\tuidoc.Selection.SetElementIds(icollection)\r\n\t\t\t\texcept:\r\n\t\t\t\t\tpass\r\n\t\t\telse:\t    \r\n\t\t\t\tpass\r\n\r\n\r\n\t    def CheckChildren(self, sender, event ):\r\n\t\t\tevNode = event.Node\t    \r\n\t\t\tcheckState = evNode.Checked\t\r\n\t\t\tfor n in event.Node.Nodes:\t   \t\r\n\t\t\t\tn.Checked = checkState\t\t\t\r\n\t\t\t\t\r\n\t    def ActivateOption(self, sender, event ):\r\n\t    \tparent = sender.Parent\r\n\t    \tassociatedControls = [p for p in parent.Controls if p.Name == sender.Text and p.GetType() == Panel][0]\r\n\t    \trestofcontrols = [p for p in parent.Controls if p.Name != sender.Text and p.GetType() == Panel]\r\n\t    \tif sender.Checked:\r\n\t    \t\tassociatedControls.Enabled = True\r\n\t    \t\tfor c in restofcontrols:\r\n\t    \t\t\tc.Enabled = False\r\n\t    \t\tparent.Tag = sender.Text\r\n\t    \t\t\r\n\t    def showtooltip(self, sender, event ):\r\n\t    \tttp = ToolTip()\r\n\t    \tttp.AutoPopDelay = 10000\r\n\t    \tttp.SetToolTip(sender , sender.Tag)\t\r\n\r\n\t    def numsOnly(self, sender, event ):\r\n\t    \tif Char.IsDigit(event.KeyChar)==False and event.KeyChar != \".\" and Char.IsControl(event.KeyChar)==False:\r\n\t    \t\tevent.Handled = True\r\n\t    \r\n\t    def chart_showLabels(self, sender, event):\r\n\t\t\tcb = sender\r\n\t\t\tpanelcht = sender.Parent\r\n\t\t\tchart1 = panelcht.GetChildAtPoint(Point(0,0))\r\n\t\t\tfor s in chart1.Series:\r\n\t\t\t\tif s.ChartType == SeriesChartType.Pie:\r\n\t\t\t\t\tif cb.Checked:\r\n\t\t\t\t\t\ts[\"PieLabelStyle\"] = \"Inside\"\r\n\t\t\t\t\telse:\r\n\t\t\t\t\t\ts[\"PieLabelStyle\"] = \"Disabled\"\r\n\t\t\t\telse:\r\n\t\t\t\t\tif cb.Checked:\r\n\t\t\t\t\t\ts.IsValueShownAsLabel = True\r\n\t\t\t\t\telse:\r\n\t\t\t\t\t\ts.IsValueShownAsLabel = False\r\n\t    \t\t\r\n\t    def imageexport(self, sender, event):\r\n\t    \timport datetime\r\n\t    \tfrom datetime import datetime\r\n\t    \tfrom RevitServices.Transactions import TransactionManager\r\n\t    \t#Modify resolution before the render\r\n\t    \tfontFam = FontFamily(\"Segoe UI Symbol\")\r\n\t    \toriginalFont = Font(fontFam,8)\r\n\t    \tpanelcht = sender.Parent\r\n\t    \tchart1 = panelcht.GetChildAtPoint(Point(0,0))\r\n\t    \toriginalTitleFont = chart1.Titles[0].Font\r\n\t    \toriginalWidth = chart1.Width\r\n\t    \toriginalHeight = chart1.Height\r\n\t    \tchart1.Visible = False\r\n\t    \tchart1.Dock = DockStyle.None\r\n\t    \tchart1.Width = 2100 * 0.8\r\n\t    \tchart1.Height = 1500 * 0.8\r\n\t    \tchart1.ChartAreas[0].AxisX.LabelAutoFitStyle = LabelAutoFitStyles.None\r\n\t    \tchart1.ChartAreas[0].AxisY.LabelAutoFitStyle = LabelAutoFitStyles.None\r\n\t    \tchart1.ChartAreas[0].AxisX.LabelStyle.Font = Font(fontFam, 30)\r\n\t    \tchart1.ChartAreas[0].AxisY.LabelStyle.Font = Font(fontFam, 30)\r\n\t    \tchart1.ChartAreas[0].AxisX.TitleFont = Font(fontFam, 30)\r\n\t    \tchart1.ChartAreas[0].AxisY.TitleFont = Font(fontFam, 30)\r\n\t    \tchart1.TextAntiAliasingQuality = TextAntiAliasingQuality.High\r\n\t    \tchart1.BackColor = Color.White\r\n\t    \tchart1.Titles[0].Font = Font(fontFam, 32, FontStyle.Bold)\r\n\t    \tchart1.ChartAreas[0].BackColor = Color.White\r\n\t    \tfor serie in chart1.Series:\r\n\t    \t\tserie.Font = Font(fontFam, 30)\r\n\t\t    \tfor p in serie.Points:\r\n\t\t    \t\tp.Font = Font(fontFam, 30)\r\n\t\t    \t\tp.MarkerSize = 15\r\n\t    \tfor legend in chart1.Legends:\r\n\t    \t\tlegend.Font = Font(fontFam, 30)\r\n\t    \t\tlegend.BackColor = Color.White\r\n\t    \tchart1.Invalidate()\r\n\t    \tchart1.SaveImage(tempfile.gettempdir() + \"\\\\chartImage.bmp\", ChartImageFormat.Bmp)\r\n\t    \t#Get back to original settings\r\n\t    \tchart1.Width = originalWidth\r\n\t    \tchart1.Height = originalHeight\r\n\t    \tchart1.BackColor = Color.Transparent\r\n\t    \tchart1.ChartAreas[0].BackColor = Color.Transparent\r\n\t    \tchart1.ChartAreas[0].AxisX.LabelStyle.Font = originalFont\r\n\t    \tchart1.ChartAreas[0].AxisY.LabelStyle.Font = originalFont\r\n\t    \tchart1.ChartAreas[0].AxisX.TitleFont = originalFont\r\n\t    \tchart1.ChartAreas[0].AxisY.TitleFont = originalFont\r\n\t    \tchart1.Titles[0].Font = originalTitleFont\r\n\t    \tfor serie in chart1.Series:\r\n\t    \t\tserie.Font = originalFont\r\n\t    \t\tfor p in serie.Points:\r\n\t    \t\t\tp.Font = originalFont\r\n\t\t    \t\tp.MarkerSize = 8\r\n\t    \tfor legend in chart1.Legends:\r\n\t    \t\tlegend.Font = originalFont\r\n\t    \t\tlegend.BackColor = Color.Transparent\r\n\t    \tchart1.Invalidate()\r\n\t    \tchart1.Visible = True\r\n\t    \t#Import the picture in a Drafting View\r\n\t    \t#Import the picture in a Drafting View // The try catch if for handling the fact that ImageImportOptions was deprecated in 2020 and is obsolete in 2021\t    \t\r\n\t    \ttry:\r\n\t    \t\timportOptions = ImageImportOptions()\t\r\n\t    \t\timportOptions.Resolution = 72\r\n\t    \t\timportOptions.Placement = BoxPlacement.TopLeft\t    \t\t\r\n\t    \texcept:\r\n\t    \t\timageTypeOption = ImageTypeOptions()\t\r\n\t    \t\timageTypeOption.Resolution = 72\r\n\r\n\t    \tcollector = FilteredElementCollector(doc).OfClass(ViewFamilyType)\r\n\t    \tviewFamilyTypes = []\r\n\t    \tfor c in collector:\r\n\t    \t\tif c.ViewFamily == ViewFamily.Drafting:\r\n\t    \t\t\tviewFamilyTypes.append(c)\r\n\t    \tviewFamilyType = viewFamilyTypes[0]\r\n\t    \tTransactionManager.Instance.EnsureInTransaction(doc)\r\n\t    \tdraftView = ViewDrafting.Create(doc,viewFamilyType.Id)\r\n\t    \tdraftView.Name = chart1.Titles[0].Text + datetime.now().strftime(\" (%m/%d/%Y, %H.%M.%S)\")\r\n\t    \timagePath = tempfile.gettempdir() + \"\\\\chartImage.bmp\"\r\n\t    \tnewElement = clr.StrongBox[Element]()\r\n\t    \ttry:\r\n\t    \t\tdoc.Import(imagePath,importOptions,draftView,newElement)\t    \t\r\n\t    \texcept:\r\n\t    \t\timageTypeOption.SetPath(imagePath)\r\n\t    \t\timageType = ImageType.Create(doc,imageTypeOption)\r\n\t    \t\tplacementOptions = ImagePlacementOptions(XYZ(0,0,0),BoxPlacement.TopLeft)\r\n\t    \t\tImageInstance.Create(doc,draftView,imageType.Id,placementOptions)\t    \t\t\r\n\t    \tTransactionManager.Instance.TransactionTaskDone()\r\n\t    \t\t    \t\r\n\t    def chart_showLegend(self, sender, event ):\r\n\t    \tcb = sender\r\n\t    \tpanelcht = sender.Parent\r\n\t    \tchart1 = panelcht.GetChildAtPoint(Point(0,0))\r\n\t    \tif len(chart1.Legends) <= 1:\r\n\t    \t\tfor legend in chart1.Legends:\r\n\t    \t\t\tif cb.Checked:\r\n\t    \t\t\t\tlegend.Enabled = True\r\n\t    \t\t\telse:\r\n\t    \t\t\t\tlegend.Enabled = False\r\n\t    \telse:\r\n\t    \t\tif cb.Checked:\r\n\t    \t\t\tchart1.Legends[1].Enabled = True\r\n\t    \t\telse:\r\n\t    \t\t\tchart1.Legends[1].Enabled = False\r\n\t\t    \t\t\r\n\r\n\tclass mylistview(ListView):\r\n\t\r\n\t\tdef __init__(self):\r\n\t\t\tself.Values = []\r\n\r\n\tclass mytrackbar(TrackBar):\r\n\t\r\n\t\tdef __init__(self,startval,step):\r\n\t\t\tself.startval = startval\r\n\t\t\tself.step = step\r\n\r\n\tclass myDataGridView(DataGridView):\r\n\t\r\n\t\tdef __init__(self):\r\n\t\t\tself.startcell = {}\r\n\t\t\tself.endcell = {}\r\n\t\t\t\r\n\tclass mygroupbox(GroupBox):\r\n\t\r\n\t\tdef __init__(self):\r\n\t\t\tself.Values = []\r\n\t\t\t\r\n\tclass myTextBox(TextBox):\r\n\t\r\n\t\tdef __init__(self):\r\n\t\t\tself._isNum = False\r\n\t\r\n\t\t\t\r\n\t#Form initialization\r\n\t\r\n\tform = MultiTextBoxForm()\r\n\txRatio = Screen.PrimaryScreen.Bounds.Width/1920\r\n\tif xRatio == 0:\r\n\t\txRatio = 1\r\n\tyRatio = Screen.PrimaryScreen.Bounds.Height/1080\r\n\tif yRatio == 0:\r\n\t\tyRatio = 1\r\n\tform.topmost()\t\r\n\tform.ControlBox = True\r\n\txlabel = 25 * xRatio\r\n\txinput = 150 * xRatio\r\n\tformy = 10 * yRatio\r\n\tif IN[8] * xRatio > (350 * xRatio):\tformwidth = IN[8] * xRatio\r\n\telse: formwidth = 350 * xRatio\r\n\tfields = []\r\n\terror = 0\r\n\t\r\n\t#Description \r\n\t\r\n\tif IN[3] != \"\":\r\n\t\tdes = Label()\r\n\t\tdes.Location = Point(xlabel,formy)\r\n\t\tdes.Font = Font(\"Arial\", 15,FontStyle.Bold)\t\t\r\n\t\tdes.AutoSize = True\r\n\t\tdes.MaximumSize = Size(formwidth - (2 * xlabel)*xRatio,0)\r\n\t\tdes.Text = IN[3]\r\n\t\tform.Controls.Add(des)\r\n\t\tformy = des.Bottom + (15*xRatio)\r\n\tformheaderheight = formy\r\n\t\r\n\t#Input form\r\n\t\r\n\t# Create a container panel for all inputs\r\n\tbody = Panel()\r\n\tbody.Location = Point(0,formy)\r\n\tbody.Width = formwidth - 15*xRatio\r\n\t\r\n\t\r\n\t# Process form inputs\r\n\tif isinstance(IN[0],list):\r\n\t\tinputtypes = IN[0]\r\n\telse:\r\n\t\tinputtypes = [IN[0]]\r\n\t# This definition is to handle the sorting of special characters\r\n\tdef remove_accents(input_str):\r\n\t    nfkd_form = unicodedata.normalize('NFKD', input_str)\r\n\t    only_ascii = nfkd_form.encode('ASCII', 'ignore')\r\n\t    return only_ascii\t\r\n\r\n\t#Adding Logo \r\n\t#default logo in case no input\t\r\n\tdef getImageByName(ImName):\r\n\t\tdynamo = Assembly.Load('DynamoCore')\r\n\t\tversion = str(dynamo.GetName().Version)[:3]\t\t\r\n\t\tdynPath = os.getenv('APPDATA')+\"\\\\Dynamo\\Dynamo Revit\\\\\" + version \r\n\t\troot = et.parse(dynPath + \"\\DynamoSettings.xml\").getroot()\r\n\t\tlogopaths = []\r\n\t\tfor child in root:\r\n\t\t\tif child.tag == \"CustomPackageFolders\":\r\n\t\t\t\tfor path in child:\r\n\t\t\t\t\tlogopaths.append(path.text + \"\\packages\\Data-Shapes\\extra\\\\\" + ImName)\r\n\t\t\t\t\tlogopaths.append(path.text + \"\\Data-Shapes\\extra\\\\\" + ImName)\r\n\t\tdeflogopath = \"\"\r\n\t\tfor path in logopaths:\r\n\t\t\tif deflogopath == \"\":\r\n\t\t\t\tif os.path.isfile(path):\r\n\t\t\t\t\tdeflogopath = path\r\n\t\t\t\t\ttry:\r\n\t\t\t\t\t\tima = Image.FromFile(deflogopath)\r\n\t\t\t\t\t\tbmp = Bitmap.FromFile(deflogopath)\r\n\t\t\t\t\t\treturn ima,bmp\r\n\t\t\t\t\texcept: \r\n\t\t\t\t\t\tpass\r\n\t\t\t\t\t\t\r\n\ttry:\r\n\t\tif IN[4] != '':\r\n\t\t\ttry:\r\n\t\t\t\tima = Image.FromFile(IN[4])\r\n\t\t\t\tbmp = Bitmap.FromFile(IN[4])\r\n\t\t\texcept:\r\n\t\t\t\tima = IN[4]\r\n\t\t\t\tbmp = IN[4]\r\n\r\n\t\telse :\r\n\t\t\t_ims = getImageByName(\"a.png\")\r\n\t\t\tima = _ims[0]\r\n\t\t\tbmp = _ims[1]\r\n\t\t\t\r\n\t\tlogo = Panel()\r\n\t\tif IN[6] == None:\r\n\t\t\txlogo = 20 * xRatio\r\n\t\t\tylogo = formy+ 10*yRatio\r\n\t\telse:\r\n\t\t\txlogo = 30 * xRatio\r\n\t\t\tylogo = formy\r\n\t\tsize = 110 * xRatio\r\n\t\tlogo = PictureBox()\r\n\t\tratio = (ima.Height)/(ima.Width)\r\n\t\th = float(ima.Height)\r\n\t\tw = float(ima.Width)\r\n\t\tratio = h/w\r\n\t\tlogo.Size = Size(size,size*ratio)\r\n\t\tscaledimage = Bitmap(size,size*ratio)\r\n\t\tgr = Graphics.FromImage(scaledimage)\r\n\t\tgr.DrawImage(ima,0,0,size,size*ratio)\r\n\t\tlogo.Image = ima\r\n\t\tlogo.SizeMode = PictureBoxSizeMode.Zoom\r\n\t\tform.Controls.Add(logo)\r\n\t\tlogo.Location = Point(xlogo,ylogo)\r\n\t\t\r\n\t\t\r\n\t\t#Setting icon \r\n\t\tthumb = bmp.GetThumbnailImage(64, 64, bmp.GetThumbnailImageAbort,IntPtr.Zero)\r\n\t\tthumb.MakeTransparent();\r\n\t\ticon = Icon.FromHandle(thumb.GetHicon())\r\n\t\tform.Icon = icon\r\n\r\n\texcept :\r\n\t\tlogo = Panel()\r\n\t\tlogo.Width = 110 * xRatio\r\n\t\tlogo.Height = 110 * yRatio\r\n\t\r\n\tdef addinput(formbody,inputs,starty,xinput,rightmargin,labelsize,importcolorselection):\r\n\t\ty = starty\r\n\t\tfor j in inputs:\r\n\t\t\tlabel = Label()\r\n\t\t\tlabel.Location = Point(xlabel,y+4*yRatio)\r\n\t\t\tlabel.AutoSize = True\r\n\t\t\tlabel.MaximumSize = Size(labelsize,0)\r\n\t\t\tif j.__class__.__name__ == 'listview' and j.element_count > 0:\r\n\t\t\t\tlabel.Text = j.inputname + '\\n(' + str(j.element_count) + ' element' + (\"s\" if j.element_count > 1 else \"\") + ')'\r\n\t\t\telse:\r\n\t\t\t\ttry:\r\n\t\t\t\t\tlabel.Text = j.inputname\r\n\t\t\t\texcept:\r\n\t\t\t\t\tpass\r\n\t\t\tformbody.Controls.Add(label)\r\n\t\r\n\t\t\tif j.__class__.__name__ == 'dropdown':\r\n\t\t\t\tcb = ComboBox()\r\n\t\t\t\tif j.inputname != \"\":\r\n\t\t\t\t\tcb.Width = formwidth - rightmargin - xinput\r\n\t\t\t\t\tcb.Location = Point(xinput,y)\r\n\t\t\t\telse:\r\n\t\t\t\t\tcb.Width = formwidth - rightmargin - xlabel\r\n\t\t\t\t\tcb.Location = Point(xlabel,y)\r\n\t\t\t\tcb.Sorted = j._sorted\r\n\t\t\t\t[cb.Items.Add(i) for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'defaultvalue' or i == 'highlight' or i == '_sorted' )]\r\n\t\t\t\tcb.Tag = j\r\n\t\t\t\tif j.defaultvalue != None:\r\n\t\t\t\t\tdefindex = [i for i in cb.Items].index([i for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'defaultvalue' or i == 'highlight' or i == '_sorted' )][j.defaultvalue])\r\n\t\t\t\t\tcb.SelectedIndex = defindex\r\n\t\t\t\tformbody.Controls.Add(cb)\r\n\t\t\t\tform.output.append(cb)\r\n\t\t\t\ty = label.Bottom + 25 * yRatio\r\n\t\t\t#CHARTS \r\n\t\t\tif j.__class__.__name__ == 'uipiechart':\t\t\t\t\t\r\n\t\t\t\tlabels = j.xseries\r\n\t\t\t\tinputcolors = j.inputcolors\r\n\t\t\t\tpyList = []\r\n\t\t\t\txseries = [j.xseries]\r\n\t\t\t\tyseries = [j.yseries]\r\n\t\t\t\tnbOfSeries = 1\r\n\t\t\t\tif inputcolors is not None:\r\n\t\t\t\t\tcolorBool = True\r\n\t\t\t\t\tfor color in inputcolors:\r\n\t\t\t\t\t\tpyList.append(Color.FromArgb(color.Red,color.Green,color.Blue))\r\n\t\t\t\t\twfColor = Array[Color](pyList)\r\n\t\t\t\telse:\r\n\t\t\t\t\tcolorBool = False\r\n\t\t\t\t#Set a global Font code\r\n\t\t\t\tfontFam = FontFamily(\"Segoe UI Symbol\")\r\n\t\t\t\toriginalFont = Font(fontFam,8)\r\n\t\t\t\t#Chart created and Panel to host the chart\r\n\t\t\t\tchart1 = Chart()\r\n\t\t\t\tpanelChart = Panel()\r\n\t\t\t\tpanelChart.Name = \"panelChart\"\r\n\t\t\t\t#Panels colors\r\n\t\t\t\tchart1.BackColor = formbody.BackColor\r\n\t\t\t\tpanelChart.BackColor = Color.Transparent\r\n\t\t\t\t#PanelChart location\r\n\t\t\t\tpanelChart.Width = formwidth  - rightmargin - xlabel\r\n\t\t\t\tpanelChart.Location = Point(xlabel,y + 30)\r\n\t\t\t\t#Chart colors palette\r\n\t\t\t\tchart1.Palette =  ChartColorPalette.None\r\n\t\t\t\tif colorBool:\r\n\t\t\t\t\tchart1.PaletteCustomColors = wfColor\r\n\t\t\t\telse:\r\n\t\t\t\t\tchart1.Palette =  ChartColorPalette.None\r\n\t\t\t\tchart1.Series.Clear()\r\n\t\t\t\t#Series created\r\n\t\t\t\tlabel = SmartLabelStyle()\r\n\t\t\t\tdef createSeries(seriesName,_keys,_values):\r\n\t\t\t\t\tsrs = Series()\r\n\t\t\t\t\tsrs[\"PieLabelStyle\"] = \"Inside\"\r\n\t\t\t\t\tsrs.Name = seriesName\r\n\t\t\t\t\tsrs.ChartType = SeriesChartType.Pie\r\n\t\t\t\t\tsrs.ToolTip = \"Percent: #PERCENT\"\r\n\t\t\t\t\tsrs.IsValueShownAsLabel = True\r\n\t\t\t\t\tfor i,j in zip(_keys,_values):\r\n\t\t\t\t\t\tsrs.Points.AddXY(i,j)\r\n\t\t\t\t\treturn srs\r\n\t\t\t\t#Create series\r\n\t\t\t\tseries = []\r\n\t\t\t\tfor i in range(0,len(xseries)):\r\n\t\t\t\t\tseries.append(createSeries(labels[i],xseries[i],yseries[i]))\r\n\t\t\t\t#Add series to chart\r\n\t\t\t\tfor s in series:\r\n\t\t\t\t\tchart1.Series.Add(s)\r\n\t\t\t\t#Legend text of the points\r\n\t\t\t\tfor s in series:\r\n\t\t\t\t\tfor p in s.Points: \r\n\t\t\t\t\t\tp.Font = originalFont\r\n\t\t\t\t#Refresh the Chart\r\n\t\t\t\tchart1.Invalidate()\r\n\t\t\t\t#Create a ChartArea and add it to the chart\r\n\t\t\t\tchartArea1 = ChartArea()\r\n\t\t\t\tchartArea1.BackColor = formbody.BackColor\r\n\t\t\t\tchartArea1.Name = \"ChartArea1\"\r\n\t\t\t\tchart1.ChartAreas.Add(chartArea1)\t\t\t\t\r\n\t\t\t\t#Create a Legend and add it to the chart\r\n\t\t\t\tlegend1 = Legend()\r\n\t\t\t\tlegend1.BackColor = formbody.BackColor\r\n\t\t\t\tlegend1.Font = originalFont\r\n\t\t\t\tlegend1.Name = \"Legend1\"\r\n\t\t\t\tlegend1.IsTextAutoFit = True\r\n\t\t\t\tlegend1.LegendStyle = LegendStyle.Column\r\n\t\t\t\tchart1.Legends.Add(legend1)\r\n\t\t\t\t#Initialize the chart and its properties\r\n\t\t\t\tchart1.BeginInit()\r\n\t\t\t\tchart1.Size = Size(panelChart.Width,panelChart.Width)\r\n\t\t\t\tchart1.AntiAliasing = AntiAliasingStyles.All\r\n\t\t\t\tfontFam = FontFamily(\"Segoe UI Symbol\")\r\n\t\t\t\ttitleFont = Font(fontFam,10,FontStyle.Bold)\r\n\t\t\t\ttitle = Title()\r\n\t\t\t\ttitle.Text = j.chartname\r\n\t\t\t\ttitle.Alignment = ContentAlignment.TopLeft\r\n\t\t\t\ttitle.Font = titleFont\r\n\t\t\t\tchart1.Titles.Add(title)\r\n\t\t\t\t#Add a button to push on view\r\n\t\t\t\tbt = Button()\r\n\t\t\t\tbt.Tag = \"Push the chart on a view in Revit\"\r\n\t\t\t\tbt.Text = \"Push on a draft view\"\r\n\t\t\t\tbt.Height = 20 * yRatio\r\n\t\t\t\tbt.Width = 140 * yRatio\t\t\t\t\r\n\t\t\t\tpanelChart.Controls.Add(bt)\r\n\t\t\t\tbt.BringToFront()\r\n\t\t\t\tbt.Font = originalFont\r\n\t\t\t\tbt.Click += form.imageexport\r\n\t\t\t\t#Add a checkBox to show/hide legend\r\n\t\t\t\tcheckBox1 = CheckBox()\r\n\t\t\t\tcheckBox1.AutoCheck = True\r\n\t\t\t\tcheckBox1.Name = \"checkBox1\"\r\n\t\t\t\tcheckBox1.Text = \"Legend\"\r\n\t\t\t\tpanelChart.Controls.Add(checkBox1)\r\n\t\t\t\tcheckBox1.BringToFront()\r\n\t\t\t\tcheckBox1.Checked = True\r\n\t\t\t\tcheckBox1.Font = originalFont\r\n\t\t\t\tcheckBox1.AutoSize = True\r\n\t\t\t\tcheckBox1.Click += form.chart_showLegend\r\n\t\t\t\t#Add a checkBox to show/hide labels\r\n\t\t\t\tcheckBox2 = CheckBox()\r\n\t\t\t\tcheckBox2.AutoCheck = True\r\n\t\t\t\tcheckBox2.Name = \"checkBox2\"\r\n\t\t\t\tcheckBox2.Text = \"Labels\"\r\n\t\t\t\tpanelChart.Controls.Add(checkBox2)\r\n\t\t\t\tcheckBox2.BringToFront()\r\n\t\t\t\tcheckBox2.Checked = True\r\n\t\t\t\tcheckBox2.Font = originalFont\r\n\t\t\t\tcheckBox2.AutoSize = True\r\n\t\t\t\tcheckBox2.Click += form.chart_showLabels\r\n\t\t\t\t\r\n\t\t\t\tpanelChart.Size = Size(panelChart.Width, panelChart.Width + checkBox2.Height + 30)\r\n\t\t\t\t#Add chart to panel\r\n\t\t\t\tpanelChart.Controls.Add(chart1)\r\n\t\t\t\tchart1.Location = Point(0,0)\r\n\t\t\t\tbt.Location = Point(panelChart.Width - bt.Width, panelChart.Width + 15)\r\n\t\t\t\tcheckBox1.Location = Point(panelChart.Width - bt.Width - 80, panelChart.Width + 15)\r\n\t\t\t\tcheckBox2.Location = Point(panelChart.Width - bt.Width - 160, panelChart.Width + 15)\r\n\t\t\t\tformbody.Controls.Add(panelChart)\r\n\t\t\t\t\r\n\t\t\t\ty = panelChart.Bottom + 25 * yRatio\r\n\t\t\t\t\r\n\t\t\telif j.__class__.__name__ == 'uibarchart':\r\n\t\t\t\tif isinstance(j.labels,list):\r\n\t\t\t\t\tlabels = j.labels\r\n\t\t\t\telse:\r\n\t\t\t\t\tlabels = [j.labels]\r\n\t\t\t\tinputcolors = j.inputcolors\r\n\t\t\t\thorizont = j.ishorizontal\r\n\t\t\t\tpyList = []\r\n\t\t\t\tif isinstance(j.xseries[0],list) and isinstance(j.yseries[0],list):\r\n\t\t\t\t\tnbOfSeries = len(j.xseries)\r\n\t\t\t\t\txseries = j.xseries\r\n\t\t\t\t\tyseries = j.yseries\r\n\t\t\t\telif isinstance(j.xseries[0],list) == False and isinstance(j.yseries[0],list):\r\n\t\t\t\t\tnbOfSeries = len(j.yseries)\r\n\t\t\t\t\txseries = []\r\n\t\t\t\t\ti = 1\r\n\t\t\t\t\twhile i <= nbOfSeries:\r\n\t\t\t\t\t\txseries.append(j.xseries)\r\n\t\t\t\t\t\ti = i + 1\r\n\t\t\t\t\tyseries = j.yseries\r\n\t\t\t\telif isinstance(j.yseries[0],list) == False and isinstance(j.xseries[0],list):\r\n\t\t\t\t\tnbOfSeries = len(j.xseries)\r\n\t\t\t\t\tyseries = []\r\n\t\t\t\t\ti = 1\r\n\t\t\t\t\twhile i <= nbOfSeries:\r\n\t\t\t\t\t\tyseries.append(j.yseries)\r\n\t\t\t\t\t\ti = i + 1\r\n\t\t\t\t\txseries = j.xseries\r\n\t\t\t\telse:\r\n\t\t\t\t\txseries = [j.xseries]\r\n\t\t\t\t\tyseries = [j.yseries]\r\n\t\t\t\t\tnbOfSeries = 1\r\n\t\t\t\tif inputcolors is not None:\r\n\t\t\t\t\tcolorBool = True\r\n\t\t\t\t\tfor color in inputcolors:\r\n\t\t\t\t\t\tpyList.append(Color.FromArgb(color.Red,color.Green,color.Blue))\r\n\t\t\t\t\twfColor = Array[Color](pyList)\r\n\t\t\t\telse:\r\n\t\t\t\t\tcolorBool = False\r\n\t\t\t\t#Set a global Font code\r\n\t\t\t\tfontFam = FontFamily(\"Segoe UI Symbol\")\r\n\t\t\t\toriginalFont = Font(fontFam,8)\r\n\t\t\t\t#Chart created and Panel to host the chart\r\n\t\t\t\tchart1 = Chart()\r\n\t\t\t\tpanelChart = Panel()\r\n\t\t\t\tpanelChart.Name = \"panelChart\"\r\n\t\t\t\t#Panels colors\r\n\t\t\t\tchart1.BackColor = formbody.BackColor\r\n\t\t\t\tpanelChart.BackColor = Color.Transparent\r\n\t\t\t\t#PanelChart location\r\n\t\t\t\tpanelChart.Width = formwidth  - rightmargin - xlabel\r\n\t\t\t\tpanelChart.Location = Point(xlabel,y + 30)\t\t\t\t\r\n\t\t\t\t#Chart colors palette\r\n\t\t\t\tchart1.Palette =  ChartColorPalette.None\r\n\t\t\t\tif colorBool:\r\n\t\t\t\t\tchart1.PaletteCustomColors = wfColor\r\n\t\t\t\telse:\r\n\t\t\t\t\tchart1.Palette =  ChartColorPalette.None\r\n\t\t\t\tchart1.Series.Clear()\r\n\t\t\t\t#Series created\r\n\t\t\t\tdef createSeries(seriesName,_keys,_values,_horizont):\r\n\t\t\t\t\tsrs = Series()\r\n\t\t\t\t\tsrs.Name = seriesName\r\n\t\t\t\t\tif _horizont:\r\n\t\t\t\t\t\tsrs.ChartType = SeriesChartType.Bar\r\n\t\t\t\t\telse:\r\n\t\t\t\t\t\tsrs.ChartType = SeriesChartType.Column\r\n\t\t\t\t\tsrs.ToolTip = \"Percent: #PERCENT\"\r\n\t\t\t\t\tsrs.IsValueShownAsLabel = True\r\n\t\t\t\t\tsrs.Font = originalFont\r\n\t\t\t\t\tfor i,j in zip(_keys,_values):\r\n\t\t\t\t\t\tsrs.Points.AddXY(i,j)\r\n\t\t\t\t\treturn srs\r\n\t\t\t\t#Create series\r\n\t\t\t\tseries = []\r\n\t\t\t\tfor i in range(0,nbOfSeries):\r\n\t\t\t\t\tseries.append(createSeries(labels[i],xseries[i],yseries[i],horizont))\r\n\t\t\t\t#Add series to chart\r\n\t\t\t\tfor s in series:\r\n\t\t\t\t\tchart1.Series.Add(s)\r\n\t\t\t\t#Refresh the Chart\r\n\t\t\t\tchart1.Invalidate()\r\n\t\t\t\t#Create a ChartArea and add it to the chart\r\n\t\t\t\tchartArea1 = ChartArea()\r\n\t\t\t\tchartArea1.BackColor = formbody.BackColor\r\n\t\t\t\tchartArea1.Name = \"ChartArea1\"\r\n\t\t\t\tchartArea1.AxisX.Title = j.xaxislabel\r\n\t\t\t\tchartArea1.AxisY.Title = j.yaxislabel\r\n\t\t\t\tchart1.ChartAreas.Add(chartArea1)\r\n\t\t\t\t#Create a Legend and add it to the chart\r\n\t\t\t\tlegend1 = Legend()\r\n\t\t\t\tlegend1.BackColor = formbody.BackColor\r\n\t\t\t\tlegend1.Font = originalFont\r\n\t\t\t\tlegend1.Name = \"Legend1\"\r\n\t\t\t\tlegend1.Docking = Docking.Right\r\n\t\t\t\tchart1.Legends.Add(legend1) \r\n\t\t\t\t#Initialize the chart and its properties\r\n\t\t\t\tchart1.BeginInit()\r\n\t\t\t\tchart1.Size = Size(panelChart.Width,panelChart.Width)\r\n\t\t\t\tchart1.AntiAliasing = AntiAliasingStyles.All\r\n\t\t\t\tfontFam = FontFamily(\"Segoe UI Symbol\")\r\n\t\t\t\ttitleFont = Font(fontFam,10,FontStyle.Bold)\r\n\t\t\t\ttitle = Title()\r\n\t\t\t\ttitle.Text = j.chartname\r\n\t\t\t\ttitle.Alignment = ContentAlignment.TopLeft\r\n\t\t\t\ttitle.Font = titleFont\r\n\t\t\t\tchart1.Titles.Add(title)\r\n\t\t\t\t#Add a button to push on view\r\n\t\t\t\tbt = Button()\r\n\t\t\t\tbt.Tag = \"Push the chart on a view in Revit\"\r\n\t\t\t\tbt.Text = \"Push on a draft view\"\r\n\t\t\t\tbt.Height = 20 * yRatio\r\n\t\t\t\tbt.Width = 140 * yRatio\t\t\t\r\n\t\t\t\tpanelChart.Controls.Add(bt)\r\n\t\t\t\tbt.BringToFront()\r\n\t\t\t\tbt.Click += form.imageexport\r\n\t\t\t\t#Add a checkBox to show/hide legend\r\n\t\t\t\tcheckBox1 = CheckBox()\r\n\t\t\t\tcheckBox1.AutoCheck = True\r\n\t\t\t\tcheckBox1.Name = \"checkBox1\"\r\n\t\t\t\tcheckBox1.Text = \"Legend\"\r\n\t\t\t\tpanelChart.Controls.Add(checkBox1)\r\n\t\t\t\tcheckBox1.BringToFront()\r\n\t\t\t\tcheckBox1.Checked = True\r\n\t\t\t\tcheckBox1.Font = originalFont\r\n\t\t\t\tcheckBox1.AutoSize = True\r\n\t\t\t\tcheckBox1.Click += form.chart_showLegend\r\n\t\t\t\t#Add a checkBox to show/hide labels\r\n\t\t\t\tcheckBox2 = CheckBox()\r\n\t\t\t\tcheckBox2.AutoCheck = True\r\n\t\t\t\tcheckBox2.Name = \"checkBox2\"\r\n\t\t\t\tcheckBox2.Text = \"Labels\"\r\n\t\t\t\tpanelChart.Controls.Add(checkBox2)\r\n\t\t\t\tcheckBox2.BringToFront()\r\n\t\t\t\tcheckBox2.Checked = True\r\n\t\t\t\tcheckBox2.Font = originalFont\r\n\t\t\t\tcheckBox2.AutoSize = True\r\n\t\t\t\tcheckBox2.Click += form.chart_showLabels\r\n\t\t\t\t\r\n\t\t\t\tpanelChart.Size = Size(panelChart.Width, panelChart.Width + checkBox2.Height + 20)\r\n\t\t\t\t#Add chart to panel\r\n\t\t\t\tpanelChart.Controls.Add(chart1)\r\n\t\t\t\tchart1.Location = Point(0,0)\r\n\t\t\t\tbt.Location = Point(panelChart.Width - bt.Width, panelChart.Width + 15)\r\n\t\t\t\tcheckBox1.Location = Point(panelChart.Width - bt.Width - 80, panelChart.Width + 15)\r\n\t\t\t\tcheckBox2.Location = Point(panelChart.Width - bt.Width - 160, panelChart.Width + 15)\r\n\t\t\t\tformbody.Controls.Add(panelChart)\r\n\t\t\t\t\r\n\t\t\t\ty = panelChart.Bottom + 25 * yRatio\r\n\t\t\t\t\r\n\t\t\telif j.__class__.__name__ == 'uiradarchart':\r\n\t\t\t\tif isinstance(j.labels,list):\r\n\t\t\t\t\tlabels = j.labels\r\n\t\t\t\telse:\r\n\t\t\t\t\tlabels = [j.labels]\r\n\t\t\t\tinputcolors = j.inputcolors\r\n\t\t\t\tpyList = []\r\n\t\t\t\tif isinstance(j.xseries[0],list) and isinstance(j.yseries[0],list):\r\n\t\t\t\t\tnbOfSeries = len(j.xseries)\r\n\t\t\t\t\txseries = j.xseries\r\n\t\t\t\t\tyseries = j.yseries\r\n\t\t\t\telif isinstance(j.xseries[0],list) == False and isinstance(j.yseries[0],list):\r\n\t\t\t\t\tnbOfSeries = len(j.yseries)\r\n\t\t\t\t\txseries = []\r\n\t\t\t\t\ti = 1\r\n\t\t\t\t\twhile i <= nbOfSeries:\r\n\t\t\t\t\t\txseries.append(j.xseries)\r\n\t\t\t\t\t\ti = i + 1\r\n\t\t\t\t\tyseries = j.yseries\r\n\t\t\t\telif isinstance(j.yseries[0],list) == False and isinstance(j.xseries[0],list):\r\n\t\t\t\t\tnbOfSeries = len(j.xseries)\r\n\t\t\t\t\tyseries = []\r\n\t\t\t\t\ti = 1\r\n\t\t\t\t\twhile i <= nbOfSeries:\r\n\t\t\t\t\t\tyseries.append(j.yseries)\r\n\t\t\t\t\t\ti = i + 1\r\n\t\t\t\t\txseries = j.xseries\r\n\t\t\t\telse:\r\n\t\t\t\t\txseries = [j.xseries]\r\n\t\t\t\t\tyseries = [j.yseries]\r\n\t\t\t\t\tnbOfSeries = 1\r\n\t\t\t\tif inputcolors is not None:\r\n\t\t\t\t\tcolorBool = True\r\n\t\t\t\t\tfor color in inputcolors:\r\n\t\t\t\t\t\tpyList.append(Color.FromArgb(color.Red,color.Green,color.Blue))\r\n\t\t\t\t\twfColor = Array[Color](pyList)\r\n\t\t\t\telse:\r\n\t\t\t\t\tcolorBool = False\r\n\t\t\t\t#Set a global Font code\r\n\t\t\t\tfontFam = FontFamily(\"Segoe UI Symbol\")\r\n\t\t\t\toriginalFont = Font(fontFam,8)\r\n\t\t\t\t#Chart created and Panel to host the chart\r\n\t\t\t\tchart1 = Chart()\r\n\t\t\t\tpanelChart = Panel()\r\n\t\t\t\tpanelChart.Name = \"panelChart\"\r\n\t\t\t\t#Create a panel for buttons\r\n\t\t\t\tpanelCtrls = Panel()\r\n\t\t\t\t#Panels colors\r\n\t\t\t\tchart1.BackColor = formbody.BackColor\r\n\t\t\t\tpanelChart.BackColor = Color.Transparent\r\n\t\t\t\tpanelCtrls.BackColor = Color.Transparent\r\n\t\t\t\t#PanelChart location\r\n\t\t\t\tpanelChart.Width = formwidth  - rightmargin - xlabel\r\n\t\t\t\tpanelChart.Location = Point(xlabel,y + 30)\t\t\t\t\r\n\t\t\t\tautoheight = 250 * yRatio\t\t\t\r\n\t\t\t\tpanelChart.Height = autoheight + 73 * yRatio\r\n\t\t\t\tratio = (panelChart.Height)/(panelChart.Width)\r\n\t\t\t\th = float(panelChart.Height)\r\n\t\t\t\tw = float(panelChart.Width)\r\n\t\t\t\tratio = h/w\r\n\t\t\t\tchart_maxsize = formwidth - xlabel - rightmargin\r\n\t\t\t\tpanelChart.Size = Size(chart_maxsize,chart_maxsize*ratio)\t\t\t\t\r\n\t\t\t\t#Chart colors palette\r\n\t\t\t\tchart1.Palette =  ChartColorPalette.None\r\n\t\t\t\tif colorBool:\r\n\t\t\t\t\tchart1.PaletteCustomColors = wfColor\r\n\t\t\t\telse:\r\n\t\t\t\t\tchart1.Palette =  ChartColorPalette.None\r\n\t\t\t\tchart1.Series.Clear()\r\n\t\t\t\t#Series created\r\n\t\t\t\tdef createSeries(seriesName,_keys,_values):\r\n\t\t\t\t\tsrs = Series()\r\n\t\t\t\t\tsrs.Name = seriesName\r\n\t\t\t\t\tsrs.ChartType = SeriesChartType.Radar\r\n\t\t\t\t\tsrs.ToolTip = \"Percent: #PERCENT\"\r\n\t\t\t\t\tsrs.IsValueShownAsLabel = True\r\n\t\t\t\t\tsrs.Font = originalFont\r\n\t\t\t\t\tsrs.BorderWidth = 4\r\n\t\t\t\t\tfor i,j in zip(_keys,_values):\r\n\t\t\t\t\t\tsrs.Points.AddXY(i,j)\r\n\t\t\t\t\treturn srs\r\n\t\t\t\t#Create series\r\n\t\t\t\tseries = []\r\n\t\t\t\tfor i in range(0,nbOfSeries):\r\n\t\t\t\t\tseries.append(createSeries(labels[i],xseries[i],yseries[i]))\r\n\t\t\t\t#Add series to chart\r\n\t\t\t\tfor s in series:\r\n\t\t\t\t\tchart1.Series.Add(s)\r\n\t\t\t\t#Refresh the Chart\r\n\t\t\t\tchart1.Invalidate()\r\n\t\t\t\t#Create a ChartArea and add it to the chart\r\n\t\t\t\tchartArea1 = ChartArea()\r\n\t\t\t\tchartArea1.BackColor = formbody.BackColor\r\n\t\t\t\tchartArea1.Name = \"ChartArea1\"\r\n\t\t\t\tchartArea1.AxisX.Title = j.xaxislabel\r\n\t\t\t\tchartArea1.AxisY.Title = j.yaxislabel\r\n\t\t\t\tchart1.ChartAreas.Add(chartArea1)\r\n\t\t\t\t#Create a Legend and add it to the chart\r\n\t\t\t\tlegend1 = Legend()\r\n\t\t\t\tlegend1.BackColor = formbody.BackColor\r\n\t\t\t\tlegend1.Font = originalFont\r\n\t\t\t\tlegend1.Name = \"Legend1\"\r\n\t\t\t\tchart1.Legends.Add(legend1) \r\n\t\t\t\t#Initialize the chart and its properties\r\n\t\t\t\tchart1.BeginInit()\r\n\t\t\t\tchart1.Dock = DockStyle.Fill\r\n\t\t\t\tchart1.AntiAliasing = AntiAliasingStyles.All\r\n\t\t\t\tfontFam = FontFamily(\"Segoe UI Symbol\")\r\n\t\t\t\ttitleFont = Font(fontFam,10,FontStyle.Bold)\r\n\t\t\t\ttitle = Title()\r\n\t\t\t\ttitle.Text = j.chartname\r\n\t\t\t\ttitle.Alignment = ContentAlignment.TopLeft\r\n\t\t\t\ttitle.Font = titleFont\r\n\t\t\t\tchart1.Titles.Add(title)\r\n\t\t\t\t#Add a button to push on view\r\n\t\t\t\tbt = Button()\r\n\t\t\t\tbt.Tag = \"Push the chart on a view in Revit\"\r\n\t\t\t\tbt.Text = \"Push on a draft view\"\r\n\t\t\t\tbt.Height = 20 * yRatio\r\n\t\t\t\tbt.Width = 140 * yRatio\t\t\t\t\r\n\t\t\t\tpanelCtrls.Controls.Add(bt)\r\n\t\t\t\tbt.BringToFront()\r\n\t\t\t\tbt.Click += form.imageexport\r\n\t\t\t\t#Add a checkBox to show/hide legend\r\n\t\t\t\tcheckBox1 = CheckBox()\r\n\t\t\t\tcheckBox1.AutoCheck = True\r\n\t\t\t\tcheckBox1.Name = \"checkBox1\"\r\n\t\t\t\tcheckBox1.Text = \"Show/Hide legend\"\r\n\t\t\t\tpanelCtrls.Controls.Add(checkBox1)\r\n\t\t\t\tcheckBox1.BringToFront()\r\n\t\t\t\tcheckBox1.Checked = True\r\n\t\t\t\tcheckBox1.AutoSize = True\r\n\t\t\t\tcheckBox1.Click += form.chart_showLegend\r\n\t\t\t\t\r\n\t\t\t\t#Add a checkBox to show/hide labels\r\n\t\t\t\tcheckBox2 = CheckBox()\r\n\t\t\t\tcheckBox2.AutoCheck = True\r\n\t\t\t\tcheckBox2.Name = \"checkBox2\"\r\n\t\t\t\tcheckBox2.Text = \"Show/Hide labels\"\r\n\t\t\t\tpanelCtrls.Controls.Add(checkBox2)\r\n\t\t\t\tcheckBox2.BringToFront()\r\n\t\t\t\tcheckBox2.Checked = True\r\n\t\t\t\tcheckBox2.Font = originalFont\r\n\t\t\t\tcheckBox2.AutoSize = True\r\n\t\t\t\tcheckBox2.Click += form.chart_showLabels\r\n\t\t\t\t\r\n\t\t\t\tpanelChart.Size = Size(panelChart.Width, panelChart.Width + checkBox2.Height + 20)\r\n\t\t\t\t#Add chart to panel\r\n\t\t\t\tpanelChart.Controls.Add(chart1)\r\n\t\t\t\tchart1.Location = Point(0,0)\r\n\t\t\t\tbt.Location = Point(panelChart.Width - bt.Width, panelChart.Width + 15)\r\n\t\t\t\tcheckBox1.Location = Point(panelChart.Width - bt.Width - 80, panelChart.Width + 15)\r\n\t\t\t\tcheckBox2.Location = Point(panelChart.Width - bt.Width - 160, panelChart.Width + 15)\r\n\t\t\t\tformbody.Controls.Add(panelChart)\r\n\t\t\t\t\r\n\t\t\t\ty = panelChart.Bottom + 25 * yRatio\r\n\t\t\t\t\r\n\t\t\telif j.__class__.__name__ == 'uipointchart':\r\n\t\t\t\tif isinstance(j.labels,list):\r\n\t\t\t\t\tlabels = j.labels\r\n\t\t\t\telse:\r\n\t\t\t\t\tlabels = [j.labels]\r\n\t\t\t\tinputcolors = j.inputcolors\r\n\t\t\t\tpyList = []\r\n\t\t\t\tif isinstance(j.xseries[0],list) and isinstance(j.yseries[0],list):\r\n\t\t\t\t\tnbOfSeries = len(j.xseries)\r\n\t\t\t\t\txseries = j.xseries\r\n\t\t\t\t\tyseries = j.yseries\r\n\t\t\t\telif isinstance(j.xseries[0],list) == False and isinstance(j.yseries[0],list):\r\n\t\t\t\t\tnbOfSeries = len(j.yseries)\r\n\t\t\t\t\txseries = []\r\n\t\t\t\t\ti = 1\r\n\t\t\t\t\twhile i <= nbOfSeries:\r\n\t\t\t\t\t\txseries.append(j.xseries)\r\n\t\t\t\t\t\ti = i + 1\r\n\t\t\t\t\tyseries = j.yseries\r\n\t\t\t\telif isinstance(j.yseries[0],list) == False and isinstance(j.xseries[0],list):\r\n\t\t\t\t\tnbOfSeries = len(j.xseries)\r\n\t\t\t\t\tyseries = []\r\n\t\t\t\t\ti = 1\r\n\t\t\t\t\twhile i <= nbOfSeries:\r\n\t\t\t\t\t\tyseries.append(j.yseries)\r\n\t\t\t\t\t\ti = i + 1\r\n\t\t\t\t\txseries = j.xseries\r\n\t\t\t\telse:\r\n\t\t\t\t\txseries = [j.xseries]\r\n\t\t\t\t\tyseries = [j.yseries]\r\n\t\t\t\t\tnbOfSeries = 1\r\n\t\t\t\tif inputcolors is not None:\r\n\t\t\t\t\tcolorBool = True\r\n\t\t\t\t\tfor color in inputcolors:\r\n\t\t\t\t\t\tpyList.append(Color.FromArgb(color.Red,color.Green,color.Blue))\r\n\t\t\t\t\twfColor = Array[Color](pyList)\r\n\t\t\t\telse:\r\n\t\t\t\t\tcolorBool = False\r\n\t\t\t\t#Set a global Font code\r\n\t\t\t\tfontFam = FontFamily(\"Segoe UI Symbol\")\r\n\t\t\t\toriginalFont = Font(fontFam,8)\r\n\t\t\t\t#Chart created and Panel to host the chart\r\n\t\t\t\tchart1 = Chart()\r\n\t\t\t\tpanelChart = Panel()\r\n\t\t\t\tpanelChart.Name = \"panelChart\"\r\n\t\t\t\t#Panels colors\r\n\t\t\t\tchart1.BackColor = formbody.BackColor\r\n\t\t\t\tpanelChart.BackColor = Color.Transparent\r\n\t\t\t\t#PanelChart location\r\n\t\t\t\tpanelChart.Width = formwidth  - rightmargin - xlabel\r\n\t\t\t\tpanelChart.Location = Point(xlabel,y + 30)\t\t\t\t\r\n\t\t\t\t#Chart colors palette\r\n\t\t\t\tchart1.Palette =  ChartColorPalette.None\r\n\t\t\t\tif colorBool:\r\n\t\t\t\t\tchart1.PaletteCustomColors = wfColor\r\n\t\t\t\telse:\r\n\t\t\t\t\tchart1.Palette =  ChartColorPalette.None\r\n\t\t\t\tchart1.Series.Clear()\r\n\t\t\t\t#Series created\r\n\t\t\t\tdef createSeries(seriesName,_keys,_values):\r\n\t\t\t\t\tsrs = Series()\r\n\t\t\t\t\tsrs.Name = seriesName\r\n\t\t\t\t\tsrs.ChartType = SeriesChartType.Point\r\n\t\t\t\t\tsrs.ToolTip = \"Percent: #PERCENT\"\r\n\t\t\t\t\tsrs.IsValueShownAsLabel = True\r\n\t\t\t\t\tsrs.Font = originalFont\r\n\t\t\t\t\tfor i,j in zip(_keys,_values):\r\n\t\t\t\t\t\tsrs.Points.AddXY(i,j)\r\n\t\t\t\t\treturn srs\r\n\t\t\t\t#Create series\r\n\t\t\t\tseries = []\r\n\t\t\t\tfor i in range(0,nbOfSeries):\r\n\t\t\t\t\tseries.append(createSeries(labels[i],xseries[i],yseries[i]))\r\n\t\t\t\t#Add series to chart\r\n\t\t\t\tfor s in series:\r\n\t\t\t\t\tchart1.Series.Add(s)\r\n\t\t\t\t#Change marker size\r\n\t\t\t\toriginalMarkerSize = 8\r\n\t\t\t\tfor s in series:\r\n\t\t\t\t\tfor p in s.Points:\r\n\t\t\t\t\t\tp.MarkerSize = originalMarkerSize\r\n\t\t\t\t#Refresh the Chart\r\n\t\t\t\tchart1.Invalidate()\r\n\t\t\t\t#Create a ChartArea and add it to the chart\r\n\t\t\t\tchartArea1 = ChartArea()\r\n\t\t\t\tchartArea1.BackColor = formbody.BackColor\r\n\t\t\t\tchartArea1.Name = \"ChartArea1\"\r\n\t\t\t\tchartArea1.AxisX.Title = j.xaxislabel\r\n\t\t\t\tchartArea1.AxisY.Title = j.yaxislabel\r\n\t\t\t\tchart1.ChartAreas.Add(chartArea1)\r\n\t\t\t\tchartArea1 = chart1.ChartAreas[0]\r\n\t\t\t\t#Create a Legend and add it to the chart\r\n\t\t\t\tlegend1 = Legend()\r\n\t\t\t\tlegend2 = Legend()\r\n\t\t\t\t#Add legends to charts\r\n\t\t\t\tchart1.Legends.Add(legend1)\r\n\t\t\t\tchart1.Legends.Add(legend2)\r\n\t\t\t\t#Create Custom legend\r\n\t\t\t\tcustomevent = CustomizeLegendEventArgs(legend2.CustomItems)\r\n\t\t\t\tfor s in series:\r\n\t\t\t\t\tlegend2.CustomItems.Add(LegendItem(s.Name.ToString(),s.Color,\"\"))\t\t\t\t\t\r\n\t\t\t\tdef chart_CustomizeLegend(sender, customevent ):\r\n\t\t\t\t\tchart1 = sender\r\n\t\t\t\t\t#legend1.Enabled = False\r\n\t\t\t\t\tlegend2.Name = \"Legend2\"\r\n\t\t\t\t\tfor s,it in zip(series,legend2.CustomItems):\r\n\t\t\t\t\t\tit.ImageStyle = LegendImageStyle.Marker\r\n\t\t\t\t\t\tit.MarkerStyle = s.MarkerStyle\r\n\t\t\t\t\t\tit.MarkerColor = s.Color\r\n\t\t\t\t\t\tit.BorderColor = Color.Transparent\r\n\t\t\t\t\t\tit.MarkerSize *= 1.3\r\n\t\t\t\tlegend1.Enabled = False\r\n\t\t\t\tlegend2.Font = originalFont\r\n\t\t\t\tlegend2.IsTextAutoFit = True\r\n\t\t\t\tlegend2.BackColor = formbody.BackColor\t\t\t\r\n\t\t\t\tchart1.CustomizeLegend += chart_CustomizeLegend\r\n\t\t\t\t#Initialize the chart and its properties\r\n\t\t\t\tchart1.BeginInit()\r\n\t\t\t\tchart1.Size = Size(panelChart.Width,panelChart.Width)\r\n\t\t\t\tchart1.AntiAliasing = AntiAliasingStyles.All\r\n\t\t\t\tfontFam = FontFamily(\"Segoe UI Symbol\")\r\n\t\t\t\ttitleFont = Font(fontFam,10,FontStyle.Bold)\r\n\t\t\t\ttitle = Title()\r\n\t\t\t\ttitle.Text = j.chartname\r\n\t\t\t\ttitle.Alignment = ContentAlignment.TopLeft\r\n\t\t\t\ttitle.Font = titleFont\r\n\t\t\t\tchart1.Titles.Add(title)\r\n\t\t\t\t#Add a button to push on view\r\n\t\t\t\tbt = Button()\r\n\t\t\t\tbt.Tag = \"Push the chart on a view in Revit\"\r\n\t\t\t\tbt.Text = \"Push on a draft view\"\r\n\t\t\t\tbt.Height = 20 * yRatio\r\n\t\t\t\tbt.Width = 140 * yRatio\t\t\t\t\r\n\t\t\t\tpanelChart.Controls.Add(bt)\r\n\t\t\t\tbt.BringToFront()\r\n\t\t\t\tbt.Click += form.imageexport\r\n\t\t\t\t#Add a checkBox to show/hide legend\r\n\t\t\t\tcheckBox1 = CheckBox()\r\n\t\t\t\tcheckBox1.AutoCheck = True\r\n\t\t\t\tcheckBox1.Name = \"checkBox1\"\r\n\t\t\t\tcheckBox1.Text = \"Legend\"\r\n\t\t\t\tpanelChart.Controls.Add(checkBox1)\r\n\t\t\t\tcheckBox1.BringToFront()\r\n\t\t\t\tcheckBox1.Checked = True\r\n\t\t\t\tcheckBox1.AutoSize = True\r\n\t\t\t\tcheckBox1.Click += form.chart_showLegend\r\n\t\t\t\t\r\n\t\t\t\t#Add a checkBox to show/hide labels\r\n\t\t\t\tcheckBox2 = CheckBox()\r\n\t\t\t\tcheckBox2.AutoCheck = True\r\n\t\t\t\tcheckBox2.Name = \"checkBox2\"\r\n\t\t\t\tcheckBox2.Text = \"Labels\"\r\n\t\t\t\tpanelChart.Controls.Add(checkBox2)\r\n\t\t\t\tcheckBox2.BringToFront()\r\n\t\t\t\tcheckBox2.Checked = True\r\n\t\t\t\tcheckBox2.Font = originalFont\r\n\t\t\t\tcheckBox2.AutoSize = True\r\n\t\t\t\tcheckBox2.Click += form.chart_showLabels\r\n\t\t\t\t\r\n\t\t\t\tpanelChart.Size = Size(panelChart.Width, panelChart.Width + checkBox2.Height + 20)\r\n\t\t\t\t#Add chart to panel\r\n\t\t\t\tpanelChart.Controls.Add(chart1)\r\n\t\t\t\tchart1.Location = Point(0,0)\r\n\t\t\t\tbt.Location = Point(panelChart.Width - bt.Width, panelChart.Width + 15)\r\n\t\t\t\tcheckBox1.Location = Point(panelChart.Width - bt.Width - 80, panelChart.Width + 15)\r\n\t\t\t\tcheckBox2.Location = Point(panelChart.Width - bt.Width - 160, panelChart.Width + 15)\r\n\t\t\t\tformbody.Controls.Add(panelChart)\r\n\t\t\t\t\r\n\t\t\t\ty = panelChart.Bottom + 25 * yRatio\r\n\t\t\t\t\t\t\t\t\r\n\t\t\telif j.__class__.__name__ == 'uilinechart':\r\n\t\t\t\tif isinstance(j.labels,list):\r\n\t\t\t\t\tlabels = j.labels\r\n\t\t\t\telse:\r\n\t\t\t\t\tlabels = [j.labels]\r\n\t\t\t\tinputcolors = j.inputcolors\r\n\t\t\t\tpyList = []\r\n\t\t\t\tif isinstance(j.xseries[0],list) and isinstance(j.yseries[0],list):\r\n\t\t\t\t\tnbOfSeries = len(j.xseries)\r\n\t\t\t\t\txseries = j.xseries\r\n\t\t\t\t\tyseries = j.yseries\r\n\t\t\t\telif isinstance(j.xseries[0],list) == False and isinstance(j.yseries[0],list):\r\n\t\t\t\t\tnbOfSeries = len(j.yseries)\r\n\t\t\t\t\txseries = []\r\n\t\t\t\t\ti = 1\r\n\t\t\t\t\twhile i <= nbOfSeries:\r\n\t\t\t\t\t\txseries.append(j.xseries)\r\n\t\t\t\t\t\ti = i + 1\r\n\t\t\t\t\tyseries = j.yseries\r\n\t\t\t\telif isinstance(j.yseries[0],list) == False and isinstance(j.xseries[0],list):\r\n\t\t\t\t\tnbOfSeries = len(j.xseries)\r\n\t\t\t\t\tyseries = []\r\n\t\t\t\t\ti = 1\r\n\t\t\t\t\twhile i <= nbOfSeries:\r\n\t\t\t\t\t\tyseries.append(j.yseries)\r\n\t\t\t\t\t\ti = i + 1\r\n\t\t\t\t\txseries = j.xseries\r\n\t\t\t\telse:\r\n\t\t\t\t\txseries = [j.xseries]\r\n\t\t\t\t\tyseries = [j.yseries]\r\n\t\t\t\t\tnbOfSeries = 1\r\n\t\t\t\tif inputcolors is not None:\r\n\t\t\t\t\tcolorBool = True\r\n\t\t\t\t\tfor color in inputcolors:\r\n\t\t\t\t\t\tpyList.append(Color.FromArgb(color.Red,color.Green,color.Blue))\r\n\t\t\t\t\twfColor = Array[Color](pyList)\r\n\t\t\t\telse:\r\n\t\t\t\t\tcolorBool = False\r\n\t\t\t\t#Set a global Font code\r\n\t\t\t\tfontFam = FontFamily(\"Segoe UI Symbol\")\r\n\t\t\t\toriginalFont = Font(fontFam,8)\r\n\t\t\t\t#Chart created and Panel to host the chart\r\n\t\t\t\tchart1 = Chart()\r\n\t\t\t\tpanelChart = Panel()\r\n\t\t\t\tpanelChart.Name = \"panelChart\"\r\n\t\t\t\t#Panels colors\r\n\t\t\t\tchart1.BackColor = formbody.BackColor\r\n\t\t\t\tpanelChart.BackColor = Color.Transparent\r\n\t\t\t\t#PanelChart location\r\n\t\t\t\tpanelChart.Width = formwidth  - rightmargin - xlabel\r\n\t\t\t\tpanelChart.Location = Point(xlabel,y + 30)\t\t\t\t\r\n\t\t\t\t#Chart colors palette\r\n\t\t\t\tchart1.Palette =  ChartColorPalette.None\r\n\t\t\t\tif colorBool:\r\n\t\t\t\t\tchart1.PaletteCustomColors = wfColor\r\n\t\t\t\telse:\r\n\t\t\t\t\tchart1.Palette =  ChartColorPalette.None\r\n\t\t\t\tchart1.Series.Clear()\r\n\t\t\t\t#Series created\r\n\t\t\t\tdef createSeries(seriesName,_keys,_values):\r\n\t\t\t\t\tsrs = Series()\r\n\t\t\t\t\tsrs.Name = seriesName\r\n\t\t\t\t\tsrs.ChartType = SeriesChartType.Line\r\n\t\t\t\t\tsrs.ToolTip = \"Percent: #PERCENT\"\r\n\t\t\t\t\tsrs.IsValueShownAsLabel = True\r\n\t\t\t\t\tsrs.Font = originalFont\r\n\t\t\t\t\tsrs.BorderWidth = 4\r\n\t\t\t\t\tfor i,j in zip(_keys,_values):\r\n\t\t\t\t\t\tsrs.Points.AddXY(i,j)\r\n\t\t\t\t\treturn srs\r\n\t\t\t\t#Create series\r\n\t\t\t\tseries = []\r\n\t\t\t\tfor i in range(0,nbOfSeries):\r\n\t\t\t\t\tseries.append(createSeries(labels[i],xseries[i],yseries[i]))\r\n\t\t\t\t#Add series to chart\r\n\t\t\t\tfor s in series:\r\n\t\t\t\t\tchart1.Series.Add(s)\r\n\t\t\t\t#Refresh the Chart\r\n\t\t\t\tchart1.Invalidate()\r\n\t\t\t\t#Create a ChartArea and add it to the chart\r\n\t\t\t\tchartArea1 = ChartArea()\r\n\t\t\t\tchartArea1.BackColor = formbody.BackColor\r\n\t\t\t\tchartArea1.Name = \"ChartArea1\"\r\n\t\t\t\tchartArea1.AxisX.Title = j.xaxislabel\r\n\t\t\t\tchartArea1.AxisY.Title = j.yaxislabel\r\n\t\t\t\tchart1.ChartAreas.Add(chartArea1)\r\n\t\t\t\t#Create a Legend and add it to the chart\r\n\t\t\t\tlegend1 = Legend()\r\n\t\t\t\tlegend1.BackColor = formbody.BackColor\r\n\t\t\t\tlegend1.Font = originalFont\r\n\t\t\t\tlegend1.Name = \"Legend1\"\r\n\t\t\t\tchart1.Legends.Add(legend1) \r\n\t\t\t\t#Initialize the chart and its properties\r\n\t\t\t\tchart1.BeginInit()\r\n\t\t\t\tchart1.Size = Size(panelChart.Width,panelChart.Width)\r\n\t\t\t\tchart1.AntiAliasing = AntiAliasingStyles.All\r\n\t\t\t\tfontFam = FontFamily(\"Segoe UI Symbol\")\r\n\t\t\t\ttitleFont = Font(fontFam,10,FontStyle.Bold)\r\n\t\t\t\ttitle = Title()\r\n\t\t\t\ttitle.Text = j.chartname\r\n\t\t\t\ttitle.Alignment = ContentAlignment.TopLeft\r\n\t\t\t\ttitle.Font = titleFont\r\n\t\t\t\tchart1.Titles.Add(title)\r\n\t\t\t\t#Add a button to push on view\r\n\t\t\t\tbt = Button()\r\n\t\t\t\tbt.Tag = \"Push the chart on a view in Revit\"\r\n\t\t\t\tbt.Text = \"Push on a draft view\"\r\n\t\t\t\tbt.Height = 20 * yRatio\r\n\t\t\t\tbt.Width = 140 * yRatio\t\t\t\t\r\n\t\t\t\tpanelChart.Controls.Add(bt)\r\n\t\t\t\tbt.BringToFront()\r\n\t\t\t\tbt.Click += form.imageexport\r\n\t\t\t\t#Add a checkBox to show/hide legend\r\n\t\t\t\tcheckBox1 = CheckBox()\r\n\t\t\t\tcheckBox1.AutoCheck = True\r\n\t\t\t\tcheckBox1.Name = \"checkBox1\"\r\n\t\t\t\tcheckBox1.Text = \"Legend\"\r\n\t\t\t\tpanelChart.Controls.Add(checkBox1)\r\n\t\t\t\tcheckBox1.BringToFront()\r\n\t\t\t\tcheckBox1.Checked = True\r\n\t\t\t\tcheckBox1.AutoSize = True\r\n\t\t\t\tcheckBox1.Click += form.chart_showLegend\r\n\t\t\t\t\r\n\t\t\t\t#Add a checkBox to show/hide labels\r\n\t\t\t\tcheckBox2 = CheckBox()\r\n\t\t\t\tcheckBox2.AutoCheck = True\r\n\t\t\t\tcheckBox2.Name = \"checkBox2\"\r\n\t\t\t\tcheckBox2.Text = \"Labels\"\r\n\t\t\t\tpanelChart.Controls.Add(checkBox2)\r\n\t\t\t\tcheckBox2.BringToFront()\r\n\t\t\t\tcheckBox2.Checked = True\r\n\t\t\t\tcheckBox2.Font = originalFont\r\n\t\t\t\tcheckBox2.AutoSize = True\r\n\t\t\t\tcheckBox2.Click += form.chart_showLabels\r\n\t\t\t\t\r\n\t\t\t\tpanelChart.Size = Size(panelChart.Width, panelChart.Width + checkBox2.Height + 20)\r\n\t\t\t\t#Add chart to panel\r\n\t\t\t\tpanelChart.Controls.Add(chart1)\r\n\t\t\t\tchart1.Location = Point(0,0)\r\n\t\t\t\tbt.Location = Point(panelChart.Width - bt.Width, panelChart.Width + 15)\r\n\t\t\t\tcheckBox1.Location = Point(panelChart.Width - bt.Width - 80, panelChart.Width + 15)\r\n\t\t\t\tcheckBox2.Location = Point(panelChart.Width - bt.Width - 160, panelChart.Width + 15)\r\n\t\t\t\tformbody.Controls.Add(panelChart)\r\n\t\t\t\t\r\n\t\t\t\ty = panelChart.Bottom + 25 * yRatio\r\n\t\t\t\r\n\t\t\telif j.__class__.__name__ == 'uisplinechart':\r\n\t\t\t\tif isinstance(j.labels,list):\r\n\t\t\t\t\tlabels = j.labels\r\n\t\t\t\telse:\r\n\t\t\t\t\tlabels = [j.labels]\r\n\t\t\t\tinputcolors = j.inputcolors\r\n\t\t\t\tpyList = []\r\n\t\t\t\tif isinstance(j.xseries[0],list) and isinstance(j.yseries[0],list):\r\n\t\t\t\t\tnbOfSeries = len(j.xseries)\r\n\t\t\t\t\txseries = j.xseries\r\n\t\t\t\t\tyseries = j.yseries\r\n\t\t\t\telif isinstance(j.xseries[0],list) == False and isinstance(j.yseries[0],list):\r\n\t\t\t\t\tnbOfSeries = len(j.yseries)\r\n\t\t\t\t\txseries = []\r\n\t\t\t\t\ti = 1\r\n\t\t\t\t\twhile i <= nbOfSeries:\r\n\t\t\t\t\t\txseries.append(j.xseries)\r\n\t\t\t\t\t\ti = i + 1\r\n\t\t\t\t\tyseries = j.yseries\r\n\t\t\t\telif isinstance(j.yseries[0],list) == False and isinstance(j.xseries[0],list):\r\n\t\t\t\t\tnbOfSeries = len(j.xseries)\r\n\t\t\t\t\tyseries = []\r\n\t\t\t\t\ti = 1\r\n\t\t\t\t\twhile i <= nbOfSeries:\r\n\t\t\t\t\t\tyseries.append(j.yseries)\r\n\t\t\t\t\t\ti = i + 1\r\n\t\t\t\t\txseries = j.xseries\r\n\t\t\t\telse:\r\n\t\t\t\t\txseries = [j.xseries]\r\n\t\t\t\t\tyseries = [j.yseries]\r\n\t\t\t\t\tnbOfSeries = 1\r\n\t\t\t\tif inputcolors is not None:\r\n\t\t\t\t\tcolorBool = True\r\n\t\t\t\t\tfor color in inputcolors:\r\n\t\t\t\t\t\tpyList.append(Color.FromArgb(color.Red,color.Green,color.Blue))\r\n\t\t\t\t\twfColor = Array[Color](pyList)\r\n\t\t\t\telse:\r\n\t\t\t\t\tcolorBool = False\r\n\t\t\t\t#Set a global Font code\r\n\t\t\t\tfontFam = FontFamily(\"Segoe UI Symbol\")\r\n\t\t\t\toriginalFont = Font(fontFam,8)\r\n\t\t\t\t#Chart created and Panel to host the chart\r\n\t\t\t\tchart1 = Chart()\r\n\t\t\t\tpanelChart = Panel()\r\n\t\t\t\tpanelChart.Name = \"panelChart\"\r\n\t\t\t\t#Panels colors\r\n\t\t\t\tchart1.BackColor = formbody.BackColor\r\n\t\t\t\tpanelChart.BackColor = Color.Transparent\r\n\t\t\t\t#PanelChart location\r\n\t\t\t\tpanelChart.Width = formwidth  - rightmargin - xlabel\r\n\t\t\t\tpanelChart.Location = Point(xlabel,y + 30)\t\t\t\t\r\n\t\t\t\t#Chart colors palette\r\n\t\t\t\tchart1.Palette =  ChartColorPalette.None\r\n\t\t\t\tif colorBool:\r\n\t\t\t\t\tchart1.PaletteCustomColors = wfColor\r\n\t\t\t\telse:\r\n\t\t\t\t\tchart1.Palette =  ChartColorPalette.None\r\n\t\t\t\tchart1.Series.Clear()\r\n\t\t\t\t#Series created\r\n\t\t\t\tdef createSeries(seriesName,_keys,_values):\r\n\t\t\t\t\tsrs = Series()\r\n\t\t\t\t\tsrs.Name = seriesName\r\n\t\t\t\t\tsrs.ChartType = SeriesChartType.Spline\r\n\t\t\t\t\tsrs.ToolTip = \"Percent: #PERCENT\"\r\n\t\t\t\t\tsrs.IsValueShownAsLabel = True\r\n\t\t\t\t\tsrs.Font = originalFont\r\n\t\t\t\t\tsrs.BorderWidth = 4\r\n\t\t\t\t\tfor i,j in zip(_keys,_values):\r\n\t\t\t\t\t\tsrs.Points.AddXY(i,j)\r\n\t\t\t\t\treturn srs\r\n\t\t\t\t#Create series\r\n\t\t\t\tseries = []\r\n\t\t\t\tfor i in range(0,nbOfSeries):\r\n\t\t\t\t\tseries.append(createSeries(labels[i],xseries[i],yseries[i]))\r\n\t\t\t\t#Add series to chart\r\n\t\t\t\tfor s in series:\r\n\t\t\t\t\tchart1.Series.Add(s)\r\n\t\t\t\t#Refresh the Chart\r\n\t\t\t\tchart1.Invalidate()\r\n\t\t\t\t#Create a ChartArea and add it to the chart\r\n\t\t\t\tchartArea1 = ChartArea()\r\n\t\t\t\tchartArea1.BackColor = formbody.BackColor\r\n\t\t\t\tchartArea1.Name = \"ChartArea1\"\r\n\t\t\t\tchartArea1.AxisX.Title = j.xaxislabel\r\n\t\t\t\tchartArea1.AxisY.Title = j.yaxislabel\r\n\t\t\t\tchart1.ChartAreas.Add(chartArea1)\r\n\t\t\t\t#Create a Legend and add it to the chart\r\n\t\t\t\tlegend1 = Legend()\r\n\t\t\t\tlegend1.BackColor = formbody.BackColor\r\n\t\t\t\tlegend1.Font = originalFont\r\n\t\t\t\tlegend1.Name = \"Legend1\"\r\n\t\t\t\tchart1.Legends.Add(legend1) \r\n\t\t\t\t#Initialize the chart and its properties\r\n\t\t\t\tchart1.BeginInit()\r\n\t\t\t\tchart1.Size = Size(panelChart.Width,panelChart.Width)\r\n\t\t\t\tchart1.AntiAliasing = AntiAliasingStyles.All\r\n\t\t\t\tfontFam = FontFamily(\"Segoe UI Symbol\")\r\n\t\t\t\ttitleFont = Font(fontFam,10,FontStyle.Bold)\r\n\t\t\t\ttitle = Title()\r\n\t\t\t\ttitle.Text = j.chartname\r\n\t\t\t\ttitle.Alignment = ContentAlignment.TopLeft\r\n\t\t\t\ttitle.Font = titleFont\r\n\t\t\t\tchart1.Titles.Add(title)\r\n\t\t\t\t#Add a button to push on view\r\n\t\t\t\tbt = Button()\r\n\t\t\t\tbt.Tag = \"Push the chart on a view in Revit\"\r\n\t\t\t\tbt.Text = \"Push on a draft view\"\r\n\t\t\t\tbt.Height = 20 * yRatio\r\n\t\t\t\tbt.Width = 140 * yRatio\t\t\t\r\n\t\t\t\tpanelChart.Controls.Add(bt)\r\n\t\t\t\tbt.BringToFront()\r\n\t\t\t\tbt.Click += form.imageexport\r\n\t\t\t\t#Add a checkBox to show/hide legend\r\n\t\t\t\tcheckBox1 = CheckBox()\r\n\t\t\t\tcheckBox1.AutoCheck = True\r\n\t\t\t\tcheckBox1.Name = \"checkBox1\"\r\n\t\t\t\tcheckBox1.Text = \"Legend\"\r\n\t\t\t\tpanelChart.Controls.Add(checkBox1)\r\n\t\t\t\tcheckBox1.BringToFront()\r\n\t\t\t\tcheckBox1.Checked = True\r\n\t\t\t\tcheckBox1.AutoSize = True\r\n\t\t\t\tcheckBox1.Click += form.chart_showLegend\r\n\t\t\t\t\r\n\t\t\t\t#Add a checkBox to show/hide labels\r\n\t\t\t\tcheckBox2 = CheckBox()\r\n\t\t\t\tcheckBox2.AutoCheck = True\r\n\t\t\t\tcheckBox2.Name = \"checkBox2\"\r\n\t\t\t\tcheckBox2.Text = \"Labels\"\r\n\t\t\t\tpanelChart.Controls.Add(checkBox2)\r\n\t\t\t\tcheckBox2.BringToFront()\r\n\t\t\t\tcheckBox2.Checked = True\r\n\t\t\t\tcheckBox2.Font = originalFont\r\n\t\t\t\tcheckBox2.AutoSize = True\r\n\t\t\t\tcheckBox2.Click += form.chart_showLabels\r\n\t\t\t\t\r\n\t\t\t\tpanelChart.Size = Size(panelChart.Width, panelChart.Width + checkBox2.Height + 20)\r\n\t\t\t\t#Add chart to panel\r\n\t\t\t\tpanelChart.Controls.Add(chart1)\r\n\t\t\t\tchart1.Location = Point(0,0)\r\n\t\t\t\tbt.Location = Point(panelChart.Width - bt.Width, panelChart.Width + 15)\r\n\t\t\t\tcheckBox1.Location = Point(panelChart.Width - bt.Width - 80, panelChart.Width + 15)\r\n\t\t\t\tcheckBox2.Location = Point(panelChart.Width - bt.Width - 160, panelChart.Width + 15)\r\n\t\t\t\tformbody.Controls.Add(panelChart)\r\n\t\t\t\t\r\n\t\t\t\ty = panelChart.Bottom + 25 * yRatio\r\n\t\t\t\t\r\n\t\t\telif j.__class__.__name__ == 'uibubblechart':\r\n\t\t\t\tif isinstance(j.labels,list):\r\n\t\t\t\t\tlabels = j.labels\r\n\t\t\t\telse:\r\n\t\t\t\t\tlabels = [j.labels]\r\n\t\t\t\tinputcolors = j.inputcolors\r\n\t\t\t\tpyList = []\r\n\t\t\t\tif isinstance(j.xseries[0],list) and isinstance(j.yseries[0],list):\r\n\t\t\t\t\tnbOfSeries = len(j.xseries)\r\n\t\t\t\t\txseries = j.xseries\r\n\t\t\t\t\tyseries = j.yseries\r\n\t\t\t\telif isinstance(j.xseries[0],list) == False and isinstance(j.yseries[0],list):\r\n\t\t\t\t\tnbOfSeries = len(j.yseries)\r\n\t\t\t\t\txseries = []\r\n\t\t\t\t\ti = 1\r\n\t\t\t\t\twhile i <= nbOfSeries:\r\n\t\t\t\t\t\txseries.append(j.xseries)\r\n\t\t\t\t\t\ti = i + 1\r\n\t\t\t\t\tyseries = j.yseries\r\n\t\t\t\telif isinstance(j.yseries[0],list) == False and isinstance(j.xseries[0],list):\r\n\t\t\t\t\tnbOfSeries = len(j.xseries)\r\n\t\t\t\t\tyseries = []\r\n\t\t\t\t\ti = 1\r\n\t\t\t\t\twhile i <= nbOfSeries:\r\n\t\t\t\t\t\tyseries.append(j.yseries)\r\n\t\t\t\t\t\ti = i + 1\r\n\t\t\t\t\txseries = j.xseries\r\n\t\t\t\telse:\r\n\t\t\t\t\txseries = [j.xseries]\r\n\t\t\t\t\tyseries = [j.yseries]\r\n\t\t\t\t\tnbOfSeries = 1\r\n\t\t\t\tif inputcolors is not None:\r\n\t\t\t\t\tcolorBool = True\r\n\t\t\t\t\tfor color in inputcolors:\r\n\t\t\t\t\t\tpyList.append(Color.FromArgb(color.Red,color.Green,color.Blue))\r\n\t\t\t\t\twfColor = Array[Color](pyList)\r\n\t\t\t\telse:\r\n\t\t\t\t\tcolorBool = False\r\n\t\t\t\t#Set a global Font code\r\n\t\t\t\tfontFam = FontFamily(\"Segoe UI Symbol\")\r\n\t\t\t\toriginalFont = Font(fontFam,8)\r\n\t\t\t\t#Chart created and Panel to host the chart\r\n\t\t\t\tchart1 = Chart()\r\n\t\t\t\tpanelChart = Panel()\r\n\t\t\t\t#panelChart.Padding = Padding(1) To create a black border\r\n\t\t\t\tchart1.BackColor = formbody.BackColor\r\n\t\t\t\tpanelChart.BackColor = Color.Transparent\r\n\t\t\t\t#PanelChart location\r\n\t\t\t\tpanelChart.Width = formwidth  - rightmargin - xlabel\r\n\t\t\t\tpanelChart.Location = Point(xlabel,y + 30)\t\t\t\t\r\n\t\t\t\tautoheight = 250 * yRatio\t\t\t\r\n\t\t\t\tpanelChart.Height = autoheight + 73 * yRatio\r\n\t\t\t\tratio = (panelChart.Height)/(panelChart.Width)\r\n\t\t\t\th = float(panelChart.Height)\r\n\t\t\t\tw = float(panelChart.Width)\r\n\t\t\t\tratio = h/w\r\n\t\t\t\tchart_maxsize = formwidth - xlabel - rightmargin\r\n\t\t\t\tpanelChart.Size = Size(chart_maxsize,chart_maxsize*ratio)\t\t\t\t\r\n\t\t\t\t#Chart colors palette\r\n\t\t\t\tchart1.Palette =  ChartColorPalette.None\r\n\t\t\t\tif colorBool:\r\n\t\t\t\t\tchart1.PaletteCustomColors = wfColor\r\n\t\t\t\telse:\r\n\t\t\t\t\tchart1.Palette =  ChartColorPalette.None\r\n\t\t\t\tchart1.Series.Clear()\r\n\t\t\t\t#Series created\r\n\t\t\t\tdef createSeries(seriesName,_keys,_values):\r\n\t\t\t\t\tsrs = Series()\r\n\t\t\t\t\tsrs.Name = seriesName\r\n\t\t\t\t\tsrs.ChartType = SeriesChartType.Bubble\r\n\t\t\t\t\tsrs.ToolTip = \"Percent: #PERCENT\"\r\n\t\t\t\t\tsrs.Font = originalFont\r\n\t\t\t\t\tfor i,j in zip(_keys,_values):\r\n\t\t\t\t\t\tsrs.Points.AddXY(i,j)\r\n\t\t\t\t\treturn srs\r\n\t\t\t\t#Create series\r\n\t\t\t\tseries = []\r\n\t\t\t\tfor i in range(0,nbOfSeries):\r\n\t\t\t\t\tseries.append(createSeries(labels[i],xseries[i],yseries[i]))\r\n\t\t\t\t#Add series to chart\r\n\t\t\t\tfor s in series:\r\n\t\t\t\t\tchart1.Series.Add(s)\r\n\t\t\t\t#Refresh the Chart\r\n\t\t\t\tchart1.Invalidate()\r\n\t\t\t\t#Create a ChartArea and add it to the chart\r\n\t\t\t\tchartArea1 = ChartArea()\r\n\t\t\t\tchartArea1.BackColor = formbody.BackColor\r\n\t\t\t\tchartArea1.Name = \"ChartArea1\"\r\n\t\t\t\tchartArea1.AxisX.Title = j.xaxislabel\r\n\t\t\t\tchartArea1.AxisY.Title = j.yaxislabel\r\n\t\t\t\tchart1.ChartAreas.Add(chartArea1)\r\n\t\t\t\t#Create a Legend and add it to the chart\r\n\t\t\t\tlegend1 = Legend()\r\n\t\t\t\tlegend1.BackColor = formbody.BackColor\r\n\t\t\t\tlegend1.Font = originalFont\r\n\t\t\t\tlegend1.Name = \"Legend1\"\r\n\t\t\t\tchart1.Legends.Add(legend1) \r\n\t\t\t\t#Initialize the chart and its properties\r\n\t\t\t\tchart1.BeginInit()\r\n\t\t\t\tchart1.Dock = DockStyle.Fill\r\n\t\t\t\tchart1.AntiAliasing = AntiAliasingStyles.All\r\n\t\t\t\tfontFam = FontFamily(\"Segoe UI Symbol\")\r\n\t\t\t\ttitleFont = Font(fontFam,10,FontStyle.Bold)\r\n\t\t\t\ttitle = Title()\r\n\t\t\t\ttitle.Text = j.chartname\r\n\t\t\t\ttitle.Alignment = ContentAlignment.TopLeft\r\n\t\t\t\ttitle.Font = titleFont\r\n\t\t\t\tchart1.Titles.Add(title)\r\n\t\t\t\t#Add a button to push on view\r\n\t\t\t\tbt = Button()\r\n\t\t\t\tbt.Tag = \"Push the chart on a view in Revit\"\r\n\t\t\t\tbt.Text = \"Push on a draft view\"\r\n\t\t\t\tbt.Height = 20 * yRatio\r\n\t\t\t\tbt.Width = 140 * yRatio\t\t\t\r\n\t\t\t\tpanelChart.Controls.Add(bt)\r\n\t\t\t\tbt.BringToFront()\r\n\t\t\t\tbt.Click += form.imageexport\r\n\t\t\t\t#Add a checkBox to show/hide legend\r\n\t\t\t\tcheckBox1 = CheckBox()\r\n\t\t\t\tcheckBox1.AutoCheck = True\r\n\t\t\t\tcheckBox1.Name = \"checkBox1\"\r\n\t\t\t\tcheckBox1.Text = \"Show/Hide legend\"\r\n\t\t\t\tpanelChart.Controls.Add(checkBox1)\r\n\t\t\t\tcheckBox1.BringToFront()\r\n\t\t\t\tcheckBox1.Checked = True\r\n\t\t\t\tcheckBox1.Click += form.chart_showLegend\r\n\t\t\t\t#Add chart to panel\r\n\t\t\t\tpanelChart.Size = Size(panelChart.Width, panelChart.Width + checkBox2.Height + 20)\r\n\t\t\t\t#Add chart to panel\r\n\t\t\t\tpanelChart.Controls.Add(chart1)\r\n\t\t\t\tchart1.Location = Point(0,0)\r\n\t\t\t\tbt.Location = Point(panelChart.Width - bt.Width, panelChart.Width + 15)\r\n\t\t\t\tcheckBox1.Location = Point(panelChart.Width - bt.Width - 80, panelChart.Width + 15)\r\n\t\t\t\tcheckBox2.Location = Point(panelChart.Width - bt.Width - 160, panelChart.Width + 15)\r\n\t\t\t\tformbody.Controls.Add(panelChart)\r\n\t\t\t\t\r\n\t\t\t\ty = panelChart.Bottom + 25 * yRatio\r\n\r\n\t\t\telif j.__class__.__name__ == 'uitreeview':\r\n\t\t\t\ttv = TreeView()\r\n\t\t\t\ttv.CheckBoxes = True\r\n\t\t\t\ttitles = j._hastitles\r\n\t\t\t\tif j.inputname != \"\":\r\n\t\t\t\t\ttv.Width = formwidth - rightmargin - xinput\r\n\t\t\t\t\ttv.Location = Point(xinput,y)\r\n\t\t\t\telse:\r\n\t\t\t\t\ttv.Width = formwidth - rightmargin - xlabel\r\n\t\t\t\t\ttv.Location = Point(xlabel,y)\r\n\t\t\t\ttv.Height = j._height\r\n\t\t\t\tdef treeIterationTitle(control, input):\r\n\t\t\t\t\tif isinstance(input,list):\r\n\t\t\t\t\t\ttry:\r\n\t\t\t\t\t\t\tcurrentNode = TreeNode(remove_accents(input[0].ToString()))\r\n\t\t\t\t\t\t\tcurrentNode.Tag = \"\"\r\n\t\t\t\t\t\t\tinput.pop(0)\r\n\t\t\t\t\t\texcept:\r\n\t\t\t\t\t\t\tcurrentNode = TreeNode(control.Text +\".\"+ str(len(control.Nodes)+1))\r\n\t\t\t\t\t\t\tcurrentNode.Tag = \"\"\r\n\t\t\t\t\t\tcontrol.Nodes.Add(currentNode)\r\n\t\t\t\t\t\tfor i in input:\r\n\t\t\t\t\t\t\ttreeIterationTitle(currentNode, i)\r\n\t\t\t\t\telse:\r\n\t\t\t\t\t\titem = TreeNode(remove_accents(input.ToString()))\r\n\t\t\t\t\t\titem.Tag = input\r\n\t\t\t\t\t\tcontrol.Nodes.Add(item)\t\r\n\t\t\t\tdef treeIteration(control, input):\r\n\t\t\t\t\tif isinstance(input,list):\r\n\t\t\t\t\t\tcurrentNode = TreeNode(control.Text +\".\"+ str(len(control.Nodes)+1))\r\n\t\t\t\t\t\tcurrentNode.Tag = input\r\n\t\t\t\t\t\tcontrol.Nodes.Add(currentNode)\r\n\t\t\t\t\t\tfor i in input:\r\n\t\t\t\t\t\t\ttreeIteration(currentNode, i)\r\n\t\t\t\t\telse:\r\n\t\t\t\t\t\titem = TreeNode(remove_accents(input.ToString()))\r\n\t\t\t\t\t\titem.Tag = input\r\n\t\t\t\t\t\tcontrol.Nodes.Add(item)\r\n\t\t\t\tcurrentNode = TreeNode(\"List1\")\r\n\t\t\t\tcurrentNode.Expand()\t\t\t\t\r\n\t\t\t\tif titles:\r\n\t\t\t\t\ttv.Nodes.Add(currentNode)\t\t\t\t\t\t\t\t\r\n\t\t\t\t\tfor dl in j.datalist:\r\n\t\t\t\t\t\ttreeIterationTitle(currentNode,dl)\t\r\n\t\t\t\telse:\r\n\t\t\t\t\ttv.Nodes.Add(currentNode)\t\t\t\t\t\t\t\t\r\n\t\t\t\t\tfor dl in j.datalist:\r\n\t\t\t\t\t\ttreeIteration(currentNode,dl)\r\n\t\t\t\ttv.AfterCheck += form.CheckChildren\t\t\t\t\t\t\r\n\t\t\t\tformbody.Controls.Add(tv)\r\n\t\t\t\tform.output.append(tv)\r\n\t\t\t\ty = tv.Bottom + 25 * yRatio\r\n\t\t\telif j.__class__.__name__ == 'listview':\r\n\t\t\t\tlvp = Panel()\r\n\t\t\t\tif j.inputname != \"\":\r\n\t\t\t\t\tlvp.Location = Point(xinput,y)\r\n\t\t\t\t\tlvp.Width = formwidth - rightmargin - xinput\t\t\t\t\r\n\t\t\t\telif j.inputname == \"\" and j.element_count != 0:\r\n\t\t\t\t\tlvp.Location = Point(xlabel,y+35*yRatio)\r\n\t\t\t\t\tlvp.Width = formwidth - rightmargin - xlabel\r\n\t\t\t\telse : \r\n\t\t\t\t\tlvp.Location = Point(xlabel,y)\r\n\t\t\t\t\tlvp.Width = formwidth - rightmargin - xlabel\t\t\t\t\r\n\t\t\t\tlvp.Height = j.height * yRatio + 25 * yRatio\r\n\t\t\t\t#Creating the listview box\r\n\t\t\t\tlv = mylistview()\r\n\t\t\t\tlv.Scrollable = True\r\n\t\t\t\tdummyheader = ColumnHeader()\r\n\t\t\t\tdummyheader.Text = \"\"\r\n\t\t\t\tdummyheader.Name = \"\"\r\n\t\t\t\tdummyheader.Width = -2 * xRatio\r\n\t\t\t\tlv.HeaderStyle = ColumnHeaderStyle.None\r\n\t\t\t\tlv.Columns.Add(dummyheader)\r\n\t\t\t\tlv.Values = j\r\n\t\t\t\tif not j.display_mode:\r\n\t\t\t\t\tlv.CheckBoxes = True\r\n\t\t\t\tlv.View = vi.Details\r\n\t\t\t\tlvItems =  [i for i in j.keys() if not (i == 'inputname' or i == 'height' or i == 'highlight' or i == 'display_mode' or i == 'element_count' or i == 'default_values' or i == 'sorted' or i == 'showId')]\r\n\t\t\t\tif j.sorted :\r\n\t\t\t\t\tlvItems = sorted(lvItems,key = remove_accents)\r\n\t\t\t\telse:\r\n\t\t\t\t\tpass\r\n\t\t\t\t[lv.Items.Add(i) for i in lvItems]\r\n\t\t\t\tlv.Location = Point(0,0)\r\n\t\t\t\tif j.inputname != \"\" and j.element_count != 0:\r\n\t\t\t\t\tlv.Width = formwidth - rightmargin - xinput\r\n\t\t\t\telif j.inputname != \"\" and j.element_count == 0:\r\n\t\t\t\t\tlv.Width = formwidth - rightmargin - xinput\r\n\t\t\t\telse:\r\n\t\t\t\t\tlv.Width = formwidth - rightmargin - xlabel\r\n\t\t\t\tlv.Height = j.height * yRatio\r\n\t\t\t\tlv.Scrollable = True\r\n\t\t\t\tlv.ItemCheck += form.updateallnone\r\n\t\t\t\tfor i in j.default_values:\r\n\t\t\t\t\tdefInd = lvItems.index([x for x in j.keys() if not (x == 'inputname' or x == 'height' or x == 'highlight' or x == 'display_mode' or x == 'element_count' or x == 'default_values' or x == 'sorted' or x == 'showId')][i])\r\n\t\t\t\t\tlv.Items[defInd].Checked = True\r\n\t\t\t\t#Click listview items to hilight and center in appropriate view\r\n\t\t\t\tif j.highlight :\r\n\t\t\t\t\tlv.MouseDown += form.setviewforelement\r\n\t\t\t\t\tlv.MouseUp += form.zoomcenter\r\n\t\t\t\t\titems = list(lv.Items)\r\n\t\t\t\t\tlv.FullRowSelect = True\r\n\t\t\t\t\tdel items[::2]\r\n\t\t\t\t\tfor item in items:\r\n\t\t\t\t\t\titem.BackColor = Color.FromArgb(230,243,255)\r\n\t\t\t\t#Creating select all and select none radiobuttons\r\n\t\t\t\tif not j.display_mode:\r\n\t\t\t\t\trball = RadioButton()\r\n\t\t\t\t\trball.Location = Point(0,(j.height+5)*yRatio)\r\n\t\t\t\t\trball.Width = 100 * xRatio\r\n\t\t\t\t\trball.Height = 20 * yRatio\r\n\t\t\t\t\trball.Font = SystemFonts.DefaultFont\r\n\t\t\t\t\trball.Text = \"Select all\"\r\n\t\t\t\t\trball.Click += form.selectall\r\n\t\t\t\t\trbnone = RadioButton()\r\n\t\t\t\t\trbnone.Location = Point(105 * xRatio,(j.height+5)*yRatio)\r\n\t\t\t\t\trbnone.Width = 100 * xRatio\r\n\t\t\t\t\trbnone.Height = 20 * yRatio\r\n\t\t\t\t\trbnone.Font = SystemFonts.DefaultFont\r\n\t\t\t\t\trbnone.Text = \"Select none\"\t\t\t\r\n\t\t\t\t\trbnone.Click += form.selectnone\t\t\t\r\n\t\t\t\t#Adding controls to panel\r\n\t\t\t\tlvp.Controls.Add(lv)\r\n\t\t\t\tif not j.display_mode:\r\n\t\t\t\t\tlvp.Controls.Add(rball)\r\n\t\t\t\t\tlvp.Controls.Add(rbnone)\r\n\t\t\t\tformbody.Controls.Add(lvp)\r\n\t\t\t\tif not j.display_mode:\r\n\t\t\t\t\tform.output.append(lv)\r\n\t\t\t\ty = lvp.Bottom + 25 * yRatio\r\n\t\t\telif j.__class__.__name__ == 'uitext':\r\n\t\t\t\ttb = myTextBox()\r\n\t\t\t\ttb.Text = j.defaultvalue\r\n\t\t\t\tif j.inputname != \"\":\r\n\t\t\t\t\ttb.Width = formwidth  - rightmargin - xinput\r\n\t\t\t\t\ttb.Location = Point(xinput,y)\r\n\t\t\t\telse:\r\n\t\t\t\t\ttb.Width = formwidth - rightmargin - xlabel\r\n\t\t\t\t\ttb.Location = Point(xlabel,y)\r\n\t\t\t\tif j._isnum:\r\n\t\t\t\t\ttb._isNum = True\r\n\t\t\t\t\ttb.KeyPress += form.numsOnly\r\n\t\t\t\tformbody.Controls.Add(tb)\r\n\t\t\t\tformbody.Controls.Add(label)\r\n\t\t\t\tform.output.append(tb)\r\n\t\t\t\ty = label.Bottom + 25 * yRatio\r\n\t\t\telif j.__class__.__name__ == 'uimultilinetext':\r\n\t\t\t\ttb = myTextBox()\r\n\t\t\t\ttb.Text = j.defaultvalue\r\n\t\t\t\ttb.Multiline  = True\r\n\t\t\t\ttb.Height = j._height * yRatio\r\n\t\t\t\tif j.inputname != \"\":\r\n\t\t\t\t\ttb.Width = formwidth  - rightmargin - xinput\r\n\t\t\t\t\ttb.Location = Point(xinput,y)\r\n\t\t\t\telse:\r\n\t\t\t\t\ttb.Width = formwidth - rightmargin - xlabel\r\n\t\t\t\t\ttb.Location = Point(xlabel,y)\r\n\t\t\t\tif j._isnum:\r\n\t\t\t\t\ttb._isNum = True\r\n\t\t\t\t\ttb.KeyPress += form.numsOnly\r\n\t\t\t\tformbody.Controls.Add(tb)\r\n\t\t\t\tformbody.Controls.Add(label)\r\n\t\t\t\tform.output.append(tb)\r\n\t\t\t\ty = tb.Bottom + 25 * yRatio\t\t\t\t\t\t\t\t\r\n\t\t\telif j.__class__.__name__ == 'tableview':\r\n\t\t\t\t#Creating grouping panel\r\n\t\t\t\ttvp = Panel()\r\n\t\t\t\ttvp.Location = Point(xlabel,y)\r\n\t\t\t\ttvp.Width = formwidth - rightmargin - xlabel\r\n\t\t\t\tif (50 + len(j.dataList) * 15) * yRatio > 800 * yRatio:\r\n\t\t\t\t\tautoheight = 800 * yRatio\r\n\t\t\t\telse:\r\n\t\t\t\t\tautoheight = (50 + len(j.dataList) * 15\t) * yRatio\t\t\t\r\n\t\t\t\ttvp.Height = autoheight + 73 * yRatio\r\n\t\t\t\t#Creating title\r\n\t\t\t\ttitlep = Label()\r\n\t\t\t\ttitlep.Text = j._tabletitle\r\n\t\t\t\ttitlep.Width = formwidth - rightmargin - xlabel\r\n\t\t\t\ttitlep.BackColor = Color.FromArgb(153,180,209)\r\n\t\t\t\ttitlep.Font = Font(\"Arial\", 11, FontStyle.Bold)\r\n\t\t\t\ttitlep.TextAlign = ContentAlignment.MiddleLeft\r\n\t\t\t\ttitlep.BorderStyle = BorderStyle.FixedSingle\r\n\t\t\t\ttitlep.Location = Point(0,0)\r\n\t\t\t\ttvp.Controls.Add(titlep)\r\n\t\t\t\t#Creating data structure\r\n\t\t\t\tdg = myDataGridView()\r\n\t\t\t\t#dg.SelectionMode = DataGridViewSelectionMode.CellSelect\r\n\t\t\t\tdg.EnableHeadersVisualStyles = False\t\t\t\t\r\n\t\t\t\tdt = DataTable()\r\n\t\t\t\tdl = j.dataList\r\n\t\t\t\tfor i in range(len(dl[0])):\r\n\t\t\t\t\tif j._hasTitle:\r\n\t\t\t\t\t\tdt.Columns.Add(remove_accents(dl[0][i].ToString()))\r\n\t\t\t\t\t\trngstart = 1\r\n\t\t\t\t\telse:\r\n\t\t\t\t\t\tdt.Columns.Add(\"Column \" + str(i))\r\n\t\t\t\t\t\trngstart = 0\t\t\t\t\t\t\r\n\t\t\t\tfor rindex in range(rngstart,len(dl)):\r\n\t\t\t\t\trow = dt.NewRow()\r\n\t\t\t\t\tfor i in range(len(dl[rindex])):\r\n\t\t\t\t\t\trow[i] = dl[rindex][i]\r\n\t\t\t\t\tdt.Rows.Add(row)\t\t\t\t\t\t\r\n\t\t\t\tdg.Tag = j._hasTitle\t\t\t\t\r\n\t\t\t\tdg.DataSource = dt\r\n\t\t\t\tdg.ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableWithAutoHeaderText\r\n\t\t\t\tdg.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells\r\n\t\t\t\tdg.Width = formwidth - rightmargin - xlabel\r\n\t\t\t\tdg.Location = Point(0,23 * yRatio)\r\n\t\t\t\tdg.Height = autoheight\r\n\t\t\t\t#Creatin Excel like drag copy functionalities\r\n\t\t\t\tdg.CellMouseDown += form.startCell\r\n\t\t\t\tdg.CellMouseUp += form.endCell\r\n\t\t\t\t#dg.MouseDown += form.startRowDrag\r\n\t\t\t\t#dg.MouseUp = \t\t\t\r\n\t\t\t\ttvp.Controls.Add(dg)\t\t\t\r\n\t\t\t\ty = tvp.Bottom + 15 * yRatio\r\n\t\t\t\t#Adding export to excel button\r\n\t\t\t\tex = Button()\r\n\t\t\t\tex.Tag = [j._hasTitle , j._openExcel , j._showinfo , j._fileInfo]\r\n\t\t\t\ttry:\r\n\t\t\t\t\texpImage = getImageByName(\"exp.png\")[0]\r\n\t\t\t\t\tex.BackgroundImage = expImage\r\n\t\t\t\texcept:\r\n\t\t\t\t\tex.Text = \"Export\"\t\t\t\t\t\r\n\t\t\t\tex.Width = 60 * xRatio\r\n\t\t\t\tex.Height = 30 * yRatio\r\n\t\t\t\tex.Location = Point(formwidth - 125 * xRatio ,dg.Bottom + 15 * yRatio)\t\t\t\t\t\r\n\t\t\t\ttvp.Controls.Add(ex)\r\n\t\t\t\tex.Click += form.exportToExcel\r\n\t\t\t\t#Adding filepath export textbox\r\n\t\t\t\tfilepathtb = TextBox()\r\n\t\t\t\tfilepathtb.Text = \"ExportFileName\"\r\n\t\t\t\tfilepathtb.Location = Point(0 ,dg.Bottom + 20 * yRatio)\r\n\t\t\t\tfilepathtb.Width = formwidth - xlabel - 125 * xRatio\r\n\t\t\t\ttvp.Controls.Add(filepathtb)\r\n\t\t\t\t#Adding copy to clipboard button\r\n\t\t\t\tcb = Button()\r\n\t\t\t\t#Adding panel to form\r\n\t\t\t\tformbody.Controls.Add(tvp)\r\n\t\t\t\tform.output.append(dg)\r\n\t\t\t\ty = tvp.Bottom + 25 * yRatio\r\n\t\t\t\tform.topmost()\r\n\t\t\telif j.__class__.__name__ == 'uitextnote':\r\n\t\t\t\tgb = GroupBox()\r\n\t\t\t\tgb.Text = j.title\r\n\t\t\t\tgb.Parent = form\r\n\t\t\t\tgb.SendToBack()\r\n\t\t\t\tgb.BackColor = Color.Transparent\r\n\t\t\t\tgb.Location = Point(xlabel, y)\r\n\t\t\t\ttn = Label()\r\n\t\t\t\ttn.Location = Point(xlabel,18 * yRatio)\r\n\t\t\t\ttn.AutoSize = True\r\n\t\t\t\ttn.MaximumSize = Size(formwidth - rightmargin - 50 * xRatio,0)\r\n\t\t\t\ttn.Text = j.textnote\r\n\t\t\t\ttn.BringToFront()\r\n\t\t\t\tgb.Controls.Add(tn)\r\n\t\t\t\tgb.Size = Size(formwidth  - rightmargin - 25 * xRatio, tn.Bottom-tn.Top+25 * yRatio)  \r\n\t\t\t\ty = gb.Bottom + 25 * xRatio\r\n\t\t\t\tformbody.Controls.Add(gb)\r\n\t\t\telif j.__class__.__name__ == 'uibool':\r\n\t\t\t\tyn = CheckBox()\r\n\t\t\t\tyn.Width = formwidth - xinput - rightmargin + 10 * xRatio\r\n\t\t\t\tyn.Location = Point(xinput,y)\r\n\t\t\t\tyn.Text = j.booltext\r\n\t\t\t\tg = yn.CreateGraphics()\r\n\t\t\t\tsizetext = g.MeasureString(yn.Text,yn.Font, formwidth - xinput - rightmargin -20 * xRatio)\r\n\t\t\t\theighttext = sizetext.Height\r\n\t\t\t\tyn.Height = heighttext + 15 * yRatio\r\n\t\t\t\tyn.Checked = j.defaultvalue\r\n\t\t\t\tformbody.Controls.Add(yn)\r\n\t\t\t\tform.output.append(yn)\r\n\t\t\t\ty = yn.Bottom + 25 * yRatio\r\n\t\t\telif j.__class__.__name__ == 'uiradio':\r\n\t\t\t\tyrb = 20 * yRatio\r\n\t\t\t\trbs = []\r\n\t\t\t\trbgroup = mygroupbox()\r\n\t\t\t\tif j.inputname != \"\":\r\n\t\t\t\t\trbgroup.Width = formwidth - xinput - rightmargin\r\n\t\t\t\t\trbgroup.Location = Point(xinput,y)\r\n\t\t\t\telse:\r\n\t\t\t\t\trbgroup.Width = formwidth - xlabel - rightmargin\r\n\t\t\t\t\trbgroup.Location = Point(xlabel,y)\t\t\t\t\t\r\n\t\t\t\trbgroup.Tag = j\r\n\t\t\t\trbcounter = 0\r\n\t\t\t\tfor key in j.keys():\r\n\t\t\t\t\tif key != 'inputname' and key != 'defaultvalue':\r\n\t\t\t\t\t\trb = RadioButton()\r\n\t\t\t\t\t\trb.Text = key \r\n\t\t\t\t\t\tif j.inputname != \"\":\r\n\t\t\t\t\t\t\trb.Width = formwidth - xinput - rightmargin - 35 * xRatio\r\n\t\t\t\t\t\telse:\r\n\t\t\t\t\t\t\trb.Width = formwidth - xlabel - rightmargin - 35 * xRatio\r\n\t\t\t\t\t\trb.Location = Point(20 * xRatio,yrb)\r\n\t\t\t\t\t\tif rbcounter == j.defaultvalue:\r\n\t\t\t\t\t\t\trb.Checked = True\r\n\t\t\t\t\t\trbgroup.Controls.Add(rb)\r\n\t\t\t\t\t\tg = rb.CreateGraphics()\r\n\t\t\t\t\t\tsizetext = g.MeasureString(key,rb.Font, formwidth - xinput - 90*xRatio)\r\n\t\t\t\t\t\theighttext = sizetext.Height\r\n\t\t\t\t\t\trb.Height = heighttext + 15 * yRatio\r\n\t\t\t\t\t\tybot = rb.Bottom\r\n\t\t\t\t\t\tyrb += heighttext + 12 * yRatio\r\n\t\t\t\t\t\trbcounter += 1\r\n\t\t\t\t\telse:\r\n\t\t\t\t\t\tpass\r\n\t\t\t\trbgroup.Height = ybot + 20 * yRatio\r\n\t\t\t\t[rbgroup.Controls.Add(rb) for rb in rbs]\r\n\t\t\t\tformbody.Controls.Add(rbgroup)\r\n\t\t\t\tform.output.append(rbgroup)\r\n\t\t\t\ty = rbgroup.Bottom + 25 * yRatio\r\n\t\t\telif j.__class__.__name__  == 'uifilepath':\r\n\t\t\t\tfp = Button()\r\n\t\t\t\tif j.inputname != \"\":\r\n\t\t\t\t\tfp.Width = formwidth - xinput - rightmargin\r\n\t\t\t\t\tfp.Location = Point(xinput,y)\r\n\t\t\t\telse:\r\n\t\t\t\t\tfp.Width = formwidth - xlabel - rightmargin\t\t\r\n\t\t\t\t\tfp.Location = Point(xlabel,y)\t\t\t\t\t\r\n\t\t\t\tfp.Tag = j.defaultvalue\r\n\t\t\t\tif not j.defaultvalue == \"FilePath\":\r\n\t\t\t\t\tfp.Tag = j.defaultvalue\r\n\t\t\t\t\tfp.MouseHover += form.showtooltip\t\r\n\t\t\t\tfp.Text = j.buttontext\r\n\t\t\t\tfp.Height = 20 * yRatio\t\t\t\t\r\n\t\t\t\tformbody.Controls.Add(fp)\r\n\t\t\t\tfp.Click += form.openfile\r\n\t\t\t\tform.output.append(fp)\r\n\t\t\t\ty = label.Bottom + 25 * yRatio\r\n\t\t\telif j.__class__.__name__ == 'uidirectorypath':\r\n\t\t\t\tdp = Button()\r\n\t\t\t\tif j.inputname != \"\":\r\n\t\t\t\t\tdp.Width = formwidth - xinput - rightmargin\r\n\t\t\t\t\tdp.Location = Point(xinput,y)\r\n\t\t\t\telse:\r\n\t\t\t\t\tdp.Width = formwidth - xlabel - rightmargin\t\t\r\n\t\t\t\t\tdp.Location = Point(xlabel,y)\t\t\t\t\r\n\t\t\t\tdp.Tag = j.defaultvalue\r\n\t\t\t\tdp.Text = j.buttontext\r\n\t\t\t\tif not j.defaultvalue == \"DirectoryPath\":\r\n\t\t\t\t\tdp.Tag = j.defaultvalue\r\n\t\t\t\t\tdp.MouseHover += form.showtooltip\r\n\t\t\t\tdp.Text = j.buttontext\t\r\n\t\t\t\tdp.Height = 20 * yRatio\t\t\t\t\r\n\t\t\t\tformbody.Controls.Add(dp)\r\n\t\t\t\tdp.Click += form.opendirectory\r\n\t\t\t\tform.output.append(dp)\r\n\t\t\t\ty = label.Bottom + 25 * yRatio\r\n\t\t\telif j.__class__.__name__ == 'uiselectelements':\r\n\t\t\t\tse = Button()\r\n\t\t\t\tif j.inputname != \"\":\r\n\t\t\t\t\tse.Width = formwidth - xinput - rightmargin\r\n\t\t\t\t\tse.Location = Point(xinput,y)\r\n\t\t\t\telse:\r\n\t\t\t\t\tse.Width = formwidth - xlabel - rightmargin\t\t\r\n\t\t\t\t\tse.Location = Point(xlabel,y)\r\n\t\t\t\tse.Text = j.buttontext\r\n\t\t\t\tse.Height = 20 * yRatio\r\n\t\t\t\tformbody.Controls.Add(se)\r\n\t\t\t\tif j.multi == False:\r\n\t\t\t\t\tse.Click += form.pickobjects\r\n\t\t\t\telse:\r\n\t\t\t\t\tse.Click  += form.pickobject\r\n\t\t\t\tform.output.append(se)\r\n\t\t\t\ty = label.Bottom + 25 * yRatio\r\n\t\t\telif j.__class__.__name__ == 'uiselectautocadelements':\r\n\t\t\t\tse = Button()\r\n\t\t\t\tif j.inputname != \"\":\r\n\t\t\t\t\tse.Width = formwidth - xinput - rightmargin\r\n\t\t\t\t\tse.Location = Point(xinput,y)\r\n\t\t\t\telse:\r\n\t\t\t\t\tse.Width = formwidth - xlabel - rightmargin\t\t\r\n\t\t\t\t\tse.Location = Point(xlabel,y)\r\n\t\t\t\tse.Text = j.buttontext\r\n\t\t\t\tse.Height = 20 * yRatio\r\n\t\t\t\tformbody.Controls.Add(se)\r\n\t\t\t\tif j.multi == False:\r\n\t\t\t\t\tse.Click += form.pickautocadobjects\r\n\t\t\t\telse:\r\n\t\t\t\t\tse.Click += form.pickautocadobject\t\t\t\t\t\t\t\t\r\n\t\t\t\tform.output.append(se)\r\n\t\t\t\ty = label.Bottom + 25 * yRatio\t\t\t\t\r\n\t\t\telif j.__class__.__name__ == 'uiselectOrderedelements':\r\n\t\t\t\tse = Button()\r\n\t\t\t\tif j.inputname != \"\":\r\n\t\t\t\t\tse.Width = formwidth - xinput - rightmargin\r\n\t\t\t\t\tse.Location = Point(xinput,y)\r\n\t\t\t\telse:\r\n\t\t\t\t\tse.Width = formwidth - xlabel - rightmargin\t\t\r\n\t\t\t\t\tse.Location = Point(xlabel,y)\r\n\t\t\t\tse.Text = j.buttontext\r\n\t\t\t\tse.Height = 20 * yRatio\t\t\t\t\r\n\t\t\t\tformbody.Controls.Add(se)\r\n\t\t\t\tse.Click  += form.pickobjectsordered\r\n\t\t\t\tform.output.append(se)\r\n\t\t\t\ty = label.Bottom + 25 * yRatio\r\n\t\t\telif j.__class__.__name__ == 'uiselectlinkedelements':\r\n\t\t\t\tse = Button()\r\n\t\t\t\tif j.inputname != \"\":\r\n\t\t\t\t\tse.Width = formwidth - xinput - rightmargin\r\n\t\t\t\t\tse.Location = Point(xinput,y)\r\n\t\t\t\telse:\r\n\t\t\t\t\tse.Width = formwidth - xlabel - rightmargin\t\t\r\n\t\t\t\t\tse.Location = Point(xlabel,y)\r\n\t\t\t\tse.Text = j.buttontext\r\n\t\t\t\tse.Height = 20 * yRatio\t\t\t\t\r\n\t\t\t\tformbody.Controls.Add(se)\r\n\t\t\t\tif j.multi == False:\r\n\t\t\t\t\tse.Click += form.picklinkedobjects\r\n\t\t\t\telse:\r\n\t\t\t\t\tse.Click  += form.picklinkedobject\r\n\t\t\t\tform.output.append(se)\r\n\r\n\t\t\t\ty = label.Bottom + 25 * yRatio\r\n\t\t\telif j.__class__.__name__ == 'uiselectlinkedelementsofcat':\r\n\t\t\t\tsec = Button()\r\n\t\t\t\tif j.inputname != \"\":\r\n\t\t\t\t\tsec.Width = formwidth - xinput - rightmargin\r\n\t\t\t\t\tsec.Location = Point(xinput,y)\r\n\t\t\t\telse:\r\n\t\t\t\t\tsec.Width = formwidth - xlabel - rightmargin\t\t\r\n\t\t\t\t\tsec.Location = Point(xlabel,y)\r\n\t\t\t\tsec.Text = j.buttontext\r\n\t\t\t\tsec.Tag = j.category\r\n\t\t\t\tsec.Height = 20 * yRatio\r\n\t\t\t\tformbody.Controls.Add(sec)\r\n\t\t\t\tif j.multi == False:\r\n\t\t\t\t\tsec.Click += form.picklinkedobjectsofcat\r\n\t\t\t\telse:\r\n\t\t\t\t\tsec.Click += form.picklinkedobjectofcat\r\n\t\t\t\tform.output.append(sec)\r\n\t\t\t\ty = label.Bottom + 25 * yRatio\r\n\t\t\telif j.__class__.__name__ == 'uiselectelementsofcat':\r\n\t\t\t\tsec = Button()\r\n\t\t\t\tif j.inputname != \"\":\r\n\t\t\t\t\tsec.Width = formwidth - xinput - rightmargin\r\n\t\t\t\t\tsec.Location = Point(xinput,y)\r\n\t\t\t\telse:\r\n\t\t\t\t\tsec.Width = formwidth - xlabel - rightmargin\t\t\r\n\t\t\t\t\tsec.Location = Point(xlabel,y)\r\n\t\t\t\tsec.Text = j.buttontext\r\n\t\t\t\tsec.Tag = j.category\r\n\t\t\t\tsec.Height = 20 * yRatio\r\n\t\t\t\tformbody.Controls.Add(sec)\r\n\t\t\t\tif j.multi == False:\r\n\t\t\t\t\tsec.Click += form.pickobjectsofcat\r\n\t\t\t\telse:\r\n\t\t\t\t\tsec.Click += form.pickobjectofcat\r\n\t\t\t\tform.output.append(sec)\r\n\t\t\t\ty = label.Bottom + 25 * yRatio\r\n\t\t\telif j.__class__.__name__ == 'uiselectOrderedelementsofcat':\r\n\t\t\t\tsec = Button()\r\n\t\t\t\tif j.inputname != \"\":\r\n\t\t\t\t\tsec.Width = formwidth - xinput - rightmargin\r\n\t\t\t\t\tsec.Location = Point(xinput,y)\r\n\t\t\t\telse:\r\n\t\t\t\t\tsec.Width = formwidth - xlabel - rightmargin\t\t\r\n\t\t\t\t\tsec.Location = Point(xlabel,y)\r\n\t\t\t\tsec.Text = j.buttontext\r\n\t\t\t\tsec.Tag = j.category\r\n\t\t\t\tsec.Height = 20 * yRatio\r\n\t\t\t\tformbody.Controls.Add(sec)\r\n\t\t\t\tsec.Click += form.pickobjectsofcatordered\r\n\t\t\t\tform.output.append(sec)\r\n\t\t\t\ty = label.Bottom + 25 * yRatio\r\n\t\t\telif j.__class__.__name__ == 'uiselectfaces':\r\n\t\t\t\tsf = Button()\r\n\t\t\t\tif j.inputname != \"\":\r\n\t\t\t\t\tsf.Width = formwidth - xinput - rightmargin\r\n\t\t\t\t\tsf.Location = Point(xinput,y)\r\n\t\t\t\telse:\r\n\t\t\t\t\tsf.Width = formwidth - xlabel - rightmargin\t\t\r\n\t\t\t\t\tsf.Location = Point(xlabel,y)\r\n\t\t\t\tsf.Text = j.buttontext\r\n\t\t\t\tsf.Height = 20 * yRatio\r\n\t\t\t\tformbody.Controls.Add(sf)\r\n\t\t\t\tsf.Click += form.pickfaces\r\n\t\t\t\tform.output.append(sf)\r\n\t\t\t\ty = label.Bottom + 25 * yRatio\r\n\t\t\telif j.__class__.__name__ == 'uiselectpointsonface':\r\n\t\t\t\tspf = Button()\r\n\t\t\t\tif j.inputname != \"\":\r\n\t\t\t\t\tspf.Width = formwidth - xinput - rightmargin\r\n\t\t\t\t\tspf.Location = Point(xinput,y)\r\n\t\t\t\telse:\r\n\t\t\t\t\tspf.Width = formwidth - xlabel - rightmargin\t\t\r\n\t\t\t\t\tspf.Location = Point(xlabel,y)\r\n\t\t\t\tspf.Text = j.buttontext\r\n\t\t\t\tspf.Height = 20 * yRatio\r\n\t\t\t\tformbody.Controls.Add(spf)\r\n\t\t\t\tspf.Click += form.pickpointsonface\r\n\t\t\t\tform.output.append(spf)\r\n\t\t\t\ty = label.Bottom + 25 * yRatio\r\n\t\t\telif j.__class__.__name__ == 'uiselectedges':\r\n\t\t\t\tsed = Button()\r\n\t\t\t\tif j.inputname != \"\":\r\n\t\t\t\t\tsed.Width = formwidth - xinput - rightmargin\r\n\t\t\t\t\tsed.Location = Point(xinput,y)\r\n\t\t\t\telse:\r\n\t\t\t\t\tsed.Width = formwidth - xlabel - rightmargin\t\t\r\n\t\t\t\t\tsed.Location = Point(xlabel,y)\r\n\t\t\t\tsed.Text = j.buttontext\r\n\t\t\t\tsed.Height = 20 * yRatio\r\n\t\t\t\tformbody.Controls.Add(sed)\r\n\t\t\t\tsed.Click += form.pickedges\r\n\t\t\t\tform.output.append(sed)\r\n\t\t\t\ty = label.Bottom + 25 * yRatio\r\n\t\t\t\t\r\n\t\t\telif j.__class__.__name__ == 'uislider':\r\n\t\t\t\tgb = Panel()\r\n\t\t\t\tif j.defaultvalue == '':\r\n\t\t\t\t\tdefval = j.minimum\r\n\t\t\t\telse:\r\n\t\t\t\t\tdefval = j.defaultvalue\r\n\t\t\t\tsl = mytrackbar(j.minimum,j.step)\r\n\t\t\t\tif j.inputname != \"\":\r\n\t\t\t\t\tgb.Width = formwidth - xinput - rightmargin\r\n\t\t\t\t\tgb.Location = Point(xinput,y)\r\n\t\t\t\telse:\r\n\t\t\t\t\tgb.Width = formwidth - xlabel - rightmargin\t\t\r\n\t\t\t\t\tgb.Location = Point(xlabel,y)\r\n\t\t\t\tgb.Height = 40 * yRatio\r\n\t\t\t\tsl.Minimum = 0\r\n\t\t\t\tsl.Maximum = (j.maximum-j.minimum)/j.step\r\n\t\t\t\tsl.Value = (defval - j.minimum) / j.step\r\n\t\t\t\tsl.TickFrequency = (j.maximum-j.minimum)/j.step/10\r\n\t\t\t\tsl.Location = Point(40 * xRatio,0)\r\n\t\t\t\tif j.inputname != \"\":\r\n\t\t\t\t\tsl.Width = formwidth - xinput - rightmargin - 35 * xRatio\r\n\t\t\t\telse:\r\n\t\t\t\t\tsl.Width = formwidth - xlabel -rightmargin - 35 * xRatio\r\n\t\t\t\tgb.Controls.Add(sl)\r\n\t\t\t\tform.output.append(sl)\r\n\t\t\t\tdisplabel = Label()\r\n\t\t\t\tdisplabel.Width = 50 * xRatio\r\n\t\t\t\tdisplabel.Location = Point(0,5 * yRatio)\r\n\t\t\t\tdisplabel.Text = str(defval)\r\n\t\t\t\tdisplabel.Height = 30 * yRatio\r\n\t\t\t\tdisplabel.BringToFront()\r\n\t\t\t\tgb.Controls.Add(displabel)\t\r\n\t\t\t\tformbody.Controls.Add(gb)\t\t\t\r\n\t\t\t\tsl.Scroll += form.scroll\r\n\t\t\t\ty = label.Bottom + 25 * yRatio\r\n\t\t\telif j.__class__.__name__ == 'uiimage':\r\n\t\t\t\tpic = Image.FromFile(j.image)\r\n\t\t\t\tim = PictureBox()\r\n\t\t\t\tif j.showborder:\r\n\t\t\t\t\tim.BorderStyle = BorderStyle.Fixed3D\r\n\t\t\t\telse:\r\n\t\t\t\t\tim.BorderStyle = BorderStyle.None\r\n\t\t\t\tratio = (pic.Height)/(pic.Width)\r\n\t\t\t\th = float(pic.Height)\r\n\t\t\t\tw = float(pic.Width)\r\n\t\t\t\tratio = h/w\r\n\t\t\t\timage_maxsize = formwidth - xlabel - rightmargin\r\n\t\t\t\tim.Size = Size(image_maxsize,image_maxsize*ratio)\r\n\t\t\t\tscaledimage = Bitmap(image_maxsize,image_maxsize*ratio)\r\n\t\t\t\tgr = Graphics.FromImage(scaledimage)\r\n\t\t\t\tgr.DrawImage(pic,0,0,image_maxsize,image_maxsize*ratio)\r\n\t\t\t\tim.Image = pic\r\n\t\t\t\tim.SizeMode = PictureBoxSizeMode.Zoom\r\n\t\t\t\tformbody.Controls.Add(im)\r\n\t\t\t\tim.Location = Point(25 * xRatio,y+25*yRatio)\r\n\t\t\t\ty = im.Bottom + 25 * yRatio\r\n\t\t\r\n\t\t\telif j.__class__.__name__ == 'uicolorpick' and importcolorselection == 0:\r\n\t\t\t\tcp = Button()\r\n\t\t\t\tif j.inputname != \"\":\r\n\t\t\t\t\tcp.Width = formwidth - xinput - rightmargin\r\n\t\t\t\t\tcp.Location = Point(xinput,y)\r\n\t\t\t\telse:\r\n\t\t\t\t\tcp.Width = formwidth - xlabel - rightmargin\t\t\r\n\t\t\t\t\tcp.Location = Point(xlabel,y)\r\n\t\t\t\tcp.Text = j.buttontext\r\n\t\t\t\tcp.Height = 30 * yRatio\r\n\t\t\t\tformbody.Controls.Add(cp)\r\n\t\t\t\tcp.Click += form.colorpicker\r\n\t\t\t\tform.output.append(cp)\r\n\t\t\t\ty = label.Bottom + 25 * yRatio\t\r\n\t\t\telif j.__class__.__name__ == 'uicolorpick' and importcolorselection == 1:\r\n\t\t\t\timportcolorselection = 2\r\n\t\t\telif j.__class__.__name__ == 'uigroup':\r\n\t\t\t\tgrouppanel = GroupBox()\r\n\t\t\t\tgrouppanel.Text = j.groupname\r\n\t\t\t\tgrouppanel.Location = Point(xlabel,y)\r\n\t\t\t\tgrouppanel.Width = formwidth - 65 * xRatio\r\n\t\t\t\t#recursive implementation of the definition to process grouped inputs\r\n\t\t\t\taddinput(grouppanel,j.inputgroup,25*yRatio,xinput-25*xRatio,80 * xRatio,90 * xRatio,importcolorselection)\r\n\t\t\t\tformbody.Controls.Add(grouppanel)\r\n\t\t\t\ty = grouppanel.Bottom + 25 * yRatio\r\n\t\t\telif j.__class__.__name__ == 'uiconditional':\r\n\t\t\t\tgrouppanelcond = GroupBox()\r\n\t\t\t\tgrouppanelcond.Location = Point(xlabel,y)\r\n\t\t\t\tgrouppanelcond.Width = formwidth - 65 * xRatio\t\r\n\t\t\t\tform.output.append(grouppanelcond)\t\t\t\t\r\n\t\t\t\t#recursive implementation of the definition to process conditional groups of inputs\r\n\t\t\t\tpanlist = []\r\n\t\t\t\trblist = []\r\n\t\t\t\typ = 25 * yRatio\r\n\t\t\t\txrb = 25 * xRatio\r\n\t\t\t\tfor i,d in zip(j._Conditions,j._GroupedInputs):\t\r\n\t\t\t\t\trb = RadioButton()\r\n\t\t\t\t\trb.CheckedChanged += form.ActivateOption\r\n\t\t\t\t\trb.Text = i\r\n\t\t\t\t\trb.Location\t= Point(xrb,10*yRatio)\r\n\t\t\t\t\trb.Width = 95 * xRatio\r\n\t\t\t\t\trblist.append(rb)\t\t\t\t\t\r\n\t\t\t\t\tgrouppanelcond.Controls.Add(rb)\t\t\t\t\r\n\t\t\t\t\tcondition_pannel = Panel()\r\n\t\t\t\t\tcondition_pannel.Name = i\r\n\t\t\t\t\tcondition_pannel.Top = yp\r\n\t\t\t\t\tcondition_pannel.Width = formwidth - 65 * xRatio\r\n\t\t\t\t\tcondition_pannel.BackColor = Color.Transparent\r\n\t\t\t\t\tcondition_pannel.BringToFront()\t\t\t\t\t\r\n\t\t\t\t\taddinput(condition_pannel,d,25*yRatio,xinput-25*xRatio,80*xRatio,90*xRatio,importcolorselection)\r\n\t\t\t\t\tpanlist.append(condition_pannel)\r\n\t\t\t\t\typ = condition_pannel.Bottom - 25*yRatio\r\n\t\t\t\t\txrb += 100 * xRatio\r\n\t\t\t\tfor pan in panlist:\r\n\t\t\t\t\tgrouppanelcond.Controls.Add(pan)\r\n\t\t\t\tfor e,pan in enumerate(panlist):\r\n\t\t\t\t\tif e != j._defaultOptionIndex:\r\n\t\t\t\t\t\tpan.Enabled = False\r\n\t\t\t\t\telse:\r\n\t\t\t\t\t\tcontinue\r\n\t\t\t\trblist[j._defaultOptionIndex].Checked = True\r\n\t\t\t\tgrouppanelcond.Height = sum([p.Height for p in panlist]) - (len(panlist)-2)*25 * yRatio\r\n\t\t\t\tgrouppanelcond.BackColor = Color.Transparent\t\t\t\t\r\n\t\t\t\tformbody.Controls.Add(grouppanelcond)\r\n\t\t\t\tform.output.append([grouppanelcond.Tag])\t\t\t\t\r\n\t\t\t\ty = grouppanelcond.Bottom + 25*yRatio\r\n\t\t\tformbody.Height = y\r\n\r\n\r\n\t# process input lists \r\n\taddinput(body,inputtypes,0,IN[9],40 * xRatio ,IN[9] * xRatio,importcolorselection)\r\n\t\r\n\t#add the formbody panel to the form\r\n\tform.Controls.Add(body)\t\t\r\n\t\r\n\r\n\tif IN[6] != None:\r\n\t\tif IN[8] > 400 * yRatio:\r\n\t\t\tformy += 50 * yRatio\r\n\t\t\txinput = 270 * yRatio\r\n\t\telse:\r\n\t\t\tformy = logo.Bottom + 20 * yRatio\r\n\telse:\r\n\t\tformy += 50 * yRatio\r\n\r\n\r\n\r\n\t#Adding validation button\r\n\t\r\n\tbutton = Button()\r\n\tbutton.Text = IN[1]\r\n\tbutton.Width = formwidth - xinput - 40 * xRatio\r\n\tbutton.Height = 20 * yRatio\r\n\tbutton.Location = Point (xinput,formy)\r\n\tbutton.Click += form.setclose\r\n\tform.Controls.Add(button)\r\n\tform.MaximizeBox = False\r\n\tform.MinimizeBox = False\r\n\tform.FormBorderStyle = FormBorderStyle.FixedSingle\r\n\t\r\n\t#Adding Cancel button\r\n\tif IN[6] != None:\r\n\t\tcancelbutton = Button()\r\n\t\tcancelbutton.Text = IN[6]\r\n\t\tcancelbutton.Width = 120 * xRatio\r\n\t\tcancelbutton.Height = 20 * xRatio\r\n\t\tcancelbutton.Name = \"Cancel\"\r\n\t\tcancelbutton.Location = Point (xinput -120 * xRatio ,formy)\r\n\t\tcancelbutton.Click += form.setclose\r\n\t\tform.Controls.Add(cancelbutton)\r\n\t\tform.CancelButton = cancelbutton\r\n\t\r\n\t#Adding link to help\r\n\t\r\n\tif IN[5] != None :\r\n\t\thelplink = LinkLabel()\r\n\t\thelplink.Text = \"Help\"\r\n\t\thelplink.Tag = IN[5]\r\n\t\thelplink.Click += form.openurl\r\n\t\thelplink.Location = Point(formwidth - 65 * xRatio ,formy+30 * yRatio)\r\n\t\tform.Controls.Add(helplink)\r\n\telse:\r\n\t\tpass\t\r\n\t\t\t\r\n\tform.ShowIcon = True\r\n\tform.Width = formwidth\r\n\tform.Height = formy + 120 * yRatio\r\n\tformfooterheight = form.Height - formheaderheight\r\n\t\r\n\t# Make formbody scrollable\r\n\t\r\n\t# if the form is longer than its maximum height, do the following:\r\n\t# modify the form height\r\n\t# make the formbody panel scrollable\r\n\tif form.Height + body.Height > IN[7] * yRatio and IN[7] * yRatio > 0:\r\n\t\tformbody_calculatedheight = IN[7] * yRatio - form.Height\r\n\t\t# make sure the formbody is at least 100 px high\r\n\t\tif formbody_calculatedheight < 100 * yRatio: formbody_calculatedheight = 100 * yRatio\r\n\t\tbody.Height = formbody_calculatedheight\r\n\t\tform.Height = form.Height + formbody_calculatedheight\r\n\t\t# this (and apparently only this) will implement a vertical AutoScroll *only*\r\n\t\t# http://stackoverflow.com/a/28583501\r\n\t\tbody.HorizontalScroll.Maximum = 0\r\n\t\tbody.AutoScroll = False\r\n\t\tbody.VerticalScroll.Visible = False\r\n\t\tbody.AutoScroll = True\r\n\t\tbody.BorderStyle = BorderStyle.Fixed3D\r\n\telse:\r\n\t\tform.Height = form.Height + body.Height\r\n\t# Move footer elements\r\n\tlogo.Location = Point(logo.Location.X, logo.Location.Y + body.Height)\r\n\tbutton.Location = Point(button.Location.X, button.Location.Y + body.Height)\r\n\tif IN[6] != None: cancelbutton.Location = Point(cancelbutton.Location.X, cancelbutton.Location.Y + body.Height)\r\n\tif IN[5] != None: helplink.Location = Point(helplink.Location.X, helplink.Location.Y + body.Height)\r\n\r\n\t#Positionning the form at top left of current view\r\n\t#In The revit environment\r\n\ttry:\r\n\t\tuiviews = uidoc.GetOpenUIViews()\r\n\t\tif doc.ActiveView.IsValidType(doc.ActiveView.GetTypeId()):\r\n\t\t\tactiveviewid = doc.ActiveView.Id\r\n\t\t\tactiveUIView = [v for v in uiviews if v.ViewId == activeviewid][0]\r\n\t\telse:\r\n\t\t\tactiveUIView = uiviews[0]\r\n\t\trect = activeUIView.GetWindowRectangle()\r\n\t\tform.StartPosition = FormStartPosition.Manual\r\n\t\tform.Location = Point(rect.Left-7 * xRatio,rect.Top)\r\n\texcept:\r\n\t\tpass\r\n\t\r\n\t\t\r\n\tif IN[2]:\r\n\t\tif importcolorselection != 2:\r\n\t\t\tApplication.Run(form)\r\n\t\t\tresult = form.values\r\n\t\t\tOUT = result,True, form.cancelled \r\n\t\telse:\r\n\t\t\tOUT = ['ColorSelection input is only available With Revit 2017'] , False, False\r\n\telse :\r\n\t\tOUT = ['Set toggle to true!'] , False, False\r\nexcept:\r\n\timport traceback\r\n\tOUT = traceback.format_exc() , \"error\", \"error\"\r\n",
+      "VariableInputPorts": true,
+      "Id": "652ef6e6fd194bd6a3c0f96e7445d3e4",
+      "Inputs": [
+        {
+          "Id": "58d7de38c0cf4bd098ef9e2277140426",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "51727c29c41d4c1eb2afc3806965fb37",
+          "Name": "IN[1]",
+          "Description": "Input #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "c9e7dd78f56442c0af974e6cce03fade",
+          "Name": "IN[2]",
+          "Description": "Input #2",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "640e02b339a44763a39b8a516e36f52c",
+          "Name": "IN[3]",
+          "Description": "Input #3",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "86a11f12ece14314b479c1c7b4f39ebe",
+          "Name": "IN[4]",
+          "Description": "Input #4",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "ba3e84ec90144632866f73703e78b090",
+          "Name": "IN[5]",
+          "Description": "Input #5",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "9c5fbb644d1e4da7892b5ec901d2957d",
+          "Name": "IN[6]",
+          "Description": "Input #6",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "139c4269da2642ffab516f2776887a2d",
+          "Name": "IN[7]",
+          "Description": "Input #7",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "dfc7ac4ef9aa4bbe9009623c283354a3",
+          "Name": "IN[8]",
+          "Description": "Input #8",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "7522ca3f542345e9a315baeea335dfb7",
+          "Name": "IN[9]",
+          "Description": "Input #9",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "748513389b434fe4af8e0897d7250898",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded Python script."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "NodeType": "InputNode",
+      "Parameter": {
+        "Name": "Description_optional",
+        "TypeName": "string",
+        "TypeRank": 0,
+        "DefaultValue": "\"\"",
+        "Description": ""
+      },
+      "Id": "aee876f4fa604b94b6829f495e2af792",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "79be0c104f00432a8a3f917dabe3f18c",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "NodeType": "InputNode",
+      "Parameter": {
+        "Name": "Logo_optional",
+        "TypeName": "var",
+        "TypeRank": 0,
+        "DefaultValue": "\"\"",
+        "Description": ""
+      },
+      "Id": "eb6d92c451e84b3c8461eb2623034eb8",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "32ab87e02ffa4c4bb3031f5d6f0fe68b",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+      "NodeType": "OutputNode",
+      "ElementResolver": null,
+      "Symbol": "User Inputs",
+      "Id": "47e0a03143564447ad0aba20606d99f4",
+      "Inputs": [
+        {
+          "Id": "b9f8e3d628bc4b0c8d2d01ab8cd89da6",
+          "Name": "",
+          "Description": "",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [],
+      "Replication": "Disabled",
+      "Description": "A function output, use with custom nodes"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "OUT[0];\nOUT[1];\nOUT[2];",
+      "Id": "6827a40ad0784ecba5f7ac83d1a8b7a4",
+      "Inputs": [
+        {
+          "Id": "d76ef05135ab4a1c870209e4c131fba8",
+          "Name": "OUT",
+          "Description": "OUT",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "15f061c86446494cb2e3336cc720e550",
+          "Name": "",
+          "Description": "Wert des Ausdrucks in Zeile 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "4f4b7ace8ffa4382929947b62534b2f6",
+          "Name": "",
+          "Description": "Wert des Ausdrucks in Zeile 2",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "b8e9d868874848348bd6bad812a83a54",
+          "Name": "",
+          "Description": "Wert des Ausdrucks in Zeile 3",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Ermöglicht die direkte Erstellung von DesignScript-Code."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+      "NodeType": "OutputNode",
+      "ElementResolver": null,
+      "Symbol": "Was Run ",
+      "Id": "eb9fddf68cda490bb14993f1cf2ce43b",
+      "Inputs": [
+        {
+          "Id": "06661dccfcbb4ae7bcd40600ede844ea",
+          "Name": "",
+          "Description": "",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [],
+      "Replication": "Disabled",
+      "Description": "A function output, use with custom nodes"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "NodeType": "InputNode",
+      "Parameter": {
+        "Name": "ButtonText_optional",
+        "TypeName": "string",
+        "TypeRank": 0,
+        "DefaultValue": "\"Set Values\"",
+        "Description": ""
+      },
+      "Id": "44f805f42c464774b18f9ecc58e06f34",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "4f2540372c044f5badf8d3390c13e97d",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "NodeType": "InputNode",
+      "Parameter": {
+        "Name": "Inputs",
+        "TypeName": "var",
+        "TypeRank": 1,
+        "DefaultValue": null,
+        "Description": ""
+      },
+      "Id": "252f2b9990bb4a0da17f36e0d7608dec",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "f2902e85352241b9ab3c4544d852926a",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "NodeType": "InputNode",
+      "Parameter": {
+        "Name": "Toggle",
+        "TypeName": "bool",
+        "TypeRank": 0,
+        "DefaultValue": "false",
+        "Description": ""
+      },
+      "Id": "0a6977c9a3ce4e629bc9be1fd8cf25f9",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "b6c52575a8ce46998e18b91b7c1eec05",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "NodeType": "InputNode",
+      "Parameter": {
+        "Name": "LinkToHelp_optional",
+        "TypeName": "string",
+        "TypeRank": 0,
+        "DefaultValue": "null",
+        "Description": ""
+      },
+      "Id": "a2f1283318a247e4b81e05d7a1af165b",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "bdc5dfca6c714ec0a64080d23e785dd6",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "NodeType": "InputNode",
+      "Parameter": {
+        "Name": "CancelButtonText_optional",
+        "TypeName": "string",
+        "TypeRank": 0,
+        "DefaultValue": "null",
+        "Description": " Cancel button will only be displayed if a label text is entered here"
+      },
+      "Id": "54fa9d32b20b49d7aab8946482548269",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "c9da12612e624b29b60816cd86007a8c",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+      "NodeType": "OutputNode",
+      "ElementResolver": null,
+      "Symbol": "Was Cancelled",
+      "Id": "f3d565e5379a420795584e2319983692",
+      "Inputs": [
+        {
+          "Id": "82321378fde34a08ad14358f9cc20d8f",
+          "Name": "",
+          "Description": "",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [],
+      "Replication": "Disabled",
+      "Description": "A function output, use with custom nodes"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "NodeType": "InputNode",
+      "Parameter": {
+        "Name": "MaxHeight_optional",
+        "TypeName": "int",
+        "TypeRank": 0,
+        "DefaultValue": "0",
+        "Description": ""
+      },
+      "Id": "cb9cd769fdcd479c8868c89365616091",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "fe9f57dfd0a1494ca15477a903793694",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "NodeType": "InputNode",
+      "Parameter": {
+        "Name": "Width_optional",
+        "TypeName": "int",
+        "TypeRank": 0,
+        "DefaultValue": "400",
+        "Description": ""
+      },
+      "Id": "024ed433d62b4a2ab5735399dd344fcd",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "0bbc01fb5aa94b609a2a5550ef220943",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "NodeType": "InputNode",
+      "Parameter": {
+        "Name": "LabelWidth_optional",
+        "TypeName": "int",
+        "TypeRank": 0,
+        "DefaultValue": "140",
+        "Description": ""
+      },
+      "Id": "ffed7bcdb31446bdb2181920ed406813",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "d440722c47844d55bb7b66d9f9f1b8e4",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    }
+  ],
+  "Connectors": [
+    {
+      "Start": "748513389b434fe4af8e0897d7250898",
+      "End": "d76ef05135ab4a1c870209e4c131fba8",
+      "Id": "4d8d0a65e0b44d118e1cb4a156a4d788"
+    },
+    {
+      "Start": "79be0c104f00432a8a3f917dabe3f18c",
+      "End": "640e02b339a44763a39b8a516e36f52c",
+      "Id": "af0d9f65c0714a7c83f33d958294904f"
+    },
+    {
+      "Start": "32ab87e02ffa4c4bb3031f5d6f0fe68b",
+      "End": "86a11f12ece14314b479c1c7b4f39ebe",
+      "Id": "e6c1543dd872430d99e0441ae7bf7e45"
+    },
+    {
+      "Start": "15f061c86446494cb2e3336cc720e550",
+      "End": "b9f8e3d628bc4b0c8d2d01ab8cd89da6",
+      "Id": "1c141dcff22f495785d9096550be8829"
+    },
+    {
+      "Start": "4f4b7ace8ffa4382929947b62534b2f6",
+      "End": "06661dccfcbb4ae7bcd40600ede844ea",
+      "Id": "fa79d90bac6a41d6994512d133204f36"
+    },
+    {
+      "Start": "b8e9d868874848348bd6bad812a83a54",
+      "End": "82321378fde34a08ad14358f9cc20d8f",
+      "Id": "3f0dc0d7aec047e497734038c5f769b0"
+    },
+    {
+      "Start": "4f2540372c044f5badf8d3390c13e97d",
+      "End": "51727c29c41d4c1eb2afc3806965fb37",
+      "Id": "c2a59dfdfdbd4510a203fc8adad03c56"
+    },
+    {
+      "Start": "f2902e85352241b9ab3c4544d852926a",
+      "End": "58d7de38c0cf4bd098ef9e2277140426",
+      "Id": "af1b6cbd595b435c940e97610d97a6ff"
+    },
+    {
+      "Start": "b6c52575a8ce46998e18b91b7c1eec05",
+      "End": "c9e7dd78f56442c0af974e6cce03fade",
+      "Id": "43281e27226b4268bd59ed343839c3c6"
+    },
+    {
+      "Start": "bdc5dfca6c714ec0a64080d23e785dd6",
+      "End": "ba3e84ec90144632866f73703e78b090",
+      "Id": "b513fcc626164ea7a4f33da56f27cc7d"
+    },
+    {
+      "Start": "c9da12612e624b29b60816cd86007a8c",
+      "End": "9c5fbb644d1e4da7892b5ec901d2957d",
+      "Id": "d7ac13e41970405e9ea676955b79b884"
+    },
+    {
+      "Start": "fe9f57dfd0a1494ca15477a903793694",
+      "End": "139c4269da2642ffab516f2776887a2d",
+      "Id": "cb338bcaed51422c86f85a316bb04206"
+    },
+    {
+      "Start": "0bbc01fb5aa94b609a2a5550ef220943",
+      "End": "dfc7ac4ef9aa4bbe9009623c283354a3",
+      "Id": "c960f97970734bebb4a2a8ced20c3874"
+    },
+    {
+      "Start": "d440722c47844d55bb7b66d9f9f1b8e4",
+      "End": "7522ca3f542345e9a315baeea335dfb7",
+      "Id": "e93c87474d0845989cdada909a9b9ba6"
+    }
+  ],
+  "Dependencies": [],
+  "NodeLibraryDependencies": [],
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 1.0,
+      "HasRunWithoutCrash": false,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "2.3.1.11775",
+      "RunType": "Manual",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "Hintergrundvorschau",
+      "EyeX": 24.933596611022949,
+      "EyeY": 19.214475631713867,
+      "EyeZ": 19.3887939453125,
+      "LookX": -27.986673355102539,
+      "LookY": -19.162681579589844,
+      "LookZ": -19.371212005615234,
+      "UpX": -0.24040250480175018,
+      "UpY": 0.95630490779876709,
+      "UpZ": -0.16639642417430878
+    },
+    "NodeViews": [
+      {
+        "ShowGeometry": true,
+        "Name": "Python Script",
+        "Id": "652ef6e6fd194bd6a3c0f96e7445d3e4",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 191.44403103329552,
+        "Y": 89.631643792425223
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Input",
+        "Id": "aee876f4fa604b94b6829f495e2af792",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": -237.818921203124,
+        "Y": -64.1119899707852
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Input",
+        "Id": "eb6d92c451e84b3c8461eb2623034eb8",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": -186.312667703512,
+        "Y": 101.831728823146
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Output",
+        "Id": "47e0a03143564447ad0aba20606d99f4",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 630.459274273106,
+        "Y": 40.5188746455886
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Code Block",
+        "Id": "6827a40ad0784ecba5f7ac83d1a8b7a4",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 362.902015533628,
+        "Y": 76.9283353103305
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Output",
+        "Id": "eb9fddf68cda490bb14993f1cf2ce43b",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 634.459274273106,
+        "Y": 150.518874645589
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Input",
+        "Id": "44f805f42c464774b18f9ecc58e06f34",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": -300.393511931116,
+        "Y": 22.4304834658233
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Input",
+        "Id": "252f2b9990bb4a0da17f36e0d7608dec",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": -157.4162453091858,
+        "Y": 169.329282735145
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Input",
+        "Id": "0a6977c9a3ce4e629bc9be1fd8cf25f9",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": -187.187155577556,
+        "Y": 234.174081182144
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Input",
+        "Id": "a2f1283318a247e4b81e05d7a1af165b",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": -290.467474843354,
+        "Y": 314.330860684578
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Input",
+        "Id": "54fa9d32b20b49d7aab8946482548269",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": -597.573404707885,
+        "Y": 408.9216537817
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Output",
+        "Id": "f3d565e5379a420795584e2319983692",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 635.56506851444,
+        "Y": 227.039411349449
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Input",
+        "Id": "cb9cd769fdcd479c8868c89365616091",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": -241.01121323173,
+        "Y": 498.353792414835
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Input",
+        "Id": "024ed433d62b4a2ab5735399dd344fcd",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": -217.16527002840689,
+        "Y": 588.45476204556167
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Input",
+        "Id": "ffed7bcdb31446bdb2181920ed406813",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": -263.99622252876657,
+        "Y": 669.86622099439853
+      }
+    ],
+    "Annotations": [],
+    "X": 411.91564921983922,
+    "Y": -41.805567146334624,
+    "Zoom": 0.77523066098131765
+  }
+}
