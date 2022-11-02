@@ -1,0 +1,356 @@
+{
+  "Uuid": "6c9cc4d5-ff35-4f15-9652-6cef2fa29b0c",
+  "IsCustomNode": false,
+  "Description": null,
+  "Name": "rvtInputs",
+  "ElementResolver": {
+    "ResolutionMap": {}
+  },
+  "Inputs": [],
+  "Outputs": [],
+  "Nodes": [
+    {
+      "ConcreteType": "Dynamo.Nodes.DSModelElementSelection, DSRevitNodesUI",
+      "NodeType": "ExtensionNode",
+      "InstanceId": [
+        "9277402d-8993-4756-bfcd-b9b6c9401dab-00044b3a"
+      ],
+      "Id": "4ffde16ac75b476f8eee0b42a47a5819",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "89fbaabb07a14fab99799358afcdf727",
+          "Name": "Element",
+          "Description": "The selected elements.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled"
+    },
+    {
+      "ConcreteType": "Dynamo.Nodes.DSModelElementsSelection, DSRevitNodesUI",
+      "NodeType": "ExtensionNode",
+      "InstanceId": [
+        "9277402d-8993-4756-bfcd-b9b6c9401dab-00044b3a",
+        "9277402d-8993-4756-bfcd-b9b6c9401dab-00044b75"
+      ],
+      "Id": "8d1ae02b8ff64c8995755e7aff9d56d6",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "f8e4314db0614e5aabaed095375d6caf",
+          "Name": "Elements",
+          "Description": "The selected elements.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled"
+    },
+    {
+      "ConcreteType": "Dynamo.Nodes.DSEdgeSelection, DSRevitNodesUI",
+      "NodeType": "ExtensionNode",
+      "InstanceId": [
+        "9277402d-8993-4756-bfcd-b9b6c9401dab-00044b75:15:LINEAR"
+      ],
+      "Id": "ad53094db28645e5af93e1e16e74a394",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "7186a7547c4f41819e60ac5f8853cf07",
+          "Name": "Curve",
+          "Description": "The selected elements.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled"
+    },
+    {
+      "ConcreteType": "Dynamo.Nodes.SelectEdges, DSRevitNodesUI",
+      "NodeType": "ExtensionNode",
+      "InstanceId": [
+        "5bf6f70f-a8f8-4fdd-a9a5-1a53380ef62c-00044b3b:9:LINEAR",
+        "5bf6f70f-a8f8-4fdd-a9a5-1a53380ef62c-00044b3b:12:LINEAR",
+        "5bf6f70f-a8f8-4fdd-a9a5-1a53380ef62c-00044b3b:16:LINEAR"
+      ],
+      "Id": "259c8b51c01540a5aa2d4ba929399de9",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "91e0aab38b5944688fc723cd7b46bfcc",
+          "Name": "Curves",
+          "Description": "The selected elements.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled"
+    },
+    {
+      "ConcreteType": "Dynamo.Nodes.DSPointOnElementSelection, DSRevitNodesUI",
+      "NodeType": "ExtensionNode",
+      "InstanceId": [
+        "9277402d-8993-4756-bfcd-b9b6c9401dab-00044b3a:15:SURFACE"
+      ],
+      "Id": "c3779317cfe842308becaf890ab911b8",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "ad5bef81d7a543e8986e31fd9c27fff1",
+          "Name": "Point",
+          "Description": "The selected elements.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled"
+    },
+    {
+      "ConcreteType": "Dynamo.Nodes.DSUvOnElementSelection, DSRevitNodesUI",
+      "NodeType": "ExtensionNode",
+      "InstanceId": [
+        "9277402d-8993-4756-bfcd-b9b6c9401dab-00044b3a:15:SURFACE"
+      ],
+      "Id": "32d49dfef5bc4dfea662c238d1a6f92d",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "08c4e35026a549998f20b205ae74fe9b",
+          "Name": "Point",
+          "Description": "The selected elements.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled"
+    },
+    {
+      "ConcreteType": "Dynamo.Nodes.DSFaceSelection, DSRevitNodesUI",
+      "NodeType": "ExtensionNode",
+      "InstanceId": [
+        "5bf6f70f-a8f8-4fdd-a9a5-1a53380ef62c-00044b3b:6:SURFACE"
+      ],
+      "Id": "e835e9b3dabf4747817e0627ef9183e4",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "ecc63df3696c4e779317f3ed1ae82811",
+          "Name": "Surface",
+          "Description": "The selected elements.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "x;",
+      "Id": "e2653df6b22541da8a0f6648b4ae24d3",
+      "Inputs": [
+        {
+          "Id": "f686f7539dc04fdcbee7306413c09df4",
+          "Name": "x",
+          "Description": "x",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "4285ac4c852f44afbd6f8f092b0b9e4c",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "x;",
+      "Id": "07e4c39ec9e1444aad11af4da4875575",
+      "Inputs": [
+        {
+          "Id": "8beb641d1a6f43c9b9e3da7b9d9255e5",
+          "Name": "x",
+          "Description": "x",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "94bf75a04f7c4011898c5a1b512c0d65",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    }
+  ],
+  "Connectors": [
+    {
+      "Start": "ecc63df3696c4e779317f3ed1ae82811",
+      "End": "f686f7539dc04fdcbee7306413c09df4",
+      "Id": "8a357c9aea1941a58cfbb8f762e693ee"
+    },
+    {
+      "Start": "ecc63df3696c4e779317f3ed1ae82811",
+      "End": "8beb641d1a6f43c9b9e3da7b9d9255e5",
+      "Id": "dee0eff0cb754214921e02efa1d11a5e"
+    }
+  ],
+  "Dependencies": [],
+  "NodeLibraryDependencies": [],
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 1.0,
+      "HasRunWithoutCrash": true,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "2.6.2.15705",
+      "RunType": "Manual",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "Background Preview",
+      "EyeX": -26.871559003384718,
+      "EyeY": 63.826320421223727,
+      "EyeZ": 78.309775871943387,
+      "LookX": 26.871559003384718,
+      "LookY": -63.826320421223727,
+      "LookZ": -78.309775871943387,
+      "UpX": 0.13845031429341334,
+      "UpY": 0.90445514545436734,
+      "UpZ": -0.40347540238925705
+    },
+    "NodeViews": [
+      {
+        "ShowGeometry": true,
+        "Name": "Select Model Element",
+        "Id": "4ffde16ac75b476f8eee0b42a47a5819",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 131.61058349851919,
+        "Y": 97.421189365142311
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Select Model Elements",
+        "Id": "8d1ae02b8ff64c8995755e7aff9d56d6",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 133.76469930349879,
+        "Y": 239.537652585061
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Select Edge",
+        "Id": "ad53094db28645e5af93e1e16e74a394",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 130.73880616123688,
+        "Y": 393.21766153230249
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Select Edges",
+        "Id": "259c8b51c01540a5aa2d4ba929399de9",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 136.0,
+        "Y": 524.5
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Select Point on Face",
+        "Id": "c3779317cfe842308becaf890ab911b8",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 446.45646769353948,
+        "Y": 359.48586630053705
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Select UV on Face",
+        "Id": "32d49dfef5bc4dfea662c238d1a6f92d",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 445.59882405572012,
+        "Y": 506.00938518613532
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Select Face",
+        "Id": "e835e9b3dabf4747817e0627ef9183e4",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 447.5,
+        "Y": 227.5
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Code Block",
+        "Id": "e2653df6b22541da8a0f6648b4ae24d3",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 746.0,
+        "Y": 242.0
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Code Block",
+        "Id": "07e4c39ec9e1444aad11af4da4875575",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 889.21105229314571,
+        "Y": 121.50889841393206
+      }
+    ],
+    "Annotations": [],
+    "X": -107.86251783691176,
+    "Y": 38.301858684503657,
+    "Zoom": 0.77051684820224553
+  }
+}

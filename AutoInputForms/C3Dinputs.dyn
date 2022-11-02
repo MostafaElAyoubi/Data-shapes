@@ -1,0 +1,145 @@
+{
+  "Uuid": "9bb44978-193a-4ccc-8e4b-c4ae5dd5fcfa",
+  "IsCustomNode": false,
+  "Description": null,
+  "Name": "C3Dinputs",
+  "ElementResolver": {
+    "ResolutionMap": {}
+  },
+  "Inputs": [
+    {
+      "Id": "1a6d04d139764543b831a6d59ec205bf",
+      "Name": "Boolean",
+      "Type": "boolean",
+      "Value": "false",
+      "Description": "Selection between a true and false."
+    }
+  ],
+  "Outputs": [],
+  "Nodes": [
+    {
+      "ConcreteType": "Autodesk.AutoCAD.DynamoNodes.ObjectSelection, AutoCADNodesUI",
+      "NodeType": "ExtensionNode",
+      "InstanceId": [
+        "6D4C"
+      ],
+      "Id": "29a02dd7e3a9493489091ba5da28f9db",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "df37c0c20e724c12a3e8cf2562388604",
+          "Name": "Object",
+          "Description": "Object",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled"
+    },
+    {
+      "ConcreteType": "Autodesk.AutoCAD.DynamoNodes.AcObjectTypes, AutoCADNodesUI",
+      "SelectedIndex": 1,
+      "SelectedString": "Block Reference",
+      "NodeType": "ExtensionNode",
+      "Id": "4b7ec0863e1a41ca84463847c00ff0cc",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "0400119e12c24e2385b40d1fe52f0d09",
+          "Name": "Object Type",
+          "Description": "string",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Select object type."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
+      "NodeType": "BooleanInputNode",
+      "InputValue": false,
+      "Id": "1a6d04d139764543b831a6d59ec205bf",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "fb62009945234da3b53c2a46862a2ddc",
+          "Name": "",
+          "Description": "Boolean",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Selection between a true and false."
+    }
+  ],
+  "Connectors": [],
+  "Dependencies": [],
+  "NodeLibraryDependencies": [],
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 1.0,
+      "HasRunWithoutCrash": true,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "2.5.2.7915",
+      "RunType": "Automatic",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "Background Preview",
+      "EyeX": -17.0,
+      "EyeY": 24.0,
+      "EyeZ": 50.0,
+      "LookX": 12.0,
+      "LookY": -13.0,
+      "LookZ": -58.0,
+      "UpX": 0.0,
+      "UpY": 1.0,
+      "UpZ": 0.0
+    },
+    "NodeViews": [
+      {
+        "ShowGeometry": true,
+        "Name": "Select Object",
+        "Id": "29a02dd7e3a9493489091ba5da28f9db",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 189.5,
+        "Y": 196.5
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Objects Types",
+        "Id": "4b7ec0863e1a41ca84463847c00ff0cc",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 281.0,
+        "Y": 375.5
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Boolean",
+        "Id": "1a6d04d139764543b831a6d59ec205bf",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 258.0,
+        "Y": 518.0
+      }
+    ],
+    "Annotations": [],
+    "X": 14.543749999999989,
+    "Y": 8.5024999999999977,
+    "Zoom": 0.8425
+  }
+}
