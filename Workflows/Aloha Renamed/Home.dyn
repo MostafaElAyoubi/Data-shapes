@@ -1,0 +1,301 @@
+{
+  "Uuid": "15c71f74-b9aa-483b-a839-42ad8180689c",
+  "IsCustomNode": false,
+  "Description": null,
+  "Name": "Home",
+  "ElementResolver": {
+    "ResolutionMap": {}
+  },
+  "Inputs": [
+    {
+      "Id": "de4281a7db1e47eabfd5bc6b0d79f8e6",
+      "Name": "Number Slider",
+      "Type": "number",
+      "Value": "91.6",
+      "MaximumValue": 100.0,
+      "MinimumValue": 0.0,
+      "StepValue": 0.1,
+      "NumberType": "Double",
+      "Description": "A slider that produces numeric values."
+    },
+    {
+      "Id": "ac0712cff78347efac5d7fa9bb8b8f7b",
+      "Name": "Yes/No",
+      "Type": "boolean",
+      "Value": "true",
+      "Description": "Selection between a true and false."
+    }
+  ],
+  "Outputs": [
+    {
+      "Id": "3cd36375e07047fdac840a31a9c3f386",
+      "Name": "List Create",
+      "Type": "unknown",
+      "InitialValue": "",
+      "Description": "Makes a new list out of the given inputs"
+    }
+  ],
+  "Nodes": [
+    {
+      "ConcreteType": "Dynamo.Nodes.DSModelElementSelection, DSRevitNodesUI",
+      "NodeType": "ExtensionNode",
+      "InstanceId": [
+        "9e86e98c-5c8e-4eef-a527-8c378a102b2f-0006dde2"
+      ],
+      "Id": "d799d371792c478fb0b9bcdd6aad9f4c",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "0500e8b0f9994359923ec923e49daa44",
+          "Name": "Element",
+          "Description": "The selected elements.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.DoubleSlider, CoreNodeModels",
+      "NodeType": "NumberInputNode",
+      "NumberType": "Double",
+      "MaximumValue": 100.0,
+      "MinimumValue": 0.0,
+      "StepValue": 0.1,
+      "InputValue": 91.6,
+      "Id": "de4281a7db1e47eabfd5bc6b0d79f8e6",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "c8b851a100654717994ec57f10247865",
+          "Name": "",
+          "Description": "Double",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A slider that produces numeric values."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.Filename, CoreNodeModels",
+      "HintPath": "C:\\Users\\jumy_\\OneDrive\\Bureau\\asset\\No file selected",
+      "InputValue": "No file selected.",
+      "NodeType": "ExtensionNode",
+      "Id": "54dd5633c2ef495287dda2cfeea458d5",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "62b09dac9ed048f493879c62c4ef69eb",
+          "Name": "",
+          "Description": "Filename",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows you to select a file on the system to get its filename"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
+      "NodeType": "BooleanInputNode",
+      "InputValue": true,
+      "Id": "ac0712cff78347efac5d7fa9bb8b8f7b",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "2d27a175809344b9a051a209d59dd116",
+          "Name": "",
+          "Description": "Boolean",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Selection between a true and false."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.CreateList, CoreNodeModels",
+      "VariableInputPorts": true,
+      "NodeType": "ExtensionNode",
+      "Id": "3cd36375e07047fdac840a31a9c3f386",
+      "Inputs": [
+        {
+          "Id": "ec8668920c784ecf8c5797ed0680c04e",
+          "Name": "item0",
+          "Description": "Item Index #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "0c4bab9f06be4b1b902fe2a512cd473b",
+          "Name": "item1",
+          "Description": "Item Index #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "f3de73a8fda645f0aabe459e07d53846",
+          "Name": "item2",
+          "Description": "Item Index #2",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "b04d99c20a1c41d9a10b0ba2279cb4d5",
+          "Name": "item3",
+          "Description": "Item Index #3",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "822e1441ff7042ab833f241689c277fb",
+          "Name": "list",
+          "Description": "A list",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Makes a new list out of the given inputs"
+    }
+  ],
+  "Connectors": [
+    {
+      "Start": "0500e8b0f9994359923ec923e49daa44",
+      "End": "b04d99c20a1c41d9a10b0ba2279cb4d5",
+      "Id": "61d7117093be4fc898b7649352bf5193"
+    },
+    {
+      "Start": "c8b851a100654717994ec57f10247865",
+      "End": "0c4bab9f06be4b1b902fe2a512cd473b",
+      "Id": "2b09f34d01f94c32a810d687d226a759"
+    },
+    {
+      "Start": "62b09dac9ed048f493879c62c4ef69eb",
+      "End": "f3de73a8fda645f0aabe459e07d53846",
+      "Id": "d50266580a034aceacc6e6d757a79bdf"
+    },
+    {
+      "Start": "2d27a175809344b9a051a209d59dd116",
+      "End": "ec8668920c784ecf8c5797ed0680c04e",
+      "Id": "39cfaae575dc4fd1a90498c9684f8639"
+    }
+  ],
+  "Dependencies": [],
+  "NodeLibraryDependencies": [],
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 1.0,
+      "HasRunWithoutCrash": true,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "2.3.0.5885",
+      "RunType": "Manual",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "Background Preview",
+      "EyeX": -17.0,
+      "EyeY": 24.0,
+      "EyeZ": 50.0,
+      "LookX": 12.0,
+      "LookY": -13.0,
+      "LookZ": -58.0,
+      "UpX": 0.0,
+      "UpY": 1.0,
+      "UpZ": 0.0
+    },
+    "NodeViews": [
+      {
+        "ShowGeometry": true,
+        "Name": "My Input",
+        "Id": "d799d371792c478fb0b9bcdd6aad9f4c",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 228.45370173470309,
+        "Y": 786.74053951468
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Number Slider",
+        "Id": "de4281a7db1e47eabfd5bc6b0d79f8e6",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 147.37897625759189,
+        "Y": 651.62038735456326
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "File Path",
+        "Id": "54dd5633c2ef495287dda2cfeea458d5",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 255.31529185442628,
+        "Y": 520.25120180085275
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Yes/No",
+        "Id": "ac0712cff78347efac5d7fa9bb8b8f7b",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 237.42442613293423,
+        "Y": 380.33131524430263
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "List Create",
+        "Id": "3cd36375e07047fdac840a31a9c3f386",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": true,
+        "Excluded": false,
+        "X": 704.83365404504559,
+        "Y": 539.807976325341
+      }
+    ],
+    "Annotations": [
+      {
+        "Id": "ba3c76e952574397aec91e359091f87d",
+        "Title": "*Orkestra*\r\nThis is an informational note",
+        "Nodes": [],
+        "Left": 228.31929937736231,
+        "Top": 310.98319523298215,
+        "Width": 0.0,
+        "Height": 0.0,
+        "FontSize": 36.0,
+        "InitialTop": 0.0,
+        "InitialHeight": 0.0,
+        "TextblockHeight": 0.0,
+        "Background": "#FFC1D676"
+      }
+    ],
+    "X": 60.687312655661458,
+    "Y": -206.58883111431555,
+    "Zoom": 0.91556228528122618
+  }
+}
