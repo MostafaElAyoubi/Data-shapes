@@ -1,0 +1,68 @@
+{
+  "$type": "OkPy.Models.OkPyModel, OkPy",
+  "Id": null,
+  "Name": "3DColorScheme",
+  "Inputs": {
+    "$type": "System.Collections.ObjectModel.ObservableCollection`1[[OkPy.Models.OkInputModel, OkPy]], System",
+    "$values": [
+      {
+        "$type": "OkPy.Models.OkDropdownInputModel, OkPy",
+        "MaxDropDownHeight": 500,
+        "SelectedObject": "Name",
+        "Id": "f38d16f9-cf1b-4612-893c-0d393ee098db",
+        "Guid": "74c26c2f-4dd3-40a1-81ed-d92637d0ce30",
+        "Type": 0,
+        "Name": "Room ColorFillSchemes",
+        "IsBaseInput": false,
+        "Category": null,
+        "Version": 1,
+        "Code": "import clr\r\nclr.AddReference('RevitAPI')\r\nfrom Autodesk.Revit.DB import FilteredElementCollector as fec, ColorFillScheme ,BuiltInCategory, ElementId\r\n\r\ncolorfillSchemes = fec(__currentdoc__).OfClass(ColorFillScheme)\r\nroomColorfillSchemes = [cs for cs in colorfillSchemes if cs.CategoryId == ElementId(BuiltInCategory.OST_Rooms)]\r\n\r\ndict = {}\r\nfor rcs in roomColorfillSchemes:\r\n    dict[rcs.Name] = rcs\r\n\r\n#The information displayed by the input is stored in the __out__ dictionary\r\n__out__=dict",
+        "Uploadedby": "m.elayoubi@orkestra.online",
+        "Description": "A dropdown for Room ColorFillScheme single selection",
+        "IsOOTB": false,
+        "InputKey": "roomColorScheme"
+      },
+      {
+        "$type": "OkPy.Models.OkDropdownInputModel, OkPy",
+        "MaxDropDownHeight": 500,
+        "SelectedObject": "Architectural Presentation 3D",
+        "Id": "3db34d4a-50d2-408d-a317-623318ff3afd",
+        "Guid": "56641354-86c0-4120-b8fb-1b74bbea6305",
+        "Type": 0,
+        "Name": "View Templates",
+        "IsBaseInput": false,
+        "Category": null,
+        "Version": 1,
+        "Code": "import clr\r\nclr.AddReference('RevitAPI')\r\nfrom Autodesk.Revit.DB import FilteredElementCollector as fec\r\nfrom Autodesk.Revit.DB import View\r\n\r\nviewsandtemplates = fec(__currentdoc__).OfClass(View).WhereElementIsNotElementType()\r\nviews = [v for v in viewsandtemplates if v.IsTemplate == True]\r\noutdict = {}\r\n\r\nfor view in views:\r\n    outdict[view.Name] = view\r\n#The information displayed by the input is stored in the __out__ dictionary\r\n__out__= outdict",
+        "Uploadedby": "m.elayoubi@orkestra.online",
+        "Description": "All View Templates in model as dropdown for single selection.",
+        "IsOOTB": false,
+        "InputKey": "viewtemplate"
+      },
+      {
+        "$type": "OkPy.Models.OkDropdownInputModel, OkPy",
+        "MaxDropDownHeight": 500,
+        "SelectedObject": "Comments",
+        "Id": "8f11e9db-e686-45b7-a3aa-ce4fb528c1c7",
+        "Guid": "5c0b770e-4286-4922-88a3-6a45e29eb28d",
+        "Type": 0,
+        "Name": "Generic Model Parameter to filter on",
+        "IsBaseInput": false,
+        "Category": null,
+        "Version": 0,
+        "Code": "import clr\r\nclr.AddReference('RevitAPI')\r\nfrom Autodesk.Revit.DB import FilteredElementCollector as fec,BuiltInCategory\r\n\r\n#Getting first found generic model element in model\r\ngm = fec(__currentdoc__).OfCategory(BuiltInCategory.OST_GenericModel).WhereElementIsNotElementType().FirstElement()\r\ndict={}\r\nparameters = gm.Parameters\r\nfor parameter in parameters:\r\n    dict[parameter.Definition.Name] = parameter\r\n#The information displayed by the input is stored in the __out__ dictionary\r\n__out__=dict",
+        "Uploadedby": null,
+        "Description": "The values for this parameter will be used to apply the filters associated with the color scheme.",
+        "IsOOTB": true,
+        "InputKey": "parameterTofilter"
+      }
+    ]
+  },
+  "Code": "import clr\r\nclr.AddReference('RevitAPI')\r\nfrom Autodesk.Revit.DB import*\r\nfrom System.Collections.Generic import List\r\n#The current uidoc, doc, uiapp, and app are stored in the following variables\r\ndoc = __currentdoc__\r\napp = __app__\r\nuidoc = __uidoc__\r\nuiapp = __uiapp__\r\n\r\ncleanupTransaction = Transaction(doc)\r\ncleanupTransaction.Start(\"OkPy - Cleaning Up ColorScheme Filters...\")\r\nallFilters = FilteredElementCollector(doc).OfClass(ParameterFilterElement)\r\ntoDelete = [f for f in allFilters if f.Name.startswith(\"AXO_\")]\r\nfor td in toDelete:\r\n    doc.Delete(td.Id)\r\ncleanupTransaction.Commit()\r\n\r\ntransaction= Transaction(doc)\r\ntransaction.Start(\"OkPy - Filters from ColorScheme\")\r\n\r\n#Selecting reference ColorScheme\r\nroomColorScheme = inputs[\"roomColorScheme\"]\r\n#Selecting template to add filters to \r\nviewtemplate = inputs[\"viewtemplate\"]\r\n#Getting parameter to filter on\r\nparameterTofilter = inputs[\"parameterTofilter\"]\r\n#Categories to filter on\r\ncatsToFilter = List[ElementId]([ElementId(BuiltInCategory.OST_GenericModel)])\r\n#Iterate through entries in color scheme\r\n#Getting all entires in colorfillscheme\r\nentries = roomColorScheme.GetEntries()\r\nfor entry in entries:\r\n    #Create filter for each entry\r\n    #getting the parameter value for the entry\r\n    paramValue = entry.GetStringValue()\r\n    #Getting the associated color\r\n    entryColor = entry.Color\r\n    #Creating the filter\r\n    #We need the rule first\r\n    filterRule = ParameterFilterRuleFactory.CreateEqualsRule(parameterTofilter.Id,paramValue,True)\r\n    #Now we can create the ElementFilter\r\n    elementFilter = ElementParameterFilter(filterRule)\r\n    #Create the ParameterFilterElement\r\n    paramFilterElement = ParameterFilterElement.Create(doc,\"AXO_\" + paramValue,catsToFilter,elementFilter)\r\n    #Apply the filter to the view and give it the right overrides\r\n    overrides = OverrideGraphicSettings()\r\n    overrides.SetCutForegroundPatternColor(entryColor)\r\n    overrides.SetCutForegroundPatternId(entry.FillPatternId)\r\n    overrides.SetSurfaceForegroundPatternId(entry.FillPatternId)\r\n    overrides.SetSurfaceForegroundPatternColor(entryColor)\r\n    viewtemplate.SetFilterOverrides(paramFilterElement.Id,overrides)\r\n    \r\ntransaction.Commit()",
+  "IsOkPyTemplate": false,
+  "LastUpdatedBy": null,
+  "Description": "OkPy Tool For Revit",
+  "Outputs": null,
+  "Engine": null,
+  "Path": "C:\\Users\\jumy_\\AppData\\Local\\Temp\\deab7a7a-ea2b-47e9-8d4a-9e0724501704\\3DColorScheme.okpy"
+}
