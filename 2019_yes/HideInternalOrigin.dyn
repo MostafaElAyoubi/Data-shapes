@@ -1,0 +1,284 @@
+{
+  "Uuid": "d172dbf1-fbaa-45e8-9678-21d0084a6556",
+  "IsCustomNode": false,
+  "Description": null,
+  "Name": "HideInternalOrigin",
+  "ElementResolver": {
+    "ResolutionMap": {}
+  },
+  "Inputs": [],
+  "Outputs": [],
+  "Nodes": [
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "# Load the Python Standard and DesignScript Libraries\r\nimport sys\r\npyt_path = r'C:\\Program Files (x86)\\IronPython 2.7\\Lib'\r\nsys.path.append(pyt_path)\r\nimport clr\r\nclr.AddReference('RevitAPI')\r\nfrom Autodesk.Revit.DB import *\r\nclr.AddReference('RevitServices')\r\nfrom RevitServices.Persistence  import DocumentManager\r\nfrom RevitServices.Transactions import TransactionManager\r\nimport System\r\n\r\n\r\ndoc = DocumentManager.Instance.CurrentDBDocument\r\n\r\nfec = FilteredElementCollector(doc).OfClass(View)\r\n\r\nselection = [v for v in fec if str(v.ViewType) in IN[0]]\r\n\r\nintOriCatId = [c for c in Category.GetCategory(doc,BuiltInCategory.OST_Site).SubCategories if c.Name == \"Internal Origin\"][0].Id\r\n\r\nif IN[1] == False:\r\n\tselection = [v for v in selection if v.IsTemplate == False]\r\n\r\n\r\nTransactionManager.Instance.EnsureInTransaction(doc)\r\nfor s in selection:\r\n\ts.SetCategoryHidden(intOriCatId,True)\r\nTransactionManager.Instance.TransactionTaskDone\r\n\r\nOUT = True",
+      "VariableInputPorts": true,
+      "Id": "2dd67f154108458f961b04fa1db969f8",
+      "Inputs": [
+        {
+          "Id": "7b91782ecf32408ab0a09b64570076c7",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "f69549a76cac42d1afc28f53644820a6",
+          "Name": "IN[1]",
+          "Description": "Input #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "122e164e66474efa8c334be7b1a14393",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    },
+    {
+      "ConcreteType": "archilabUI.ViewTypesUi, archilabUI",
+      "SelectedIndex": 9,
+      "SelectedString": "FloorPlan",
+      "NodeType": "ExtensionNode",
+      "Id": "62419395e8e8478d857faedce752eceb",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "4b77e1b0a91444468b376e8b0027ce6c",
+          "Name": "viewType",
+          "Description": "The selected viewType",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Retrieve all available View Types."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
+      "NodeType": "BooleanInputNode",
+      "InputValue": true,
+      "Id": "bc2b141b9b464cf28c3ad3a8e939caa1",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "05aa474b37df4551ac7528605e1d0884",
+          "Name": "",
+          "Description": "Boolean",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Selection between a true and false."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.CreateList, CoreNodeModels",
+      "VariableInputPorts": true,
+      "NodeType": "ExtensionNode",
+      "Id": "689d796078764d20acbf0a63c059a5b8",
+      "Inputs": [
+        {
+          "Id": "a21f2412995e4f268853f10987e4b42b",
+          "Name": "item0",
+          "Description": "Item Index #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "16d8af5fb7fa403fa13881e0bf19c882",
+          "Name": "item1",
+          "Description": "Item Index #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "376f80d0e4d146198bbddddabb0c61d7",
+          "Name": "list",
+          "Description": "A list",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Makes a new list out of the given inputs"
+    },
+    {
+      "ConcreteType": "archilabUI.ViewTypesUi, archilabUI",
+      "SelectedIndex": 19,
+      "SelectedString": "Section",
+      "NodeType": "ExtensionNode",
+      "Id": "2d838baab2544f07adc4128f42a8bdae",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "db6148eebe9242b880d4d9ab220f2a24",
+          "Name": "viewType",
+          "Description": "The selected viewType",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Retrieve all available View Types."
+    }
+  ],
+  "Connectors": [
+    {
+      "Start": "4b77e1b0a91444468b376e8b0027ce6c",
+      "End": "a21f2412995e4f268853f10987e4b42b",
+      "Id": "17903d7edefe413783e3caf098d4e2e3"
+    },
+    {
+      "Start": "05aa474b37df4551ac7528605e1d0884",
+      "End": "f69549a76cac42d1afc28f53644820a6",
+      "Id": "86ba2b17a64347838a91417d908cfac3"
+    },
+    {
+      "Start": "376f80d0e4d146198bbddddabb0c61d7",
+      "End": "7b91782ecf32408ab0a09b64570076c7",
+      "Id": "d089a8904a6641399cfc263b5c58b641"
+    },
+    {
+      "Start": "db6148eebe9242b880d4d9ab220f2a24",
+      "End": "16d8af5fb7fa403fa13881e0bf19c882",
+      "Id": "f8bb4a6a1b4e49fbbad7bb55c8b0f3fc"
+    }
+  ],
+  "Dependencies": [],
+  "NodeLibraryDependencies": [
+    {
+      "Name": "archi-lab.net",
+      "Version": "2019.2.27",
+      "ReferenceType": "Package",
+      "Nodes": [
+        "62419395e8e8478d857faedce752eceb",
+        "2d838baab2544f07adc4128f42a8bdae"
+      ]
+    }
+  ],
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 1.0,
+      "HasRunWithoutCrash": true,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "2.3.0.5885",
+      "RunType": "Manual",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "Background Preview",
+      "EyeX": -17.0,
+      "EyeY": 24.0,
+      "EyeZ": 50.0,
+      "LookX": 12.0,
+      "LookY": -13.0,
+      "LookZ": -58.0,
+      "UpX": 0.0,
+      "UpY": 1.0,
+      "UpZ": 0.0
+    },
+    "NodeViews": [
+      {
+        "ShowGeometry": true,
+        "Name": "Python Script",
+        "Id": "2dd67f154108458f961b04fa1db969f8",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 685.0,
+        "Y": 259.0
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "View Type",
+        "Id": "62419395e8e8478d857faedce752eceb",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 247.0,
+        "Y": 52.0
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Boolean",
+        "Id": "bc2b141b9b464cf28c3ad3a8e939caa1",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 341.0,
+        "Y": 370.0
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "List Create",
+        "Id": "689d796078764d20acbf0a63c059a5b8",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 470.0,
+        "Y": 101.0
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "View Type",
+        "Id": "2d838baab2544f07adc4128f42a8bdae",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 245.0,
+        "Y": 153.0
+      }
+    ],
+    "Annotations": [
+      {
+        "Id": "e5d2b7ca14c04af4a9406231f2be3b2f",
+        "Title": "Include viewtemplates",
+        "Nodes": [
+          "bc2b141b9b464cf28c3ad3a8e939caa1"
+        ],
+        "Left": 331.0,
+        "Top": 274.0,
+        "Width": 237.34333333333336,
+        "Height": 164.0,
+        "FontSize": 36.0,
+        "InitialTop": 370.0,
+        "InitialHeight": 145.0,
+        "TextblockHeight": 86.0,
+        "Background": "#FFC1D676"
+      }
+    ],
+    "X": 236.0,
+    "Y": 72.0,
+    "Zoom": 1.0
+  }
+}
