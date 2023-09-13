@@ -1,0 +1,51 @@
+{
+  "$type": "OkPy.Models.OkPyModel, OkPy",
+  "Id": null,
+  "Name": "RoomVolumes",
+  "Inputs": {
+    "$type": "System.Collections.ObjectModel.ObservableCollection`1[[OkPy.Models.OkInputModel, OkPy]], System",
+    "$values": [
+      {
+        "$type": "OkPy.Models.OkDropdownInputModel, OkPy",
+        "MaxDropDownHeight": 500,
+        "SelectedObject": "Name",
+        "Id": "8f11e9db-e686-45b7-a3aa-ce4fb528c1c7",
+        "Guid": "6344ea43-a8b1-47fc-86b8-ec70f1e69c81",
+        "Type": 0,
+        "Name": "Room Parameter to inject",
+        "IsBaseInput": false,
+        "Category": null,
+        "Version": 0,
+        "Code": "import clr\r\nclr.AddReference('RevitAPI')\r\nfrom Autodesk.Revit.DB import BuiltInCategory , FilteredElementCollector as fec\r\n\r\nrooms = fec(__currentdoc__).OfCategory(BuiltInCategory.OST_Rooms).ToElements()\r\nroom = rooms[0]\r\ndict={}\r\nfor p in room.Parameters:\r\n    dict[p.Definition.Name]=p.Definition.Name\r\n\r\n#The information displayed by the input is stored in the __out__ dictionary\r\n__out__=dict",
+        "Uploadedby": null,
+        "Description": "Select the Room Parameter to use for filtering 3D Rooms",
+        "IsOOTB": true,
+        "InputKey": "roomParameter"
+      },
+      {
+        "$type": "OkPy.Models.OkDropdownInputModel, OkPy",
+        "MaxDropDownHeight": 500,
+        "SelectedObject": "Comments",
+        "Id": "8f11e9db-e686-45b7-a3aa-ce4fb528c1c7",
+        "Guid": "aae54d9d-a22d-42e6-8040-07d5c8064646",
+        "Type": 0,
+        "Name": "Parameter to Set On Room Geometries",
+        "IsBaseInput": false,
+        "Category": null,
+        "Version": 0,
+        "Code": "import clr\r\nclr.AddReference('RevitAPI')\r\nfrom Autodesk.Revit.DB import BuiltInCategory , FilteredElementCollector as fec\r\n\r\nrooms = fec(__currentdoc__).OfCategory(BuiltInCategory.OST_GenericModel).WhereElementIsNotElementType().ToElements()\r\nroom = rooms[0]\r\ndict={}\r\nfor p in room.Parameters:\r\n    dict[p.Definition.Name]=p.Definition.Name\r\n\r\n#The information displayed by the input is stored in the __out__ dictionary\r\n__out__=dict",
+        "Uploadedby": null,
+        "Description": "This parameter value from the selected room parameter will be stored in this parameter",
+        "IsOOTB": true,
+        "InputKey": "gmParameter"
+      }
+    ]
+  },
+  "Code": "import clr\r\nclr.AddReference('RevitAPI')\r\nfrom Autodesk.Revit.DB import*\r\n\r\n#The current uidoc, doc, uiapp, and app are stored in the following variables\r\ndoc = __currentdoc__\r\napp = __app__\r\nuidoc = __uidoc__\r\nuiapp = __uiapp__\r\n\r\n#The inputs are stored in the __inputs__ dictionray\r\n#The key for each input can be set through the UI\r\ninputs = __inputs__\r\n\r\n",
+  "IsOkPyTemplate": false,
+  "LastUpdatedBy": null,
+  "Description": "OkPy Tool For Revit",
+  "Outputs": null,
+  "Engine": null,
+  "Path": "C:\\Users\\jumy_\\AppData\\Local\\Temp\\6db8b549-3692-4987-b4a0-7de17ce09d39\\RoomVolumes.okpy"
+}
