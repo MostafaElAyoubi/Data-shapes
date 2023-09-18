@@ -1,0 +1,131 @@
+{
+  "Uuid": "7ab05161-e7db-430f-a2cc-745222b6abb8",
+  "IsCustomNode": false,
+  "Description": null,
+  "Name": "TestInputs",
+  "ElementResolver": {
+    "ResolutionMap": {}
+  },
+  "Inputs": [],
+  "Outputs": [],
+  "Nodes": [
+    {
+      "ConcreteType": "NodeboxUI.About.AboutNodebox, NodeboxUI2020",
+      "IsChecked": false,
+      "NodeComplexity": 1,
+      "NodeType": "ExtensionNode",
+      "Id": "0b6d8acd8246480dac7854dd8b03c698",
+      "Inputs": [
+        {
+          "Id": "d1f0bf9de3f14df3901d4e117dd6ab13",
+          "Name": "N",
+          "Description": "Input your name",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "069e12d2aeba45a9b3f8ffad2efa7922",
+          "Name": "R",
+          "Description": "Result",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Nodebox about"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.StringInput, CoreNodeModels",
+      "NodeType": "StringInputNode",
+      "InputValue": "mirco",
+      "Id": "46f1fa8c31c2466cb56210866876eb85",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "e96d013676c64b728216df658a7987a1",
+          "Name": "",
+          "Description": "String",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Creates a string."
+    }
+  ],
+  "Connectors": [
+    {
+      "Start": "e96d013676c64b728216df658a7987a1",
+      "End": "d1f0bf9de3f14df3901d4e117dd6ab13",
+      "Id": "a1a5dee9477547db8a80703ceced6509"
+    }
+  ],
+  "Dependencies": [],
+  "NodeLibraryDependencies": [
+    {
+      "Name": "Nodebox",
+      "Version": "1.0.0.0",
+      "ReferenceType": "Package",
+      "Nodes": [
+        "0b6d8acd8246480dac7854dd8b03c698"
+      ]
+    }
+  ],
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 1.0,
+      "HasRunWithoutCrash": true,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "2.3.2.15696",
+      "RunType": "Automatic",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "Background Preview",
+      "EyeX": -17.0,
+      "EyeY": 24.0,
+      "EyeZ": 50.0,
+      "LookX": 12.0,
+      "LookY": -13.0,
+      "LookZ": -58.0,
+      "UpX": 0.0,
+      "UpY": 1.0,
+      "UpZ": 0.0
+    },
+    "NodeViews": [
+      {
+        "ShowGeometry": true,
+        "Name": "Nodebox| About",
+        "Id": "0b6d8acd8246480dac7854dd8b03c698",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 344.3252648211045,
+        "Y": 305.38193644293494
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "String",
+        "Id": "46f1fa8c31c2466cb56210866876eb85",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 253.0,
+        "Y": 307.0
+      }
+    ],
+    "Annotations": [],
+    "X": -35.128462897400027,
+    "Y": -55.672406218215315,
+    "Zoom": 1.1047642563030273
+  }
+}
