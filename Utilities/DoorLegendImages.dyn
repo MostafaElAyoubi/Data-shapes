@@ -1,0 +1,367 @@
+{
+  "Uuid": "d5597e17-ad3a-4c58-bcff-053196456f83",
+  "IsCustomNode": false,
+  "Description": null,
+  "Name": "DoorLegendImages",
+  "ElementResolver": {
+    "ResolutionMap": {}
+  },
+  "Inputs": [],
+  "Outputs": [],
+  "Nodes": [
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "# Load the Python Standard and DesignScript Libraries\r\nimport clr\r\nclr.AddReference('RevitAPI')\r\nfrom Autodesk.Revit.DB import*\r\nclr.AddReference('RevitServices')\r\nimport time\r\nimport datetime\r\nfrom RevitServices.Transactions import TransactionManager\r\nfrom RevitServices.Persistence import DocumentManager\r\nclr.AddReference('RevitNodes')\r\nimport Revit\r\nclr.ImportExtensions(Revit.Elements)\r\nimport datetime\r\nfrom System.Collections.Generic import *\r\nimport tempfile\r\n\r\ndoc = DocumentManager.Instance.CurrentDBDocument\r\nuiapp = DocumentManager.Instance.CurrentUIApplication\r\napp = uiapp.Application\r\nuidoc = uiapp.ActiveUIDocument\r\n\r\nuiviews = uidoc.GetOpenUIViews()\r\nactiveviewid = doc.ActiveView.Id\r\nactiveUIView = [v for v in uiviews if v.ViewId == activeviewid][0]\r\nlgdView = UnwrapElement(IN[0])\r\n\r\n#Get legend components\r\nelem = FilteredElementCollector(doc,lgdView.Id).OfCategory(BuiltInCategory.OST_LegendComponents).ToElements()[0]\r\nimageTypes = FilteredElementCollector(doc).OfClass(ImageType).ToElements()\r\nimageNames = [i.ToDSType(True).Name for i in  imageTypes]\r\n\r\ndoors = FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Doors).WhereElementIsNotElementType()\r\nlevels = FilteredElementCollector(doc).OfClass(Level).WhereElementIsNotElementType()\r\ndoorTypes = FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Doors).WhereElementIsElementType().ToElements()\r\n\r\nTransactionManager.Instance.ForceCloseTransaction()\r\n\r\ncounts = []\r\n\r\n\r\ndef meth(doorType,viewType_,suffix):\r\n\t#PREVIEWS\r\n\ttrans = Transaction(doc)\r\n\tTransactionManager.Instance.ForceCloseTransaction()\r\n\ttrans.Start(str(doorType.Id))\r\n\telem.get_Parameter(BuiltInParameter.LEGEND_COMPONENT).Set(doorType.Id)\r\n\telem.get_Parameter(BuiltInParameter.LEGEND_COMPONENT_VIEW).Set(viewType_)\r\n\tif suffix == \"Pla\":\r\n\t\telem.get_Parameter(BuiltInParameter.LEGEND_COMPONENT_LENGTH).Set(7)\r\n\toptsPlan = ImageExportOptions()\r\n\tpathToImage = tempfile.gettempdir()+\"\\\\\"+str(doorType.Id)+suffix\r\n\toptsPlan.FilePath = pathToImage\t\t\r\n\toptsPlan.PixelSize = 2048\r\n\toptsPlan.ImageResolution = ImageResolution.DPI_300\r\n\tlgdView.CropBox = elem.get_BoundingBox(lgdView)\r\n\tactiveUIView.ZoomToFit()\r\n\tuidoc.RefreshActiveView()\r\n\ttrans.Commit()\r\n\r\n\ttrans1 = Transaction(doc)\r\n\ttrans1.Start(str(doorType.Id)+\"export\")\r\n\tdoc.ExportImage(optsPlan)\r\n\tif str(doorType.Id)+suffix+\".jpg\" in imageNames:\r\n\t\ttry:\r\n\t\t\ttoDel = [i for i in imageTypes if str(doorType.Id)+suffix+\".jpg\"== i.ToDSType(True).Name][0]\t\t\r\n\t\t\tdoc.Delete(toDel.Id)\r\n\t\texcept:\r\n\t\t\tpass\r\n\timageType = ImageType.Create(doc, pathToImage+\".jpg\");\t\t\r\n\tdoorType.LookupParameter(\"leg_\"+suffix).Set(imageType.Id)\r\n\ttrans1.Commit()\r\n\t\r\n\r\nfor fType in doorTypes:\t\t\r\n\tmeth(fType,-8,\"Pla\")\r\n\tmeth(fType,-7,\"Ele\")\r\n\tmeth(fType,-3,\"3D\")\r\n\t#COUNT\r\n\tparamString = \"\"\r\n\tdoorsOfType = [d for d in doors if d.GetTypeId() == fType.Id]\r\n\tfor l in levels:\r\n\t\tdoorsAtLevel = [d for d in doorsOfType if d.LevelId == l.Id]\r\n\t\tparamString += l.Name + \" : \" + str(len(doorsAtLevel)) + \"\\n\"\r\n\tTransactionManager.Instance.EnsureInTransaction(doc)\r\n\tfType.LookupParameter(\"leg_NombreParNiveau\").Set(paramString)\r\n\tTransactionManager.Instance.TransactionTaskDone\r\n\r\n\r\nOUT = doorTypes,counts",
+      "VariableInputPorts": true,
+      "Id": "cf11fcdd48794d5aac601100e3705cdc",
+      "Inputs": [
+        {
+          "Id": "4c95efe60c624a92b7ffb9a8fc515545",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "d58a319348574c3f881a5cac91ecfbd2",
+          "Name": "IN[1]",
+          "Description": "Input #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "5a5214c6bff04194babbf68af3df3312",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "# Load the Python Standard and DesignScript Libraries\r\nimport clr\r\nclr.AddReference('RevitAPI')\r\nfrom Autodesk.Revit.DB import*\r\nclr.AddReference('RevitServices')\r\nimport time\r\nimport datetime\r\nfrom RevitServices.Transactions import TransactionManager\r\nfrom RevitServices.Persistence import DocumentManager\r\nclr.AddReference('RevitNodes')\r\nimport Revit\r\nclr.ImportExtensions(Revit.Elements)\r\nimport datetime\r\nfrom System.Collections.Generic import *\r\n\r\ndoc = DocumentManager.Instance.CurrentDBDocument\r\nuiapp = DocumentManager.Instance.CurrentUIApplication\r\napp = uiapp.Application\r\nuidoc = uiapp.ActiveUIDocument\r\n\r\nuiviews = uidoc.GetOpenUIViews()\r\nactiveviewid = doc.ActiveView.Id\r\nactiveUIView = [v for v in uiviews if v.ViewId == activeviewid][0]\r\nlgdView = UnwrapElement(IN[0])\r\n\r\n#Get legend components\r\nelem = FilteredElementCollector(doc).OfClass(ImageType).ToElements()\r\n\r\n\r\nTransactionManager.Instance.EnsureInTransaction(doc)\t\r\nfor e in elem:\r\n\tdoc.Delete(e.Id)\r\nTransactionManager.Instance.TransactionTaskDone()\t\r\n\r\n\r\nOUT = \"ok\"",
+      "VariableInputPorts": true,
+      "Id": "ee1e4937698a49278d319019583ac5ad",
+      "Inputs": [
+        {
+          "Id": "90557a5d7af747eaac773430bafdade0",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "b4d911d3dfac41d6b25c922209ad1989",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
+      "NodeType": "BooleanInputNode",
+      "InputValue": false,
+      "Id": "6b5508b0ffaa406bb1601b971ff4cb3a",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "150eb65d8182406c9b5213cd30567fe2",
+          "Name": "",
+          "Description": "Boolean",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Selection between a true and false."
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "import clr\nimport System\nclr.AddReference('RevitAPI')\nfrom Autodesk.Revit.DB import*\nclr.AddReference('RevitServices')\nfrom RevitServices.Persistence import DocumentManager\nfrom RevitServices.Transactions import TransactionManager\nclr.AddReference('RevitAPIUI')\nfrom Autodesk.Revit.UI import *\nfrom Autodesk.Revit import Creation\nimport sys\npyt_path = r'C:\\Program Files (x86)\\IronPython 2.7\\Lib'\nsys.path.append(pyt_path)\n\nimport System\nimport os\nimport tempfile\n\n\ndoc = DocumentManager.Instance.CurrentDBDocument\nuidoc = DocumentManager.Instance.CurrentUIDocument\napp = doc.Application\n\ndef tolist(input):\n\tif isinstance(input,list):\n\t\treturn UnwrapElement(input)\n\telse:\n\t\treturn [UnwrapElement(input)]\n\t\t\ncategories = tolist(Category.GetCategory(doc,BuiltInCategory.OST_Doors))\n\n#Vérification de l'existance du paramètre\n\n\ndef listing(input):\n\tif isinstance(input,list):\n\t\treturn input\n\telse:\n\t\treturn [input]\n\t\t\nparamnames = [\"leg_Pla\",\"leg_Ele\",\"leg_3D\",\"leg_NombreParNiveau\"]\nparamtypes = [ParameterType.Image,ParameterType.Image,ParameterType.Image,ParameterType.MultilineText]\n\n\n#Creation d'une référence externe temporaire\ntempfolder = tempfile.gettempdir()\ntempfile = tempfolder +'\\\\'+'DATASHAPESTEMP.txt'\nf = open(tempfile,'w')\nf.write('')\nf.close()\n\nTransactionManager.Instance.EnsureInTransaction(doc)\n\n#recuperation du fichier de paramètres partagés pour remplacement temporaire\norig = True\ntry:\n\toriginalFile = app.SharedParametersFilename\nexcept:\n\torig = False\n\n#remplacement du fichier de paramètres partagés et création des paramètres de projet\napp.SharedParametersFilename = tempfile\ngroups = app.OpenSharedParameterFile().Groups\ntempgroup = groups.Create('TempParams')\n\nfor paramname,paramtype in zip(paramnames,paramtypes):\n\titerator = doc.ParameterBindings.ForwardIterator()\n\ttestval = 0\n\twhile iterator.MoveNext():\n\t\tif categories[0].Name in [c.Name for c in iterator.Current.Categories] and paramname == iterator.Key.Name:\n\t\t\ttestval=1\n\t\telse:\n\t\t\tpass\t\n\tif testval==0:\t\t\t\n\t\t#creation d'un set de categories\n\t\tcatset = app.Create.NewCategorySet()\n\t\t[catset.Insert(j) for j in categories]\t\n\t\t#Creation du paramètre dans le fichier externe temporaire\n\t\ttempparam = ExternalDefinitionCreationOptions(paramname,paramtype)\n\t\ttempparam.UserModifiable = True\n\t\ttempdef = tempgroup.Definitions.Create(tempparam)\t\t\n\t\tparamgroup = [a for a in System.Enum.GetValues(BuiltInParameterGroup) if str(a) == \"PG_IDENTITY_DATA\"][0]\t\t\n\t\t#Ajout du paramètre au projet\t\n\t\tbind = app.Create.NewTypeBinding(catset)\n\t\tbindmap = doc.ParameterBindings\n\t\tbindmap.Insert(tempdef, bind, paramgroup)\n\t\t\n\t\t\n\n\t\t\n\telse:\n\t\tpass\n#Rétablissement du fichier de paramètres partagés initial\nif orig:\n\tapp.SharedParametersFilename = originalFile\nelse:\n\tpass\nTransactionManager.Instance.TransactionTaskDone\n\nOUT = \"ok\"",
+      "VariableInputPorts": true,
+      "Id": "75440ffa95c34b8f961c9254cf080c98",
+      "Inputs": [
+        {
+          "Id": "33e2b679b59e41db9fc7116717fe8146",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "d80bde9a9b914f37bcba7aa17ce67ddf",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
+      "NodeType": "BooleanInputNode",
+      "InputValue": true,
+      "Id": "1ad58a48a1704f83a260a421fe066915",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "967a98ef9eed49fd80a204ff5bcf07af",
+          "Name": "",
+          "Description": "Boolean",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Selection between a true and false."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "Revit.Application.Document.ActiveView",
+      "Id": "b5268c7fbdc84bc193510ee517b6d025",
+      "Inputs": [
+        {
+          "Id": "aedebb6df9ac48e7adbce8926e6d88fb",
+          "Name": "document",
+          "Description": "Revit.Application.Document",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "d5e167570f4a4770999a2d60a6e8bacc",
+          "Name": "View",
+          "Description": "View",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Get the active view for the document\n\nDocument.ActiveView: View"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "Revit.Application.Document.Current",
+      "Id": "cd21df0b0fe041b3a9d15f7096aff42c",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "9f51102135ea45e0b6d6e0b1110fdc7b",
+          "Name": "Document",
+          "Description": "Document",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Get the current document\n\nDocument.Current: Document"
+    }
+  ],
+  "Connectors": [
+    {
+      "Start": "150eb65d8182406c9b5213cd30567fe2",
+      "End": "90557a5d7af747eaac773430bafdade0",
+      "Id": "2c6808fe5da340c5b420b0ca130776ee"
+    },
+    {
+      "Start": "d80bde9a9b914f37bcba7aa17ce67ddf",
+      "End": "d58a319348574c3f881a5cac91ecfbd2",
+      "Id": "3ba4c199efb14083880141329d644fa2"
+    },
+    {
+      "Start": "967a98ef9eed49fd80a204ff5bcf07af",
+      "End": "33e2b679b59e41db9fc7116717fe8146",
+      "Id": "8b3a34faa2124a72a0d3592c88f79db4"
+    },
+    {
+      "Start": "d5e167570f4a4770999a2d60a6e8bacc",
+      "End": "4c95efe60c624a92b7ffb9a8fc515545",
+      "Id": "2f7987904d4d4663ae0cdee50e4ade75"
+    },
+    {
+      "Start": "9f51102135ea45e0b6d6e0b1110fdc7b",
+      "End": "aedebb6df9ac48e7adbce8926e6d88fb",
+      "Id": "51a1f873dffa40d0b818ef2d73f58342"
+    }
+  ],
+  "Dependencies": [],
+  "NodeLibraryDependencies": [],
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 10000.0,
+      "HasRunWithoutCrash": true,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "2.6.1.8786",
+      "RunType": "Manual",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "Background Preview",
+      "EyeX": -17.0,
+      "EyeY": 24.0,
+      "EyeZ": 50.0,
+      "LookX": 12.0,
+      "LookY": -13.0,
+      "LookZ": -58.0,
+      "UpX": 0.0,
+      "UpY": 1.0,
+      "UpZ": 0.0
+    },
+    "NodeViews": [
+      {
+        "ShowGeometry": false,
+        "Name": "Python Script",
+        "Id": "cf11fcdd48794d5aac601100e3705cdc",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 1132.0086814216327,
+        "Y": 903.1477419741442
+      },
+      {
+        "ShowGeometry": false,
+        "Name": "Python Script",
+        "Id": "ee1e4937698a49278d319019583ac5ad",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": true,
+        "X": 781.37905852397546,
+        "Y": 1107.709790358389
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Boolean",
+        "Id": "6b5508b0ffaa406bb1601b971ff4cb3a",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 562.725528934324,
+        "Y": 1108.7434756125708
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Python Script",
+        "Id": "75440ffa95c34b8f961c9254cf080c98",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 758.7776023286915,
+        "Y": 930.42031467274489
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Boolean",
+        "Id": "1ad58a48a1704f83a260a421fe066915",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 547.29944086713124,
+        "Y": 930.69934200797434
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Document.ActiveView",
+        "Id": "b5268c7fbdc84bc193510ee517b6d025",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 684.943081880611,
+        "Y": 640.295852964173
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Document.Current",
+        "Id": "cd21df0b0fe041b3a9d15f7096aff42c",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 505.72032113197486,
+        "Y": 639.8075075670381
+      }
+    ],
+    "Annotations": [
+      {
+        "Id": "6b7b90fc56664a6893c6d37eefb0b3d9",
+        "Title": "cleanImages",
+        "Nodes": [
+          "ee1e4937698a49278d319019583ac5ad",
+          "6b5508b0ffaa406bb1601b971ff4cb3a"
+        ],
+        "Left": 552.725528934324,
+        "Top": 1054.709790358389,
+        "Width": 363.1535295896515,
+        "Height": 146.0,
+        "FontSize": 36.0,
+        "InitialTop": 1107.709790358389,
+        "InitialHeight": 146.03368525418182,
+        "TextblockHeight": 43.0,
+        "Background": "#FFC1D676"
+      },
+      {
+        "Id": "445953caf7464c85a4ea50811111a5b5",
+        "Title": "Création des paramètres non existants",
+        "Nodes": [
+          "75440ffa95c34b8f961c9254cf080c98"
+        ],
+        "Left": 748.7776023286915,
+        "Top": 740.42031467274489,
+        "Width": 159.14000000000001,
+        "Height": 283.0,
+        "FontSize": 30.0,
+        "InitialTop": 930.42031467274489,
+        "InitialHeight": 145.0,
+        "TextblockHeight": 180.0,
+        "Background": "#FFC1D676"
+      }
+    ],
+    "X": 47.508791558518283,
+    "Y": -337.17739855219747,
+    "Zoom": 0.5381115560966605
+  }
+}
