@@ -1,0 +1,69 @@
+{
+  "$type": "OkPy.Models.OkPyModel, OkPy",
+  "Id": null,
+  "Name": "18testing",
+  "Inputs": {
+    "$type": "System.Collections.ObjectModel.ObservableCollection`1[[OkInputModel, OrkestraCore]], System",
+    "$values": [
+      {
+        "$type": "OkPy.Models.OkSliderInputModel, OkPy",
+        "MinValue": 0,
+        "MaxValue": 100,
+        "Step": 4.0,
+        "ReturnValue": "100",
+        "Id": "0B06CFE2-504F-4B59-99C6-E0D37DF18379",
+        "Guid": "19a44a79-5640-4b05-bc54-596811179a62",
+        "Type": 4,
+        "Name": "Slider Input",
+        "IsBaseInput": false,
+        "Category": null,
+        "Version": 0,
+        "Code": null,
+        "Uploadedby": null,
+        "Description": "The base OkPy slider input",
+        "IsOOTB": true,
+        "InputKey": "MyInput1"
+      },
+      {
+        "$type": "OkPy.Models.OkTextboxInputModel, OkPy",
+        "ReturnValue": "Default",
+        "Id": "2BC5D902-A231-4BBD-9165-0035322B9394",
+        "Guid": "70c5f917-c677-49d7-9ec7-a0704f582357",
+        "Type": 3,
+        "Name": "TextBox input",
+        "IsBaseInput": false,
+        "Category": null,
+        "Version": 0,
+        "Code": null,
+        "Uploadedby": null,
+        "Description": "The base OkPy TextBox input",
+        "IsOOTB": true,
+        "InputKey": "MyInput2"
+      },
+      {
+        "$type": "OkPy.Models.OkDropdownInputModel, OkPy",
+        "MaxDropDownHeight": 500,
+        "SelectedObject": "",
+        "Id": "8f11e9db-e686-45b7-a3aa-ce4fb528c1c7",
+        "Guid": "20469847-bbb5-4a71-b47d-78032ea956db",
+        "Type": 0,
+        "Name": "DropDown Input",
+        "IsBaseInput": false,
+        "Category": null,
+        "Version": 0,
+        "Code": "import clr\r\ndict={}\r\ndict['a']=1\r\ndict['b']=2\r\ndict['c']=3\r\ndict['d']=4\r\n#The information displayed by the input is stored in the __out__ dictionary\r\n__out__=dict",
+        "Uploadedby": null,
+        "Description": "The Base DropDown input for OkPy.",
+        "IsOOTB": true,
+        "InputKey": "MyInput3"
+      }
+    ]
+  },
+  "Code": "import clr\r\nclr.AddReference('RevitAPI')\r\nfrom Autodesk.Revit.DB import*\r\n\r\n#The current uidoc, doc, uiapp, and app are stored in the following variables\r\ndoc = __currentdoc__\r\napp = __app__\r\nuidoc = __uidoc__\r\nuiapp = __uiapp__\r\n\r\n#The inputs are stored in the __inputs__ dictionray\r\n#The key for each input can be set through the UI\r\n\r\ninputs = __inputs__",
+  "IsOkPyTemplate": false,
+  "LastUpdatedBy": null,
+  "Description": "OkPy Tool For Revit",
+  "Outputs": null,
+  "Engine": null,
+  "Path": "C:\\Users\\MostafaElAyoubi\\AppData\\Local\\Temp\\47e9d081-245b-483b-b491-93c2c9999c31\\18testing.okpy"
+}
