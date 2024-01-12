@@ -1,0 +1,577 @@
+{
+  "Uuid": "a7776467-1672-4900-8176-c49def2bbde1",
+  "IsCustomNode": false,
+  "Description": "",
+  "Name": "AutoUIForm2.0",
+  "ElementResolver": {
+    "ResolutionMap": {}
+  },
+  "Inputs": [
+    {
+      "Id": "0c144ee638e44c0c8b1e9f8e568cd784",
+      "Name": "String",
+      "Type": "string",
+      "Type2": "string",
+      "Value": "we need this\r\nzfer\r\nzegezr\r\nregzerz\r\n",
+      "Description": "Creates a string",
+      "SelectedIndex": 0
+    },
+    {
+      "Id": "7b970e01195243758c936f10622cb669",
+      "Name": "Number Slider",
+      "Type": "number",
+      "Type2": "number",
+      "Value": "38",
+      "MaximumValue": 100.0,
+      "MinimumValue": 0.0,
+      "StepValue": 0.1,
+      "NumberType": "Double",
+      "Description": "Produces numeric values",
+      "SelectedIndex": 0
+    },
+    {
+      "Id": "760e7b1e686f4f16a8210600b5eec55f",
+      "Name": "Number",
+      "Type": "number",
+      "Type2": "number",
+      "Value": "10",
+      "NumberType": "Double",
+      "Description": "Creates a number",
+      "SelectedIndex": 0
+    },
+    {
+      "Id": "6ad2a1015f3d4abbbcfd29570719faea",
+      "Name": "A very very very very very very very very very long item title",
+      "Type": "string",
+      "Type2": "string",
+      "Value": "No file selected.",
+      "Description": "Allows you to select a file on the system and returns its file path",
+      "SelectedIndex": 0
+    },
+    {
+      "Id": "02fe605a53ad4ca590a0184fc6a366d3",
+      "Name": "Boolean",
+      "Type": "boolean",
+      "Type2": "boolean",
+      "Value": "false",
+      "Description": "Enables selection between True and False",
+      "SelectedIndex": 0
+    },
+    {
+      "Id": "d7f765b7d4e94ece983567afdc841f69",
+      "Name": "Custom Selection",
+      "Type": "selection",
+      "Type2": "dropdownSelection",
+      "Value": "One",
+      "Description": "A dropdown menu with customizable values.",
+      "SelectedIndex": 0
+    },
+    {
+      "Id": "53e024b27ca44b58b67ef34287ca1255",
+      "Name": "Directory Path",
+      "Type": "string",
+      "Type2": "string",
+      "Value": "No file selected.",
+      "Description": "Allows you to select a directory on the system and returns its path",
+      "SelectedIndex": 0
+    }
+  ],
+  "Outputs": [
+    {
+      "Id": "1050fb79b74d4b30926197dd7e9f9ab0",
+      "Name": "Watch",
+      "Type": "unknown",
+      "InitialValue": "",
+      "Description": "Visualizes a node's output"
+    }
+  ],
+  "Nodes": [
+    {
+      "ConcreteType": "CoreNodeModels.Input.StringInput, CoreNodeModels",
+      "Id": "0c144ee638e44c0c8b1e9f8e568cd784",
+      "NodeType": "StringInputNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "afdbc901eb784e72bad7343f3f02c085",
+          "Name": "",
+          "Description": "String",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Creates a string",
+      "InputValue": "we need this\r\nzfer\r\nzegezr\r\nregzerz\r\n"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
+      "Id": "efd617c29f3048139c4f87ffb72868c7",
+      "NodeType": "BooleanInputNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "c1b96efeaefc4ca79ac99b958ed1c411",
+          "Name": "",
+          "Description": "Boolean",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Enables selection between True and False",
+      "InputValue": false
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.DoubleSlider, CoreNodeModels",
+      "NumberType": "Double",
+      "MaximumValue": 100.0,
+      "MinimumValue": 0.0,
+      "StepValue": 0.1,
+      "Id": "7b970e01195243758c936f10622cb669",
+      "NodeType": "NumberInputNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "4ef5234f17bd4432949d2de3fb2f55b3",
+          "Name": "",
+          "Description": "Double",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Produces numeric values",
+      "InputValue": 38.0
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.DoubleInput, CoreNodeModels",
+      "NumberType": "Double",
+      "Id": "760e7b1e686f4f16a8210600b5eec55f",
+      "NodeType": "NumberInputNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "619d64f0ce0944939358b610126238ec",
+          "Name": "",
+          "Description": "Double",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Creates a number",
+      "InputValue": 10.0
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Watch, CoreNodeModels",
+      "WatchWidth": 200.0,
+      "WatchHeight": 38.0,
+      "Id": "1050fb79b74d4b30926197dd7e9f9ab0",
+      "NodeType": "ExtensionNode",
+      "Inputs": [
+        {
+          "Id": "e3c613a6ddc64795acd5fa720d1f323b",
+          "Name": "",
+          "Description": "Node to show output from",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "014352596c7847e6baea98fe610cf773",
+          "Name": "",
+          "Description": "Node output",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Visualizes a node's output"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.CreateList, CoreNodeModels",
+      "VariableInputPorts": true,
+      "Id": "a17f49d7598c45b8b8896e6f6d832aa2",
+      "NodeType": "ExtensionNode",
+      "Inputs": [
+        {
+          "Id": "31bb3adcb66f4b85a8a8a58b8bbcd45c",
+          "Name": "item0",
+          "Description": "Item Index #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "de063da501494ed991e4769a411ec167",
+          "Name": "item1",
+          "Description": "Item Index #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "d4faebd45ac74de7bb809937bb8b5398",
+          "Name": "item2",
+          "Description": "Item Index #2",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "07dac54b37e74d61b4c0445fcf2df230",
+          "Name": "item3",
+          "Description": "Item Index #3",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "bf9719d19b764be89e4fd0ca7a686335",
+          "Name": "item4",
+          "Description": "Item Index #4",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "358fc0543b884a69911f63023f73902b",
+          "Name": "item5",
+          "Description": "Item Index #5",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "e56e4f5529d040bc952ce0da875b0d39",
+          "Name": "list",
+          "Description": "A list (type: var[]..[])",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Makes a new list from the given inputs"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.Filename, CoreNodeModels",
+      "Id": "6ad2a1015f3d4abbbcfd29570719faea",
+      "NodeType": "ExtensionNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "3232c207aa9247cfbdbc5ca6879b80f6",
+          "Name": "",
+          "Description": "File Path",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows you to select a file on the system and returns its file path",
+      "HintPath": "C:\\Users\\MostafaElAyoubi\\Orkestra\\OrkestraDev - Documents\\TestFiles\\Revit\\DynAutoUIForm\\No file selected",
+      "InputValue": "No file selected."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
+      "Id": "02fe605a53ad4ca590a0184fc6a366d3",
+      "NodeType": "BooleanInputNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "ed2611a60af0421ca7e544e687182360",
+          "Name": "",
+          "Description": "Boolean",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Enables selection between True and False",
+      "InputValue": false
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.CustomSelection, CoreNodeModels",
+      "SerializedItems": [
+        {
+          "Name": "One",
+          "Item": "1"
+        },
+        {
+          "Name": "Two",
+          "Item": "2"
+        },
+        {
+          "Name": "Three",
+          "Item": "3"
+        }
+      ],
+      "SelectedIndex": 0,
+      "SelectedString": "One",
+      "Id": "d7f765b7d4e94ece983567afdc841f69",
+      "NodeType": "ExtensionNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "e062bd27bf72429ea436debf1df751cd",
+          "Name": "value",
+          "Description": "Selected value",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A dropdown menu with customizable values."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.Directory, CoreNodeModels",
+      "Id": "53e024b27ca44b58b67ef34287ca1255",
+      "NodeType": "ExtensionNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "026ed6741fe947928c929969cc0161ab",
+          "Name": "",
+          "Description": "Directory path",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows you to select a directory on the system and returns its path",
+      "HintPath": "C:\\Users\\MostafaElAyoubi\\Orkestra\\OrkestraDev - Documents\\TestFiles\\Revit\\DynAutoUIForm\\No file selected",
+      "InputValue": "No file selected."
+    }
+  ],
+  "Connectors": [
+    {
+      "Start": "afdbc901eb784e72bad7343f3f02c085",
+      "End": "31bb3adcb66f4b85a8a8a58b8bbcd45c",
+      "Id": "b0a1f2c320c3462fa185ef9cf20e8493",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "c1b96efeaefc4ca79ac99b958ed1c411",
+      "End": "d4faebd45ac74de7bb809937bb8b5398",
+      "Id": "f87478248aa047f0819010bd2bbaff31",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "4ef5234f17bd4432949d2de3fb2f55b3",
+      "End": "de063da501494ed991e4769a411ec167",
+      "Id": "5c325702ea0b426295b738d986f44138",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "619d64f0ce0944939358b610126238ec",
+      "End": "07dac54b37e74d61b4c0445fcf2df230",
+      "Id": "5aab477d8a4641638c55871dec34c254",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "e56e4f5529d040bc952ce0da875b0d39",
+      "End": "e3c613a6ddc64795acd5fa720d1f323b",
+      "Id": "ca2ee76a752148aaa29de5a93dc6bd72",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "3232c207aa9247cfbdbc5ca6879b80f6",
+      "End": "bf9719d19b764be89e4fd0ca7a686335",
+      "Id": "89fda690139544d2b80868501d859c3d",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "ed2611a60af0421ca7e544e687182360",
+      "End": "358fc0543b884a69911f63023f73902b",
+      "Id": "723439b528394e12b7ed048a216a1bbb",
+      "IsHidden": "False"
+    }
+  ],
+  "Dependencies": [],
+  "NodeLibraryDependencies": [],
+  "Thumbnail": "",
+  "GraphDocumentationURL": null,
+  "ExtensionWorkspaceData": [
+    {
+      "ExtensionGuid": "28992e1d-abb9-417f-8b1b-05e053bee670",
+      "Name": "Properties",
+      "Version": "2.13",
+      "Data": {}
+    },
+    {
+      "ExtensionGuid": "DFBD9CC0-DB40-457A-939E-8C8555555A9D",
+      "Name": "Generative Design",
+      "Version": "1.10",
+      "Data": {}
+    }
+  ],
+  "Author": "",
+  "Linting": {
+    "activeLinter": "None",
+    "activeLinterId": "7b75fb44-43fd-4631-a878-29f4d5d8399a",
+    "warningCount": 0,
+    "errorCount": 0
+  },
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 1.0,
+      "HasRunWithoutCrash": true,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "2.18.1.5096",
+      "RunType": "Manual",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "_Background Preview",
+      "EyeX": -17.0,
+      "EyeY": 24.0,
+      "EyeZ": 50.0,
+      "LookX": 12.0,
+      "LookY": -13.0,
+      "LookZ": -58.0,
+      "UpX": 0.0,
+      "UpY": 1.0,
+      "UpZ": 0.0
+    },
+    "ConnectorPins": [],
+    "NodeViews": [
+      {
+        "Id": "0c144ee638e44c0c8b1e9f8e568cd784",
+        "Name": "String",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": 359.59599605786514,
+        "Y": 12.649576577904782
+      },
+      {
+        "Id": "efd617c29f3048139c4f87ffb72868c7",
+        "Name": "Boolean",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": 439.0,
+        "Y": 439.0
+      },
+      {
+        "Id": "7b970e01195243758c936f10622cb669",
+        "Name": "Number Slider",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": 328.66052286551644,
+        "Y": 214.77855134277047
+      },
+      {
+        "Id": "760e7b1e686f4f16a8210600b5eec55f",
+        "Name": "Number",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": 613.0,
+        "Y": 626.0
+      },
+      {
+        "Id": "1050fb79b74d4b30926197dd7e9f9ab0",
+        "Name": "Watch",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": true,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": 1612.1547386087279,
+        "Y": 79.498565744212328
+      },
+      {
+        "Id": "a17f49d7598c45b8b8896e6f6d832aa2",
+        "Name": "List Create",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": 1228.1981855089509,
+        "Y": 107.9468874098398
+      },
+      {
+        "Id": "6ad2a1015f3d4abbbcfd29570719faea",
+        "Name": "A very very very very very very very very very long item title",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": 327.90319230767989,
+        "Y": -224.62623482901188
+      },
+      {
+        "Id": "02fe605a53ad4ca590a0184fc6a366d3",
+        "Name": "Boolean",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": 500.1912685021789,
+        "Y": 907.011135543188
+      },
+      {
+        "Id": "d7f765b7d4e94ece983567afdc841f69",
+        "Name": "Custom Selection",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": 690.11359871813215,
+        "Y": 1122.0741862986749
+      },
+      {
+        "Id": "53e024b27ca44b58b67ef34287ca1255",
+        "Name": "Directory Path",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": 999.94520493554819,
+        "Y": 690.07320689796825
+      }
+    ],
+    "Annotations": [],
+    "X": 164.13170225345402,
+    "Y": 233.0509184072435,
+    "Zoom": 0.37023095525251082
+  }
+}
