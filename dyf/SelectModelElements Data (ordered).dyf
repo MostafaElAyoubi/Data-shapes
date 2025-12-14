@@ -1,0 +1,296 @@
+﻿{
+    "Uuid":  "96354ad8-1c33-42e8-ad2d-025c19be5a9d",
+    "IsCustomNode":  true,
+    "Category":  "Data-Shapes.UI.Selection",
+    "Description":  "Creates a Revit element selection input for UI.MultipleInputForm++ . Check out www.data-shapes.net for more infos!",
+    "Name":  "SelectModelElements Data (ordered)",
+    "ElementResolver":  {
+                            "ResolutionMap":  {
+
+                                              }
+                        },
+    "Inputs":  [
+
+               ],
+    "Outputs":  [
+
+                ],
+    "Nodes":  [
+                  {
+                      "ConcreteType":  "PythonNodeModels.PythonNode, PythonNodeModels",
+                      "Code":  "# Copyright (c) Data Shapes, 2025\n# Data-Shapes www.data-shapes.io, elayoubi.mostafa@data-shapes.io @data_shapes\n\nimport clr\nimport System\n\nclr.AddReference(\u0027RevitAPIUI\u0027)\nfrom Autodesk.Revit.UI import Selection, TaskDialog\nfrom Autodesk.Revit.UI.Selection import ISelectionFilter\n\nclr.AddReference(\u0027RevitAPI\u0027)\nfrom Autodesk.Revit.DB import Element\n\nclr.AddReference(\u0027RevitNodes\u0027)\nimport Revit\nclr.ImportExtensions(Revit.Elements)\n\nclr.AddReference(\u0027RevitServices\u0027)\nfrom RevitServices.Persistence import DocumentManager\n\ndoc = DocumentManager.Instance.CurrentDBDocument\nuidoc = DocumentManager.Instance.CurrentUIApplication.ActiveUIDocument\n\n_filter_cat_names = []\n\n\nclass CategorySelectionFilter(object):\n    def __new__(cls, *args, **kwargs):\n        cls.args = args\n        cls.__namespace__ = \"OrderedCategorySelectionFilter_\" + str(System.Guid.NewGuid()).replace(\u0027-\u0027, \u0027_\u0027)\n        try:\n            module_type = __import__(cls.__namespace__)\n            return module_type._OrderedCategorySelectionFilter(*cls.args)\n        except ImportError:\n            class _OrderedCategorySelectionFilter(ISelectionFilter):\n                __namespace__ = cls.__namespace__\n                def __init__(self, *a, **k):\n                    super().__init__()\n                def AllowElement(self, element):\n                    try:\n                        cat = element.Category\n                        return (cat is not None) and (cat.Name in _filter_cat_names)\n                    except:\n                        return False\n                def AllowReference(self, reference, point):\n                    return False\n            return _OrderedCategorySelectionFilter(*cls.args)\n\n\nclass uiselectOrderedelements(object):\n\n    def __init__(self, inputname, buttontext):\n        self.inputname = inputname\n        self.buttontext = buttontext\n        self._input_type = \u0027uiselectOrderedelements\u0027\n\n    def __repr__(self):\n        return \u0027UI.SelectOrderedElements input\u0027\n\n    def pickobjectsordered(self, sender, event):\n        output = []\n        try:\n            TaskDialog.Show(\"Data|Shapes\", \u0027Pick elements in order, then hit ESC to exit.\u0027)\n            collecting = True\n            while collecting:\n                try:\n                    sel = uidoc.Selection.PickObject(Selection.ObjectType.Element, \u0027Pick elements in order\u0027)\n                    elem = doc.GetElement(sel.ElementId)\n                    output.append(elem.ToDSType(True))\n                except:\n                    collecting = False\n            sender.Tag = output\n        except:\n            pass\n\n\nclass uiselectOrderedelementsofcat(object):\n\n    def __init__(self, inputname, buttontext, category):\n        self.inputname = inputname\n        self.buttontext = buttontext\n        self.category = category\n        self._input_type = \u0027uiselectOrderedelementsofcat\u0027\n        if isinstance(category, list):\n            self._raw_category = category\n        else:\n            self._raw_category = [category]\n\n    def __repr__(self):\n        return \u0027UI.SelectOrderedElementsOfCategory input\u0027\n\n    def _get_unwrapped_categories(self):\n        unwrapped = []\n        for c in self._raw_category:\n            try:\n                if hasattr(c, \u0027InternalElement\u0027):\n                    unwrapped.append(c.InternalElement)\n                elif hasattr(c, \u0027Id\u0027):\n                    unwrapped.append(c)\n                else:\n                    unwrapped.append(c)\n            except:\n                try:\n                    unwrapped.append(c)\n                except:\n                    pass\n        return unwrapped\n\n    def pickobjectsofcatordered(self, sender, event):\n        global _filter_cat_names\n        output = []\n        try:\n            category = self._get_unwrapped_categories()\n            _filter_cat_names = [c.Name for c in category]\n            names = \u0027, \u0027.join(_filter_cat_names)\n            selfilt = CategorySelectionFilter()\n            TaskDialog.Show(\"Data|Shapes\", \u0027Select %s in order, then press ESC to exit.\u0027 % names)\n            collecting = True\n            while collecting:\n                try:\n                    sel = uidoc.Selection.PickObject(Selection.ObjectType.Element, selfilt, \u0027Select %s\u0027 % names)\n                    elem = doc.GetElement(sel.ElementId)\n                    output.append(elem.ToDSType(True))\n                except:\n                    collecting = False\n            sender.Tag = output\n        except:\n            pass\n\n\ninputname = IN[0] if len(IN) \u003e 0 else \"\"\nbuttontext = IN[1] if len(IN) \u003e 1 else \"Select Model Element(s)\"\ncategory = IN[2] if len(IN) \u003e 2 else [\"\"]\n\nif category == [\"\"] or category == \"\" or category == []:\n    x = uiselectOrderedelements(inputname, buttontext)\nelse:\n    if isinstance(category, list):\n        catnames = \u0027, \u0027.join([UnwrapElement(i).Name for i in category])\n        if buttontext == \"Select Model Element(s)\":\n            buttontext = \u0027Select %s\u0027 % catnames\n    else:\n        if buttontext == \"Select Model Element(s)\":\n            try:\n                buttontext = \u0027Select %s\u0027 % UnwrapElement(category).Name\n            except:\n                pass\n    x = uiselectOrderedelementsofcat(inputname, buttontext, category)\n\nOUT = x\n",
+                      "Engine":  "CPython3",
+                      "VariableInputPorts":  true,
+                      "Id":  "0939c0d9bcbe4f5fae27c3886a3e6f71",
+                      "NodeType":  "PythonScriptNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "4618e8fd69ee4bdfa776a97224e76c6a",
+                                         "Name":  "IN[0]",
+                                         "Description":  "Input #0",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "699641fc36e348bb999e0c95380ff727",
+                                         "Name":  "IN[1]",
+                                         "Description":  "Input #1",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "d23c7441db344dbea2234d7aa720bb6e",
+                                         "Name":  "IN[2]",
+                                         "Description":  "Input #2",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "3a5a4ec8254b4347a0c6a97040d89f72",
+                                          "Name":  "OUT",
+                                          "Description":  "Result of the python script",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "Runs an embedded Python script."
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+                      "ElementResolver":  null,
+                      "Symbol":  "SelectOrderedModelElements input",
+                      "Id":  "27c2174a06fe4f15a36fe6616cbd773e",
+                      "NodeType":  "OutputNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "7658e5ebe5f34694964db3ae791d9927",
+                                         "Name":  "",
+                                         "Description":  "",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function output, use with custom nodes"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "InputName_",
+                                        "TypeName":  "string",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "\"\"",
+                                        "Description":  ""
+                                    },
+                      "Id":  "e40c6938ac184795936fdc9e64b24137",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "9d951730a9cd4ba9a9a9b279224acdb2",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "ButtonText_",
+                                        "TypeName":  "string",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "\"Select Model Element(s)\"",
+                                        "Description":  ""
+                                    },
+                      "Id":  "ec7f16cfad1c4d6ab687864ea3dbbd7e",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "4dbdc6b63f5747fb828d29c48a9e2e1e",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "CategoryFilter_",
+                                        "TypeName":  "var",
+                                        "TypeRank":  1,
+                                        "DefaultValue":  "\"\"",
+                                        "Description":  ""
+                                    },
+                      "Id":  "1b270218dd5b41bbbc0fa5781affa2aa",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "a3bf37c5b78f4e57bd987bcd33b1ce58",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  }
+              ],
+    "Connectors":  [
+                       {
+                           "Start":  "3a5a4ec8254b4347a0c6a97040d89f72",
+                           "End":  "7658e5ebe5f34694964db3ae791d9927",
+                           "Id":  "663f989f3ca0422aacd79f7571f654d9",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "9d951730a9cd4ba9a9a9b279224acdb2",
+                           "End":  "4618e8fd69ee4bdfa776a97224e76c6a",
+                           "Id":  "1529b0b7cadb4c83868b7a0e5b5f87b2",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "4dbdc6b63f5747fb828d29c48a9e2e1e",
+                           "End":  "699641fc36e348bb999e0c95380ff727",
+                           "Id":  "f3f78fcc42044f1fb4def5b09efda89f",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "a3bf37c5b78f4e57bd987bcd33b1ce58",
+                           "End":  "d23c7441db344dbea2234d7aa720bb6e",
+                           "Id":  "d914aa2d4a1c466b9a0ab3b11c421808",
+                           "IsHidden":  "False"
+                       }
+                   ],
+    "Dependencies":  [
+
+                     ],
+    "NodeLibraryDependencies":  [
+
+                                ],
+    "Author":  "None provided",
+    "Bindings":  [
+
+                 ],
+    "View":  {
+                 "Dynamo":  {
+                                "ScaleFactor":  1.0,
+                                "HasRunWithoutCrash":  false,
+                                "IsVisibleInDynamoLibrary":  true,
+                                "Version":  "3.3.0.6316",
+                                "RunType":  "Manual",
+                                "RunPeriod":  "1000"
+                            },
+                 "Camera":  {
+                                "Name":  "_Background Preview",
+                                "EyeX":  -20194.978515625,
+                                "EyeY":  13471.8330078125,
+                                "EyeZ":  15598.8984375,
+                                "LookX":  13342.92578125,
+                                "LookY":  -9494.3818359375,
+                                "LookZ":  -18805.8671875,
+                                "UpX":  0.2203172743320465,
+                                "UpY":  0.9246821999549866,
+                                "UpZ":  -0.3105206787586212
+                            },
+                 "ConnectorPins":  [
+
+                                   ],
+                 "NodeViews":  [
+                                   {
+                                       "Id":  "0939c0d9bcbe4f5fae27c3886a3e6f71",
+                                       "Name":  "Python Script",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  1283.53186781191,
+                                       "Y":  309.161205835686
+                                   },
+                                   {
+                                       "Id":  "27c2174a06fe4f15a36fe6616cbd773e",
+                                       "Name":  "Output",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  1494.47696792073,
+                                       "Y":  312.868240261166
+                                   },
+                                   {
+                                       "Id":  "e40c6938ac184795936fdc9e64b24137",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  707.8585880171088,
+                                       "Y":  211.44633802882083
+                                   },
+                                   {
+                                       "Id":  "ec7f16cfad1c4d6ab687864ea3dbbd7e",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  691.2834266695203,
+                                       "Y":  372.63720236769785
+                                   },
+                                   {
+                                       "Id":  "1b270218dd5b41bbbc0fa5781affa2aa",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  699.2329160218874,
+                                       "Y":  512.658859878979
+                                   }
+                               ],
+                 "Annotations":  [
+
+                                 ],
+                 "X":  -477.3075559692578,
+                 "Y":  42.56298364259641,
+                 "Zoom":  0.803321593462598
+             }
+}

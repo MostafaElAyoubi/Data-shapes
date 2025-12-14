@@ -1,0 +1,190 @@
+﻿{
+    "Uuid":  "4647653f-66f5-4f97-a70c-44b0fd2fb8fa",
+    "IsCustomNode":  true,
+    "Category":  "Data-Shapes.Interop.Excel",
+    "Description":  "Gets worksheet names from specified Excel workbook.",
+    "Name":  "Excel.Worksheets",
+    "ElementResolver":  {
+                            "ResolutionMap":  {
+
+                                              }
+                        },
+    "Inputs":  [
+
+               ],
+    "Outputs":  [
+
+                ],
+    "Nodes":  [
+                  {
+                      "ConcreteType":  "PythonNodeModels.PythonNode, PythonNodeModels",
+                      "Code":  "# Copyright (c) Data Shapes, 2025\n# Data-Shapes www.data-shapes.io, elayoubi.mostafa@data-shapes.io @data_shapes\n\nfrom openpyxl import load_workbook\n\nwb = load_workbook(IN[0], read_only=True)\nOUT = wb.sheetnames\n",
+                      "Engine":  "CPython3",
+                      "VariableInputPorts":  true,
+                      "Id":  "45c8337f50be4e1391df96416a44922b",
+                      "NodeType":  "PythonScriptNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "20629a10bed7464199e9a7d58e4fa420",
+                                         "Name":  "IN[0]",
+                                         "Description":  "Input #0",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "296cf39be14c418d8efc64899bad8531",
+                                          "Name":  "OUT",
+                                          "Description":  "Result of the python script",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "Runs an embedded Python script."
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "FilePath",
+                                        "TypeName":  "var",
+                                        "TypeRank":  -1,
+                                        "DefaultValue":  null,
+                                        "Description":  ""
+                                    },
+                      "Id":  "19ab455b3e8246a78bbf31591932c552",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "8b0f5db66cf34582af5b025a44e35e5a",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+                      "ElementResolver":  null,
+                      "Symbol":  "Worksheet Names",
+                      "Id":  "8dde9b4948e44e07b71d3eee1de76618",
+                      "NodeType":  "OutputNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "61ad413eea19487f926be86ca0665ab7",
+                                         "Name":  "",
+                                         "Description":  "",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function output, use with custom nodes"
+                  }
+              ],
+    "Connectors":  [
+                       {
+                           "Start":  "296cf39be14c418d8efc64899bad8531",
+                           "End":  "61ad413eea19487f926be86ca0665ab7",
+                           "Id":  "0572b3cffeae4bf5bdba24c96d2d135d",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "8b0f5db66cf34582af5b025a44e35e5a",
+                           "End":  "20629a10bed7464199e9a7d58e4fa420",
+                           "Id":  "97ebef1eea9543d4b461905ca159e3e7",
+                           "IsHidden":  "False"
+                       }
+                   ],
+    "Dependencies":  [
+
+                     ],
+    "NodeLibraryDependencies":  [
+
+                                ],
+    "Author":  "None provided",
+    "Bindings":  [
+
+                 ],
+    "View":  {
+                 "Dynamo":  {
+                                "ScaleFactor":  1.0,
+                                "HasRunWithoutCrash":  false,
+                                "IsVisibleInDynamoLibrary":  true,
+                                "Version":  "3.3.0.6316",
+                                "RunType":  "Manual",
+                                "RunPeriod":  "1000"
+                            },
+                 "Camera":  {
+                                "Name":  "_Background Preview",
+                                "EyeX":  -17.0,
+                                "EyeY":  24.0,
+                                "EyeZ":  50.0,
+                                "LookX":  12.0,
+                                "LookY":  -13.0,
+                                "LookZ":  -58.0,
+                                "UpX":  0.0,
+                                "UpY":  1.0,
+                                "UpZ":  0.0
+                            },
+                 "ConnectorPins":  [
+
+                                   ],
+                 "NodeViews":  [
+                                   {
+                                       "Id":  "45c8337f50be4e1391df96416a44922b",
+                                       "Name":  "Python Script",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  252.0,
+                                       "Y":  -1.0
+                                   },
+                                   {
+                                       "Id":  "19ab455b3e8246a78bbf31591932c552",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  0.0,
+                                       "Y":  0.0
+                                   },
+                                   {
+                                       "Id":  "8dde9b4948e44e07b71d3eee1de76618",
+                                       "Name":  "Output",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  449.0,
+                                       "Y":  0.0
+                                   }
+                               ],
+                 "Annotations":  [
+
+                                 ],
+                 "X":  267.0,
+                 "Y":  153.0,
+                 "Zoom":  1.0
+             }
+}

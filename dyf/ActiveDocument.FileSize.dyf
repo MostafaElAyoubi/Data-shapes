@@ -1,0 +1,138 @@
+﻿{
+    "Uuid":  "5dcfa724-fbf7-481f-8194-928de40b90a6",
+    "IsCustomNode":  true,
+    "Category":  "Data-Shapes.Revit.Document",
+    "Description":  "Gets the file size of the ative document, even if it is a BIM360 Design workshared project.",
+    "Name":  "ActiveDocument.FileSize",
+    "ElementResolver":  {
+                            "ResolutionMap":  {
+
+                                              }
+                        },
+    "Inputs":  [
+
+               ],
+    "Outputs":  [
+
+                ],
+    "Nodes":  [
+                  {
+                      "ConcreteType":  "PythonNodeModels.PythonNode, PythonNodeModels",
+                      "Code":  "# Copyright (c) Data Shapes, 2025\n# Data-Shapes www.data-shapes.io, elayoubi.mostafa@data-shapes.io @data_shapes\n\nimport clr\nimport os\n\nclr.AddReference(\u0027RevitAPI\u0027)\nfrom Autodesk.Revit.DB import *\n\nclr.AddReference(\u0027RevitServices\u0027)\nfrom RevitServices.Persistence import DocumentManager\n\nimport System\nfrom System.IO import SearchOption\nfrom System import Environment\n\ndoc = DocumentManager.Instance.CurrentDBDocument\n\npn = doc.PathName\ntry:\n    guid = doc.WorksharingCentralGUID\n    AppDataList = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData).split(\"\\\\\")\n    AppDataList.pop(-1)\n    AppData = \"\\\\\".join(AppDataList)\n    location = AppData + \"\\\\Local\\\\Autodesk\\\\Revit\"\n    cachedFile = System.IO.Directory.GetFiles(location, str(guid) + \".rvt\", SearchOption.AllDirectories)\n    size = os.path.getsize(cachedFile[0])\nexcept:\n    size = os.path.getsize(pn)\n\nOUT = str(size / 1000000) + \" mb\"\n",
+                      "Engine":  "CPython3",
+                      "VariableInputPorts":  true,
+                      "Id":  "da286ae5e3164682bdf47e125f2fdbca",
+                      "NodeType":  "PythonScriptNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "6453751cbebe44b09c9dd0eeda0fa847",
+                                          "Name":  "OUT",
+                                          "Description":  "Result of the python script",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "Runs an embedded Python script."
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+                      "ElementResolver":  null,
+                      "Symbol":  "FileSize",
+                      "Id":  "9345dfffd97e4c02b9cb7ee1ef7d15a2",
+                      "NodeType":  "OutputNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "322d995628ca4d9880ad92cf4745c331",
+                                         "Name":  "",
+                                         "Description":  "Output Data",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function output, use with custom nodes"
+                  }
+              ],
+    "Connectors":  [
+                       {
+                           "Start":  "6453751cbebe44b09c9dd0eeda0fa847",
+                           "End":  "322d995628ca4d9880ad92cf4745c331",
+                           "Id":  "56ff92e513804bd4be88fe1ee895db32",
+                           "IsHidden":  "False"
+                       }
+                   ],
+    "Dependencies":  [
+
+                     ],
+    "NodeLibraryDependencies":  [
+
+                                ],
+    "Author":  "None provided",
+    "Bindings":  [
+
+                 ],
+    "View":  {
+                 "Dynamo":  {
+                                "ScaleFactor":  1.0,
+                                "HasRunWithoutCrash":  false,
+                                "IsVisibleInDynamoLibrary":  true,
+                                "Version":  "3.3.0.6316",
+                                "RunType":  "Manual",
+                                "RunPeriod":  "1000"
+                            },
+                 "Camera":  {
+                                "Name":  "_Background Preview",
+                                "EyeX":  -9.701420783996582,
+                                "EyeY":  8.390907287597656,
+                                "EyeZ":  -5.084073066711426,
+                                "LookX":  9.497069358825684,
+                                "LookY":  -9.042110443115234,
+                                "LookZ":  5.05450963973999,
+                                "UpX":  0.5679731369018555,
+                                "UpY":  0.7655259370803833,
+                                "UpZ":  0.30228564143180847
+                            },
+                 "ConnectorPins":  [
+
+                                   ],
+                 "NodeViews":  [
+                                   {
+                                       "Id":  "da286ae5e3164682bdf47e125f2fdbca",
+                                       "Name":  "Python Script",
+                                       "IsSetAsInput":  true,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  200.66666666666663,
+                                       "Y":  -2.0
+                                   },
+                                   {
+                                       "Id":  "9345dfffd97e4c02b9cb7ee1ef7d15a2",
+                                       "Name":  "Output",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  419.0,
+                                       "Y":  0.0
+                                   }
+                               ],
+                 "Annotations":  [
+
+                                 ],
+                 "X":  1.0,
+                 "Y":  66.0,
+                 "Zoom":  1.0
+             }
+}

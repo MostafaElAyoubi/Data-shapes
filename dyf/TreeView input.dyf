@@ -1,0 +1,349 @@
+﻿{
+    "Uuid":  "a4bbb066-e307-4314-8e5f-20af5d2d9bf0",
+    "IsCustomNode":  true,
+    "Category":  "Data-Shapes.UI.Input",
+    "Description":  "Create a TreeView input for UI.MultipleInputForm ++ . Check out www.data-shapes.net for more infos and tips!",
+    "Name":  "TreeView input",
+    "ElementResolver":  {
+                            "ResolutionMap":  {
+
+                                              }
+                        },
+    "Inputs":  [
+
+               ],
+    "Outputs":  [
+
+                ],
+    "Nodes":  [
+                  {
+                      "ConcreteType":  "PythonNodeModels.PythonNode, PythonNodeModels",
+                      "Code":  "# Copyright (c) Data Shapes, 2025\n# Data-Shapes www.data-shapes.io, elayoubi.mostafa@data-shapes.io @data_shapes\n\nimport clr\nimport unicodedata\n\ntry:\n    clr.AddReference(\"System.Windows.Forms\")\n    clr.AddReference(\"System.Drawing\")\n    clr.AddReference(\"PresentationCore\")\n    clr.AddReference(\"WindowsBase\")\n    from System.Windows.Forms import TreeView, TreeNode, MouseButtons\n    from System.Drawing import Point\n    from System.Windows.Input import Key, Keyboard\nexcept Exception:\n    TreeView = None\n    TreeNode = None\n    MouseButtons = None\n    Point = None\n    Key = None\n    Keyboard = None\n\n\nclass uitreeview(object):\n\n    def __init__(self, inputname=\"\", datalist=None, hastitles=False, height=200):\n        self.inputname = inputname if inputname is not None else \"\"\n        self.datalist = datalist if datalist is not None else []\n        self._hastitles = bool(hastitles)\n        self._height = height if isinstance(height, (int, float)) else 0\n        self._input_type = \"uitreeview\"\n\n    def __repr__(self):\n        return \"UI.TreeView input\"\n\n    def build_treeview(self, formbody, xlabel, xinput, y, xRatio, yRatio):\n        if TreeView is None:\n            return None, y\n\n        tv = TreeView()\n        tv.CheckBoxes = True\n\n        # Size and placement\n        if self.inputname != \"\":\n            tv.Width = int(formbody.Width - 25 * xRatio - xinput)\n            tv.Location = Point(int(xinput), int(y))\n        else:\n            tv.Width = int(formbody.Width - 25 * xRatio - xlabel)\n            tv.Location = Point(int(xlabel), int(y))\n        tv.Height = int(self._height * yRatio)\n\n        # Populate nodes\n        root = TreeNode(\"List1\")\n        tv.Nodes.Add(root)\n\n        def _build_nodes():\n            data_list = self._ensure_list(self.datalist)\n            if self._hastitles:\n                for dl in data_list:\n                    self._tree_iteration_title(root, dl)\n            else:\n                for dl in data_list:\n                    self._tree_iteration(root, dl)\n\n        try:\n            _build_nodes()\n        except Exception:\n            # simple fallback: add each item as a leaf\n            try:\n                for item in self._ensure_list(self.datalist):\n                    leaf = TreeNode(self._remove_accents(self._stringify(item)))\n                    leaf.Tag = item\n                    root.Nodes.Add(leaf)\n            except Exception:\n                pass\n\n        root.Expand()\n        try:\n            tv.ExpandAll()\n        except Exception:\n            pass\n\n        # Attach handlers\n        start_node = {\"node\": None}\n\n        def _tree_node_mouse_down(sender, event):\n            try:\n                if (\n                    Keyboard is not None\n                    and Key is not None\n                    and event.Button == MouseButtons.Left\n                    and Keyboard.IsKeyDown(Key.LeftShift)\n                ):\n                    tv_local = sender\n                    end_node = tv_local.GetNodeAt(0, event.Y)\n                    if (\n                        start_node[\"node\"] is not None\n                        and end_node is not None\n                        and start_node[\"node\"].Parent == end_node.Parent\n                    ):\n                        start_idx = start_node[\"node\"].Index\n                        end_idx = end_node.Index\n                        if start_idx \u003e end_idx:\n                            start_idx, end_idx = end_idx, start_idx\n                        for i in range(start_idx, end_idx + 1):\n                            current = start_node[\"node\"].Parent.Nodes[i]\n                            current.Checked = not current.Checked\n                    return\n                start_node[\"node\"] = sender.GetNodeAt(0, event.Y)\n            except Exception:\n                start_node[\"node\"] = None\n\n        def _check_children(sender, event):\n            try:\n                ev_node = event.Node\n                check_state = ev_node.Checked\n                for n in ev_node.Nodes:\n                    n.Checked = check_state\n            except Exception:\n                pass\n\n        if Keyboard is not None and MouseButtons is not None:\n            tv.MouseDown += _tree_node_mouse_down\n        tv.AfterCheck += _check_children\n\n        def _gather_checked(node, acc):\n            try:\n                if node.Nodes is not None and node.Nodes.Count \u003e 0:\n                    for child in node.Nodes:\n                        _gather_checked(child, acc)\n                else:\n                    if getattr(node, \"Checked\", False):\n                        acc.append(getattr(node, \"Tag\", None))\n            except Exception:\n                pass\n\n        def _get_checked_values():\n            checked = []\n            try:\n                if tv.Nodes.Count \u003e 0:\n                    _gather_checked(tv.Nodes[0], checked)\n            except Exception:\n                pass\n            return checked\n\n        # Store getter for the form to consume on close\n        tv.Tag = _get_checked_values\n\n        next_y = tv.Bottom + int(25 * yRatio)\n        return tv, next_y\n\n    def _tree_iteration_title(self, control, input_val):\n        if isinstance(input_val, list):\n            data_copy = list(input_val)\n            try:\n                title = data_copy.pop(0)\n            except Exception:\n                title = None\n            node_text = self._stringify(title) if title is not None else \"{0}.{1}\".format(\n                control.Text, len(control.Nodes) + 1\n            )\n            node_text = self._remove_accents(node_text)\n            current_node = TreeNode(node_text)\n            current_node.Tag = \"\"\n            control.Nodes.Add(current_node)\n            for item in data_copy:\n                self._tree_iteration_title(current_node, item)\n        else:\n            item_node = TreeNode(self._remove_accents(self._stringify(input_val)))\n            item_node.Tag = input_val\n            control.Nodes.Add(item_node)\n\n    def _tree_iteration(self, control, input_val):\n        if isinstance(input_val, list):\n            current_node = TreeNode(\"{0}.{1}\".format(control.Text, len(control.Nodes) + 1))\n            current_node.Tag = input_val\n            control.Nodes.Add(current_node)\n            for item in input_val:\n                self._tree_iteration(current_node, item)\n        else:\n            item_node = TreeNode(self._remove_accents(self._stringify(input_val)))\n            item_node.Tag = input_val\n            control.Nodes.Add(item_node)\n\n    def _stringify(self, obj):\n        try:\n            return str(obj)\n        except Exception:\n            try:\n                return obj.encode(\"utf-8\").decode(\"utf-8\")\n            except Exception:\n                return \"\"\n\n    def _remove_accents(self, input_str):\n        nfkd_form = unicodedata.normalize(\"NFKD\", str(input_str))\n        only_ascii = nfkd_form.encode(\"ASCII\", \"ignore\")\n        return only_ascii.decode(\"ASCII\")\n\n    def _ensure_list(self, obj):\n        if obj is None:\n            return []\n        if isinstance(obj, list):\n            return obj\n        try:\n            return list(obj)\n        except Exception:\n            return [obj]\n\n\ninputname = IN[0] if len(IN) \u003e 0 else \"\"\ndatalist = IN[1] if len(IN) \u003e 1 else []\nhastitles = IN[2] if len(IN) \u003e 2 else False\nheight = IN[3] if len(IN) \u003e 3 else 150\n\nOUT = uitreeview(inputname, datalist, hastitles, height)\n\n",
+                      "Engine":  "CPython3",
+                      "VariableInputPorts":  true,
+                      "Id":  "44f47df74e454be78b7ddb231d600761",
+                      "NodeType":  "PythonScriptNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "31a9ddf6db59447cbfb543e46e7ce934",
+                                         "Name":  "IN[0]",
+                                         "Description":  "Input #0",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "c1823d745105483db94b464941d3af95",
+                                         "Name":  "IN[1]",
+                                         "Description":  "Input #1",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "733d887741814ce586b586117da81f01",
+                                         "Name":  "IN[2]",
+                                         "Description":  "Input #2",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "192caa45ccd44cdbadd66c8d2f8a8998",
+                                         "Name":  "IN[3]",
+                                         "Description":  "Input #3",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "0b3ebb095b904dc995c992bb6cbab96d",
+                                          "Name":  "OUT",
+                                          "Description":  "Result of the python script",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "Runs an embedded Python script."
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "InputName",
+                                        "TypeName":  "string",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "\"\"",
+                                        "Description":  ""
+                                    },
+                      "Id":  "f08a51a8c2214a78adb8648c335a7f56",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "a9e452701e8743359d2c578e846f0bde",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+                      "ElementResolver":  null,
+                      "Symbol":  "UI.TreeView Data",
+                      "Id":  "dec84db8fa0748f5b1d1230bf7fc03c5",
+                      "NodeType":  "OutputNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "65d07a98945d4e0d8d1809434a4902a3",
+                                         "Name":  "",
+                                         "Description":  "",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function output, use with custom nodes"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "Data",
+                                        "TypeName":  "var",
+                                        "TypeRank":  -1,
+                                        "DefaultValue":  null,
+                                        "Description":  ""
+                                    },
+                      "Id":  "4d3b86ac1bbe4191b2c55b91c926020e",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "9e73a4593ba54b7eb007db9f395128b6",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "FirstItemIsTitle",
+                                        "TypeName":  "bool",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "false",
+                                        "Description":  ""
+                                    },
+                      "Id":  "a32fddfcc6fd4606a1203a7c058e1c86",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "b268c9403b554bd5a794c967cfc3bc9b",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "Height",
+                                        "TypeName":  "var",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "200",
+                                        "Description":  ""
+                                    },
+                      "Id":  "44054c5f69674b4eaaf7ff034462bda7",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "42e98ef63f72429db7c78c4eea7627ec",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  }
+              ],
+    "Connectors":  [
+                       {
+                           "Start":  "0b3ebb095b904dc995c992bb6cbab96d",
+                           "End":  "65d07a98945d4e0d8d1809434a4902a3",
+                           "Id":  "6be4684c725b4c818832536e438a85e8",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "a9e452701e8743359d2c578e846f0bde",
+                           "End":  "31a9ddf6db59447cbfb543e46e7ce934",
+                           "Id":  "735a38cf6c6b455eb0e53405a6328646",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "9e73a4593ba54b7eb007db9f395128b6",
+                           "End":  "c1823d745105483db94b464941d3af95",
+                           "Id":  "9736ba5aae28472aa85e46ddcca8b99b",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "b268c9403b554bd5a794c967cfc3bc9b",
+                           "End":  "733d887741814ce586b586117da81f01",
+                           "Id":  "03a29e16a93e4cb3abed008e2dc19221",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "42e98ef63f72429db7c78c4eea7627ec",
+                           "End":  "192caa45ccd44cdbadd66c8d2f8a8998",
+                           "Id":  "41722c6a1f494e2dae581fc28b0ce1f0",
+                           "IsHidden":  "False"
+                       }
+                   ],
+    "Dependencies":  [
+
+                     ],
+    "NodeLibraryDependencies":  [
+
+                                ],
+    "Author":  "None provided",
+    "Bindings":  [
+
+                 ],
+    "View":  {
+                 "Dynamo":  {
+                                "ScaleFactor":  1.0,
+                                "HasRunWithoutCrash":  false,
+                                "IsVisibleInDynamoLibrary":  true,
+                                "Version":  "3.3.0.6316",
+                                "RunType":  "Manual",
+                                "RunPeriod":  "1000"
+                            },
+                 "Camera":  {
+                                "Name":  "_Background Preview",
+                                "EyeX":  -33412.453125,
+                                "EyeY":  12291.755859375,
+                                "EyeZ":  -2753.875732421875,
+                                "LookX":  26560.400390625,
+                                "LookY":  -8314.3046875,
+                                "LookZ":  -453.093017578125,
+                                "UpX":  0.29865628480911255,
+                                "UpY":  0.9543471336364746,
+                                "UpZ":  -0.005094640422612429
+                            },
+                 "ConnectorPins":  [
+
+                                   ],
+                 "NodeViews":  [
+                                   {
+                                       "Id":  "44f47df74e454be78b7ddb231d600761",
+                                       "Name":  "Python Script",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  531.292912451244,
+                                       "Y":  224.49715901876
+                                   },
+                                   {
+                                       "Id":  "f08a51a8c2214a78adb8648c335a7f56",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  -26.0,
+                                       "Y":  96.66666666666666
+                                   },
+                                   {
+                                       "Id":  "dec84db8fa0748f5b1d1230bf7fc03c5",
+                                       "Name":  "Output",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  757.292912451244,
+                                       "Y":  231.0
+                                   },
+                                   {
+                                       "Id":  "4d3b86ac1bbe4191b2c55b91c926020e",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  28.333333333333258,
+                                       "Y":  244.3333333333333
+                                   },
+                                   {
+                                       "Id":  "a32fddfcc6fd4606a1203a7c058e1c86",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  -76.33333333333326,
+                                       "Y":  406.66666666666663
+                                   },
+                                   {
+                                       "Id":  "44054c5f69674b4eaaf7ff034462bda7",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  10.0,
+                                       "Y":  571.6666666666666
+                                   }
+                               ],
+                 "Annotations":  [
+
+                                 ],
+                 "X":  223.0,
+                 "Y":  39.0,
+                 "Zoom":  1.0
+             }
+}

@@ -1,0 +1,246 @@
+﻿{
+    "Uuid":  "b0a6ae7e-e703-48da-9b2f-4a6d4eca728a",
+    "IsCustomNode":  true,
+    "Category":  "Data-Shapes.Revit.Elements",
+    "Description":  "Cutting element(s) with element",
+    "Name":  "Element(s) cut",
+    "ElementResolver":  {
+                            "ResolutionMap":  {
+                                                  "Element":  {
+                                                                  "Key":  "Revit.Elements.Element",
+                                                                  "Value":  "RevitNodes.dll"
+                                                              }
+                                              }
+                        },
+    "Inputs":  [
+
+               ],
+    "Outputs":  [
+
+                ],
+    "Nodes":  [
+                  {
+                      "ConcreteType":  "PythonNodeModels.PythonNode, PythonNodeModels",
+                      "Code":  "# Copyright (c) Data Shapes, 2025\n# Data-Shapes www.data-shapes.io, elayoubi.mostafa@data-shapes.io\n\nimport clr\n\nclr.AddReference(\u0027RevitAPI\u0027)\nfrom Autodesk.Revit.DB import Transaction\nfrom Autodesk.Revit.DB.SolidSolidCutUtils import AddCutBetweenSolids\n\nclr.AddReference(\u0027RevitServices\u0027)\nfrom RevitServices.Persistence import DocumentManager\n\ndoc = DocumentManager.Instance.CurrentDBDocument\n\n\ndef tolist(input):\n    if isinstance(input, list):\n        return input\n    return [input]\n\n\nelements_to_cut = tolist(IN[0])\ncutting_element = IN[1]\n\nif not elements_to_cut:\n    OUT = \"Error: No elements to cut provided\"\nelif cutting_element is None:\n    OUT = \"Error: No cutting element provided\"\nelse:\n    tobecut = [UnwrapElement(e) for e in elements_to_cut]\n    cutting = UnwrapElement(cutting_element)\n    \n    success_count = 0\n    failed_count = 0\n    errors = []\n    \n    t = Transaction(doc, \u0027Add Cut Between Solids\u0027)\n    t.Start()\n    try:\n        for element in tobecut:\n            try:\n                AddCutBetweenSolids(doc, element, cutting)\n                success_count += 1\n            except Exception as ex:\n                failed_count += 1\n                errors.append(str(ex))\n        t.Commit()\n    except Exception as ex:\n        if t.HasStarted():\n            t.RollBack()\n        raise\n    \n    if failed_count == 0:\n        OUT = \u0027%d element(s) cut successfully\u0027 % success_count\n    else:\n        OUT = \u0027%d element(s) cut successfully, %d failed\u0027 % (success_count, failed_count)\n",
+                      "Engine":  "CPython3",
+                      "VariableInputPorts":  true,
+                      "Id":  "ea629d2b7b4b43b68112c6d5a8425c05",
+                      "NodeType":  "PythonScriptNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "98d17bbf175848c8b18ce0e6b146ad06",
+                                         "Name":  "IN[0]",
+                                         "Description":  "Input #0",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "84568a925e0f4c6dbd7f1e02768e35af",
+                                         "Name":  "IN[1]",
+                                         "Description":  "Input #1",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "241905221ce941c68dec59c1e29e0160",
+                                          "Name":  "OUT",
+                                          "Description":  "Result of the python script",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "Runs an embedded Python script."
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+                      "ElementResolver":  null,
+                      "Symbol":  "OUT",
+                      "Id":  "f2ed9c5468b7455685bf13b883516f55",
+                      "NodeType":  "OutputNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "a6dfd49aa4a74d5987e9eb4753b76314",
+                                         "Name":  "",
+                                         "Description":  "",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function output, use with custom nodes"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "ElementToBeCut",
+                                        "TypeName":  "Revit.Elements.Element",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  null,
+                                        "Description":  ""
+                                    },
+                      "Id":  "f9b81e2b3b21437190119465da5bccfc",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "a44ae1c1ec4d4312b1e010ab47949381",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "CuttingElements",
+                                        "TypeName":  "Revit.Elements.Element",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  null,
+                                        "Description":  ""
+                                    },
+                      "Id":  "aff4dc910ba74811912102be86662a23",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "f5e0e30cd1bc4f70ba7698ca47d8f27f",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  }
+              ],
+    "Connectors":  [
+                       {
+                           "Start":  "241905221ce941c68dec59c1e29e0160",
+                           "End":  "a6dfd49aa4a74d5987e9eb4753b76314",
+                           "Id":  "0920520417f947fca93c271215c5efe2",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "a44ae1c1ec4d4312b1e010ab47949381",
+                           "End":  "98d17bbf175848c8b18ce0e6b146ad06",
+                           "Id":  "7ecb76869f484c5f8aa73920d1a439f8",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "f5e0e30cd1bc4f70ba7698ca47d8f27f",
+                           "End":  "84568a925e0f4c6dbd7f1e02768e35af",
+                           "Id":  "bcdbb290e8754704bc9fc4cacd6b5021",
+                           "IsHidden":  "False"
+                       }
+                   ],
+    "Dependencies":  [
+
+                     ],
+    "NodeLibraryDependencies":  [
+
+                                ],
+    "Author":  "None provided",
+    "Bindings":  [
+
+                 ],
+    "View":  {
+                 "Dynamo":  {
+                                "ScaleFactor":  1.0,
+                                "HasRunWithoutCrash":  false,
+                                "IsVisibleInDynamoLibrary":  true,
+                                "Version":  "3.3.0.6316",
+                                "RunType":  "Manual",
+                                "RunPeriod":  "1000"
+                            },
+                 "Camera":  {
+                                "Name":  "_Background Preview",
+                                "EyeX":  -9.701420783996582,
+                                "EyeY":  8.390907287597656,
+                                "EyeZ":  -5.084073066711426,
+                                "LookX":  9.497069358825684,
+                                "LookY":  -9.042110443115234,
+                                "LookZ":  5.05450963973999,
+                                "UpX":  0.5679731369018555,
+                                "UpY":  0.7655259370803833,
+                                "UpZ":  0.30228564143180847
+                            },
+                 "ConnectorPins":  [
+
+                                   ],
+                 "NodeViews":  [
+                                   {
+                                       "Id":  "ea629d2b7b4b43b68112c6d5a8425c05",
+                                       "Name":  "Python Script",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  250.0,
+                                       "Y":  0.0
+                                   },
+                                   {
+                                       "Id":  "f2ed9c5468b7455685bf13b883516f55",
+                                       "Name":  "Output",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  447.0,
+                                       "Y":  0.0
+                                   },
+                                   {
+                                       "Id":  "f9b81e2b3b21437190119465da5bccfc",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  -157.5,
+                                       "Y":  -39.0
+                                   },
+                                   {
+                                       "Id":  "aff4dc910ba74811912102be86662a23",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  -162.5,
+                                       "Y":  53.0
+                                   }
+                               ],
+                 "Annotations":  [
+
+                                 ],
+                 "X":  334.0,
+                 "Y":  173.0,
+                 "Zoom":  1.0
+             }
+}

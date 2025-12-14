@@ -1,0 +1,138 @@
+﻿{
+    "Uuid":  "644a40bf-576c-4e5a-ba6b-fdb01cb6af95",
+    "IsCustomNode":  true,
+    "Category":  "Data-Shapes.Revit.SharedParameters",
+    "Description":  "List of all parameter groups",
+    "Name":  "ParameterGroup list",
+    "ElementResolver":  {
+                            "ResolutionMap":  {
+
+                                              }
+                        },
+    "Inputs":  [
+
+               ],
+    "Outputs":  [
+
+                ],
+    "Nodes":  [
+                  {
+                      "ConcreteType":  "PythonNodeModels.PythonNode, PythonNodeModels",
+                      "Code":  "# Copyright (c) mostafa el ayoubi\n# Data-Shapes www.data-shapes.net 2017 elayoub.mostafa@gmail.com\n# Ported to CPython + PythonNet 2.5\n\nimport clr\n\nclr.AddReference(\u0027RevitAPI\u0027)\nfrom Autodesk.Revit.DB import ForgeTypeId\n\n# Revit 2024+/2025: BuiltInParameterGroup is deprecated\n# Use GroupTypeId (ForgeTypeId) instead\n# GroupTypeId is a static class with ForgeTypeId properties for each parameter group\n\ntry:\n    # Revit 2024+ uses GroupTypeId\n    from Autodesk.Revit.DB import GroupTypeId\n    \n    # Get all parameter group ForgeTypeIds using dir() and getattr()\n    # (PythonNet 2.5 quirk: System.Enum.GetValues() doesn\u0027t work)\n    param_groups = []\n    for name in dir(GroupTypeId):\n        # Skip Python magic attributes and .NET method names\n        if name.startswith(\u0027_\u0027):\n            continue\n        if name in (\u0027Equals\u0027, \u0027GetHashCode\u0027, \u0027GetType\u0027, \u0027ToString\u0027, \n                    \u0027ReferenceEquals\u0027, \u0027MemberwiseClone\u0027):\n            continue\n        try:\n            val = getattr(GroupTypeId, name)\n            # GroupTypeId properties return ForgeTypeId instances\n            if isinstance(val, ForgeTypeId):\n                param_groups.append(val)\n        except:\n            pass\n    \n    OUT = param_groups\n\nexcept ImportError:\n    # Fallback for older Revit versions (pre-2024)\n    from Autodesk.Revit.DB import BuiltInParameterGroup\n    \n    # Use dir() + getattr() pattern for PythonNet 2.5 compatibility\n    enum_values = []\n    for name in dir(BuiltInParameterGroup):\n        if name.startswith(\u0027_\u0027):\n            continue\n        if name in (\u0027value__\u0027, \u0027Equals\u0027, \u0027GetHashCode\u0027, \u0027GetType\u0027, \u0027ToString\u0027, \n                    \u0027CompareTo\u0027, \u0027GetTypeCode\u0027, \u0027HasFlag\u0027, \u0027Format\u0027, \u0027Parse\u0027,\n                    \u0027TryParse\u0027, \u0027IsDefined\u0027, \u0027GetName\u0027, \u0027GetNames\u0027, \u0027GetValues\u0027,\n                    \u0027GetUnderlyingType\u0027, \u0027ToObject\u0027):\n            continue\n        try:\n            val = getattr(BuiltInParameterGroup, name)\n            if isinstance(val, BuiltInParameterGroup):\n                enum_values.append(val)\n        except:\n            pass\n    \n    OUT = enum_values\n",
+                      "Engine":  "CPython3",
+                      "VariableInputPorts":  true,
+                      "Id":  "59da09df184f49f8bb7582d9ccd6fabf",
+                      "NodeType":  "PythonScriptNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "44c7c0d5bcda47488fc7906c1bd1d457",
+                                          "Name":  "OUT",
+                                          "Description":  "Result of the python script",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "Runs an embedded Python script."
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+                      "ElementResolver":  null,
+                      "Symbol":  "ParameterGroups",
+                      "Id":  "380f44ebbc08486db3f270005faef8fe",
+                      "NodeType":  "OutputNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "ff251c05a62f4e6ab5e673d0e1b2f05b",
+                                         "Name":  "",
+                                         "Description":  "",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function output, use with custom nodes"
+                  }
+              ],
+    "Connectors":  [
+                       {
+                           "Start":  "44c7c0d5bcda47488fc7906c1bd1d457",
+                           "End":  "ff251c05a62f4e6ab5e673d0e1b2f05b",
+                           "Id":  "67f9ede7b8494c2aa9ab3c48ad48d55d",
+                           "IsHidden":  "False"
+                       }
+                   ],
+    "Dependencies":  [
+
+                     ],
+    "NodeLibraryDependencies":  [
+
+                                ],
+    "Author":  "None provided",
+    "Bindings":  [
+
+                 ],
+    "View":  {
+                 "Dynamo":  {
+                                "ScaleFactor":  1.0,
+                                "HasRunWithoutCrash":  false,
+                                "IsVisibleInDynamoLibrary":  true,
+                                "Version":  "3.3.0.6316",
+                                "RunType":  "Manual",
+                                "RunPeriod":  "1000"
+                            },
+                 "Camera":  {
+                                "Name":  "_Background Preview",
+                                "EyeX":  -26182.98828125,
+                                "EyeY":  74536.5546875,
+                                "EyeZ":  51813.8203125,
+                                "LookX":  9918.72265625,
+                                "LookY":  -80499.0,
+                                "LookZ":  -39714.80859375,
+                                "UpX":  0.21598562598228455,
+                                "UpY":  0.4532727003097534,
+                                "UpZ":  -0.8648086786270142
+                            },
+                 "ConnectorPins":  [
+
+                                   ],
+                 "NodeViews":  [
+                                   {
+                                       "Id":  "59da09df184f49f8bb7582d9ccd6fabf",
+                                       "Name":  "Python Script",
+                                       "IsSetAsInput":  true,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  156.40219909812447,
+                                       "Y":  3.450610171497715
+                                   },
+                                   {
+                                       "Id":  "380f44ebbc08486db3f270005faef8fe",
+                                       "Name":  "Output",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  414.0,
+                                       "Y":  0.0
+                                   }
+                               ],
+                 "Annotations":  [
+
+                                 ],
+                 "X":  -7.73003227807055,
+                 "Y":  252.181670019076,
+                 "Zoom":  1.545620359375
+             }
+}

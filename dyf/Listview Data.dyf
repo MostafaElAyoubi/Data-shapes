@@ -1,0 +1,674 @@
+﻿{
+    "Uuid":  "c3a36eb7-8fe8-4417-b31e-ccc9fded769b",
+    "IsCustomNode":  true,
+    "Category":  "Data-Shapes.UI.Input",
+    "Description":  "Create data for ListView input in UI.MultiInputForm ++ . Check out www.data-shapes.net for more infos.",
+    "Name":  "Listview Data",
+    "ElementResolver":  {
+                            "ResolutionMap":  {
+                                                  "DSCore.List.Empty":  {
+                                                                            "Key":  "DSCore.List",
+                                                                            "Value":  "DSCoreNodes.dll"
+                                                                        },
+                                                  "DSCore.List":  {
+                                                                      "Key":  "DSCore.List",
+                                                                      "Value":  "DSCoreNodes.dll"
+                                                                  }
+                                              }
+                        },
+    "Inputs":  [
+
+               ],
+    "Outputs":  [
+
+                ],
+    "Nodes":  [
+                  {
+                      "ConcreteType":  "PythonNodeModels.PythonNode, PythonNodeModels",
+                      "Code":  "# Copyright (c) Data Shapes, 2025\n# Data-Shapes www.data-shapes.io, elayoubi.mostafa@data-shapes.io @data_shapes\n\nimport clr\nimport System\nimport unicodedata\n\ntry:\n    clr.AddReference(\"System.Windows.Forms\")\n    clr.AddReference(\"System.Drawing\")\n    from System.Windows.Forms import (\n        ListView,\n        ColumnHeader,\n        ColumnHeaderStyle,\n        RadioButton,\n        CheckState,\n        Panel,\n        FlowLayoutPanel,\n        TableLayoutPanel,\n        ColumnStyle,\n        RowStyle,\n        SizeType,\n        FlowDirection,\n        Padding,\n        DockStyle,\n        AnchorStyles,\n        View as vi,\n    )\n    from System.Windows.Forms import SortOrder as _SortOrder\n    from System.Drawing import Point, Color, SystemFonts, Size\nexcept Exception:\n    # Allow import in non-Dynamo environments; handlers will no-op if missing\n    ListView = None\n    ColumnHeader = None\n    ColumnHeaderStyle = None\n    RadioButton = None\n    CheckState = None\n    vi = None\n    _SortOrder = None\n    Point = None\n    SystemFonts = None\n    FlowLayoutPanel = None\n    TableLayoutPanel = None\n    ColumnStyle = None\n    RowStyle = None\n    SizeType = None\n    FlowDirection = None\n    Padding = None\n    DockStyle = None\n    AnchorStyles = None\n    Size = None\n\ntry:\n    clr.AddReference(\"RevitAPI\")\n    clr.AddReference(\"RevitAPIUI\")\n    clr.AddReference(\"RevitNodes\")\n    import Revit\n\n    clr.ImportExtensions(Revit.Elements)\n    clr.ImportExtensions(Revit.GeometryConversion)\n    from Autodesk.Revit.DB import FilteredElementCollector, ElementId, FamilyInstance, ViewFamilyType, ViewFamily, View\n    \n    from Autodesk.Revit.UI import Selection\n    from RevitServices.Persistence import DocumentManager\n    from System.Collections.Generic import List as GenericList\n\n    _DOC = DocumentManager.Instance.CurrentDBDocument\n    _UIDOC = DocumentManager.Instance.CurrentUIApplication.ActiveUIDocument\n    _DBVIEWS = [v for v in FilteredElementCollector(_DOC).OfClass(View) if hasattr(v, \"IsTemplate\") and (not v.IsTemplate)]\n    ElementIdList = GenericList[ElementId]\nexcept Exception:\n    Revit = None\n    _DOC = None\n    _UIDOC = None\n    _DBVIEWS = []\n    Selection = None\n    FamilyInstance = None\n    ElementId = None\n    ElementIdList = None\n\n\nclass listview(object):\n\n    def __init__(\n        self,\n        inputname=\"\",\n        entries=None,\n        values=None,\n        height=150,\n        highlight=False,\n        display_mode=None,\n        count_from_entries=False,\n        default_values=None,\n        sorted_items=False,\n        show_id=False,\n        element_count=None,\n    ):\n        # public metadata consumed by the form\n        self.inputname = inputname if inputname is not None else \"\"\n        self.height = height if isinstance(height, (int, float)) else 150\n        self.highlight = bool(highlight)\n        self.display_mode = display_mode\n        self.showId = bool(show_id)\n        self._sorted = bool(sorted_items)\n        self.default_values = self._normalize_list(default_values)\n        self._input_type = \"listview\"\n\n        labels = self._normalize_list(entries)\n        vals = self._normalize_list(values)\n        if len(vals) \u003c len(labels):\n            vals += [None] * (len(labels) - len(vals))\n\n        # Build a stable label -\u003e value map (same contract as dropdown)\n        options = {}\n        for i, lbl in enumerate(labels):\n            val = vals[i]\n            label_text = self._stringify(lbl)\n            if self.showId and val is not None:\n                vid = self._get_element_id(val)\n                if vid is not None:\n                    label_text = \"{0}  -  id: {1}\".format(label_text, vid)\n            options[label_text] = val\n        self.options = options\n\n        # Element count used only for label decoration in the form\n        if element_count is not None:\n            self.element_count = element_count\n        elif count_from_entries:\n            self.element_count = len(labels)\n        else:\n            self.element_count = 0\n\n    def build_listview(self, lv, width, xRatio, yRatio, form=None):\n        if ListView is None or TableLayoutPanel is None:\n            return None\n\n        # Create container using TableLayoutPanel for proper stretching\n        container = TableLayoutPanel()\n        container.Dock = DockStyle.Top\n        container.AutoSize = True\n        container.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink\n        container.ColumnCount = 1\n        container.ColumnStyles.Add(ColumnStyle(SizeType.Percent, 100))\n        container.RowCount = 0\n        container.Margin = Padding(0)\n        container.Padding = Padding(0)\n\n        # Configure ListView - use Dock.Top for horizontal stretching\n        lv.Dock = DockStyle.Top\n        lv.Height = int(self.height * yRatio)\n        lv.Scrollable = True\n        lv.Values = self.options\n        \n        # Column header\n        col = ColumnHeader()\n        col.Text = \"\"\n        col.Width = -2  # Auto-size to content\n        lv.Columns.Add(col)\n        \n        # Hide header\n        header_none = getattr(ColumnHeaderStyle, \"None\", None)\n        if header_none is not None:\n            lv.HeaderStyle = header_none\n        \n        # View mode\n        view_default = getattr(vi, \"Details\", None)\n        if view_default is not None:\n            lv.View = view_default\n        \n        lv.CheckBoxes = not bool(self.display_mode)\n        lv.FullRowSelect = bool(self.highlight) or bool(self.display_mode)\n        lv.Margin = Padding(0, 0, 0, int(5 * yRatio))\n\n        # Populate items\n        labels = list(self.options.keys())\n        labels = self._sorted_labels(labels)\n        for lbl in labels:\n            lv.Items.Add(lbl)\n\n        # Apply defaults\n        self._apply_defaults(lv, labels)\n\n        # Highlight behavior\n        if self.display_mode:\n            lv.HideSelection = False\n            lv.ItemSelectionChanged += self._setviewforelement\n            lv.MouseUp += self._zoomcenter\n        elif self.highlight:\n            lv.MouseDown += self._setviewforelement\n            lv.MouseUp += self._zoomcenter\n            # Alternate row colors\n            items = list(lv.Items)\n            try:\n                for i, item in enumerate(items):\n                    if i % 2 == 1:\n                        item.BackColor = Color.FromArgb(230, 243, 255)\n            except Exception:\n                pass\n\n        # Add listview as first row\n        container.RowCount += 1\n        container.RowStyles.Add(RowStyle(SizeType.AutoSize))\n        container.Controls.Add(lv, 0, container.RowCount - 1)\n\n        # Select all/none buttons (only for checkbox mode)\n        if lv.CheckBoxes:\n            btn_row = self._create_select_buttons(lv, xRatio, yRatio)\n            if btn_row:\n                container.RowCount += 1\n                container.RowStyles.Add(RowStyle(SizeType.AutoSize))\n                container.Controls.Add(btn_row, 0, container.RowCount - 1)\n\n        return container\n\n    def _create_select_buttons(self, lv, xRatio, yRatio):\n        if FlowLayoutPanel is None:\n            return None\n            \n        btn_row = FlowLayoutPanel()\n        btn_row.Dock = DockStyle.Top\n        btn_row.FlowDirection = FlowDirection.LeftToRight\n        btn_row.WrapContents = False\n        btn_row.AutoSize = True\n        btn_row.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink\n        btn_row.Margin = Padding(0)\n\n        rball = RadioButton()\n        rball.Text = \"Select all\"\n        rball.AutoSize = True\n        rball.Margin = Padding(0, 0, int(15 * xRatio), 0)\n        rball.Font = SystemFonts.DefaultFont if SystemFonts else None\n        rball.Click += lambda sender, event: self.selectall(lv)\n        btn_row.Controls.Add(rball)\n\n        rbnone = RadioButton()\n        rbnone.Text = \"Select none\"\n        rbnone.AutoSize = True\n        rbnone.Margin = Padding(0)\n        rbnone.Font = SystemFonts.DefaultFont if SystemFonts else None\n        rbnone.Click += lambda sender, event: self.selectnone(lv)\n        btn_row.Controls.Add(rbnone)\n\n        # Keep radio buttons in sync with checkbox state\n        lv.ItemCheck += lambda sender, event: self._update_radio_state(sender, event, rball, rbnone)\n\n        return btn_row\n\n    def _update_radio_state(self, sender, event, rball, rbnone):\n        if not (rball and rbnone):\n            return\n        try:\n            checked_count = sender.CheckedItems.Count\n            total_count = sender.Items.Count\n            is_checking = event.NewValue == CheckState.Checked\n            \n            if is_checking:\n                # Item being checked\n                if checked_count == total_count - 1:\n                    # This will make all checked\n                    rball.Checked = True\n                    rbnone.Checked = False\n                else:\n                    rball.Checked = False\n                    rbnone.Checked = False\n            else:\n                # Item being unchecked\n                if checked_count == 1:\n                    # This will make none checked\n                    rball.Checked = False\n                    rbnone.Checked = True\n                else:\n                    rball.Checked = False\n                    rbnone.Checked = False\n        except Exception:\n            pass\n\n    def build_listview_panel(self, lv, formbody, xlabel, xinput, y, xRatio, yRatio, form=None):\n        width = formbody.Width - int(25 * xRatio)\n        result = self.build_listview(lv, width, xRatio, yRatio, form)\n        if result:\n            # For legacy compatibility, return (panel, next_y)\n            return result, y + result.PreferredSize.Height + int(25 * yRatio)\n        return None, y\n\n    def _sorted_labels(self, labels):\n        if self._sorted:\n            try:\n                return sorted(labels, key=lambda s: self._remove_accents(s))\n            except Exception:\n                return sorted(labels)\n        return labels\n\n    def _apply_defaults(self, lv, labels):\n        defaults = self.default_values or []\n        if not isinstance(defaults, list):\n            try:\n                defaults = list(defaults)\n            except Exception:\n                defaults = [defaults]\n\n        label_map = {i: lbl for i, lbl in enumerate(labels)}\n        for d in defaults:\n            try:\n                if isinstance(d, int):\n                    lbl = label_map.get(d)\n                    if lbl:\n                        lv.Items[labels.index(lbl)].Checked = True\n                else:\n                    if d in labels:\n                        lv.Items[labels.index(d)].Checked = True\n                    else:\n                        for i, lbl in enumerate(labels):\n                            if self.options.get(lbl) == d:\n                                lv.Items[i].Checked = True\n            except Exception:\n                pass\n\n    def selectall(self, lv):\n        try:\n            for i in lv.Items:\n                i.Checked = True\n        except Exception:\n            pass\n\n    def selectnone(self, lv):\n        try:\n            for i in lv.Items:\n                i.Checked = False\n        except Exception:\n            pass\n\n    def _setviewforelement(self, sender, event):\n        if Revit is None or _DOC is None or _UIDOC is None:\n            return\n        try:\n            txt = None\n            if hasattr(event, \"Item\"):\n                txt = getattr(event.Item, \"Text\", None)\n            if txt is None and hasattr(event, \"X\"):\n                itm = sender.GetItemAt(event.X, event.Y)\n                if itm:\n                    txt = getattr(itm, \"Text\", None)\n            if txt is None:\n                itm = getattr(sender, \"FocusedItem\", None)\n                if itm:\n                    txt = getattr(itm, \"Text\", None)\n\n            if not txt:\n                return\n            element = self.options.get(txt)\n            if element is None:\n                return\n            \n            internal_element = getattr(element, \"InternalElement\", None) or element\n            elem_id = getattr(internal_element, \"Id\", None)\n            if elem_id is None:\n                return\n            \n            viewsforelement = []\n            elem_class = internal_element.__class__\n            for v in _DBVIEWS:\n                try:\n                    if v.IsTemplate:\n                        continue\n                    collector = FilteredElementCollector(_DOC, v.Id)\n                    try:\n                        found_ids = [e.Id for e in collector.OfClass(elem_class).ToElements()]\n                    except Exception:\n                        if FamilyInstance is not None:\n                            found_ids = [e.Id for e in FilteredElementCollector(_DOC, v.Id).OfClass(FamilyInstance).ToElements()]\n                        else:\n                            continue\n                    if any(fid.IntegerValue == elem_id.IntegerValue for fid in found_ids):\n                        viewsforelement.append(v)\n                except Exception:\n                    continue\n            \n            if not viewsforelement:\n                return\n            \n            current_view = _UIDOC.ActiveView\n            target_view = None\n            if current_view and current_view.Id in [v.Id for v in viewsforelement]:\n                target_view = current_view\n            else:\n                target_view = viewsforelement[0]\n            \n            if target_view and (current_view is None or target_view.Id.IntegerValue != current_view.Id.IntegerValue):\n                try:\n                    _UIDOC.RequestViewChange(target_view)\n                except Exception:\n                    try:\n                        _UIDOC.ActiveView = target_view\n                    except Exception:\n                        pass\n            \n            if ElementIdList and ElementId:\n                try:\n                    id_collection = ElementIdList()\n                    id_collection.Add(elem_id)\n                    _UIDOC.Selection.SetElementIds(id_collection)\n                except Exception:\n                    pass\n        except Exception:\n            pass\n\n    def _zoomcenter(self, sender, event):\n        if Revit is None or _DOC is None or _UIDOC is None:\n            return\n        try:\n            txt = None\n            if hasattr(event, \"X\"):\n                itm = sender.GetItemAt(event.X, event.Y)\n                if itm:\n                    txt = getattr(itm, \"Text\", None)\n            if txt is None:\n                itm = getattr(sender, \"FocusedItem\", None)\n                if itm:\n                    txt = getattr(itm, \"Text\", None)\n            if not txt:\n                return\n            elem_val = self.options.get(txt)\n            if elem_val is None:\n                return\n            elem = getattr(elem_val, \"InternalElement\", None) or elem_val\n            if elem is None:\n                return\n            elem_id = getattr(elem, \"Id\", None)\n            if elem_id is not None:\n                try:\n                    _UIDOC.ShowElements(elem)\n                except Exception:\n                    try:\n                        _UIDOC.ShowElements(elem_id)\n                    except Exception:\n                        pass\n        except Exception:\n            pass\n\n    def _normalize_list(self, obj):\n        if obj is None:\n            return []\n        if isinstance(obj, (list, tuple)):\n            return list(obj)\n        if isinstance(obj, str):\n            return [obj]\n        try:\n            return list(obj)\n        except Exception:\n            return [obj]\n\n    def _stringify(self, obj):\n        try:\n            return str(obj)\n        except Exception:\n            try:\n                return obj.encode(\"utf-8\").decode(\"utf-8\")\n            except Exception:\n                return \"\"\n\n    def _remove_accents(self, input_str):\n        nfkd_form = unicodedata.normalize(\"NFKD\", str(input_str))\n        only_ascii = nfkd_form.encode(\"ASCII\", \"ignore\")\n        return only_ascii.decode(\"ASCII\")\n\n    def _get_element_id(self, val):\n        try:\n            vid = getattr(val, \"Id\", None)\n            if vid is not None:\n                return vid\n        except Exception:\n            pass\n        try:\n            internal = getattr(val, \"InternalElement\", None)\n            if internal is not None:\n                vid = getattr(internal, \"Id\", None)\n                if vid is not None:\n                    return vid\n        except Exception:\n            pass\n        return None\n\n    def __repr__(self):\n        return \"UI.ListView input\"\n\n\ninputname = IN[0] if len(IN) \u003e 0 else \"\"\nentries = IN[1] if len(IN) \u003e 1 else []\nvalues = IN[2] if len(IN) \u003e 2 else []\nheight = IN[3] if len(IN) \u003e 3 else 150\nhighlight = IN[4] if len(IN) \u003e 4 else False\ndisplay_mode = IN[5] if len(IN) \u003e 5 else None\ncount_from_entries = IN[6] if len(IN) \u003e 6 else False\ndefault_values = IN[7] if len(IN) \u003e 7 else []\nsorted_items = IN[8] if len(IN) \u003e 8 else False\nshow_id = IN[9] if len(IN) \u003e 9 else False\n\nOUT = listview(\n    inputname,\n    entries,\n    values,\n    height,\n    highlight,\n    display_mode,\n    count_from_entries,\n    default_values,\n    sorted_items,\n    show_id,\n)\n",
+                      "Engine":  "CPython3",
+                      "VariableInputPorts":  true,
+                      "Id":  "cef200ad15124bc5ad036400d44b9b89",
+                      "NodeType":  "PythonScriptNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "f023b3a168da4d37886b5821464a606f",
+                                         "Name":  "IN[0]",
+                                         "Description":  "Input #0",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "06660ffd85164737abc4c1a1d9281292",
+                                         "Name":  "IN[1]",
+                                         "Description":  "Input #1",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "b58f9f367a714fc288f819f6b40cd729",
+                                         "Name":  "IN[2]",
+                                         "Description":  "Input #2",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "761a9409ea5c4d63a598d2512ee7cf82",
+                                         "Name":  "IN[3]",
+                                         "Description":  "Input #3",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "85ba8109067042d6be7ea81dedb4ddad",
+                                         "Name":  "IN[4]",
+                                         "Description":  "Input #4",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "e85db70bdf884bfabc1ac0780fd5ea84",
+                                         "Name":  "IN[5]",
+                                         "Description":  "Input #5",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "8d856e40823b483b9b585ad59b78ffd3",
+                                         "Name":  "IN[6]",
+                                         "Description":  "Input #6",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "829e7237a247457c8e885f8a7ea82fef",
+                                         "Name":  "IN[7]",
+                                         "Description":  "Input #7",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "3c9c773b609e459e820ea0dbe9e0ffa9",
+                                         "Name":  "IN[8]",
+                                         "Description":  "Input #8",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "5df4b1ded0174a3bbb029c5f481deec4",
+                                         "Name":  "IN[9]",
+                                         "Description":  "Input #9",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "6496de1f5fb64f7c9119f02332420a33",
+                                          "Name":  "OUT",
+                                          "Description":  "Result of the python script",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "Runs an embedded Python script."
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+                      "ElementResolver":  null,
+                      "Symbol":  "ListView input",
+                      "Id":  "ab10491428ac4b9fbcae0fce01efb435",
+                      "NodeType":  "OutputNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "dd391268c9544a999fba59f636b46bef",
+                                         "Name":  "",
+                                         "Description":  "",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function output, use with custom nodes"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "InputName_",
+                                        "TypeName":  "string",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "\"\"",
+                                        "Description":  ""
+                                    },
+                      "Id":  "0df247056f9d454caed1be805cce7ec9",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "d6c132c876a046c5b1c304da22ba1871",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "Keys_",
+                                        "TypeName":  "var",
+                                        "TypeRank":  1,
+                                        "DefaultValue":  null,
+                                        "Description":  ""
+                                    },
+                      "Id":  "148bad2c300948b3998c5888579b75e3",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "f83436a6a85c4182b2722a8b94cd5b2c",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "Values_",
+                                        "TypeName":  "var",
+                                        "TypeRank":  -1,
+                                        "DefaultValue":  null,
+                                        "Description":  ""
+                                    },
+                      "Id":  "be4be692c42047f58babb966c29580f0",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "9980b3bed6a5489680878e717a0b2d97",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "Height_optionnal_",
+                                        "TypeName":  "int",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "200",
+                                        "Description":  ""
+                                    },
+                      "Id":  "34be11ca1a24482f9aa18ac0caf5cc65",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "e7dec1c85d7948788bd8ce78e3f878a3",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "HilightInView_optionnal_",
+                                        "TypeName":  "bool",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "false",
+                                        "Description":  " If set to true, clicking elements of the listview will highlight them in a view like Dynamo\u0027s watch node"
+                                    },
+                      "Id":  "163d591e213c4079844e221f0de52d14",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "e65f1f7d120247d389ba3c188ce50304",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "DisplayModeOnly_optionnal_",
+                                        "TypeName":  "bool",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "false",
+                                        "Description":  " Turns off ability to select elements. Form will not output any data for this element."
+                                    },
+                      "Id":  "17b88acfe4544649b20b534a6db34799",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "69088bd019da4f09a9253a836897357d",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "ShowElementCount_optionnal_",
+                                        "TypeName":  "bool",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "false",
+                                        "Description":  " Will display the number of elements underneath the input name"
+                                    },
+                      "Id":  "08be7782cbdb44b597060b8e86e8ef86",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "96489a4968ba4fa9843882dac540da7b",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "DefaultValueIndices_optionnal_",
+                                        "TypeName":  "int",
+                                        "TypeRank":  1,
+                                        "DefaultValue":  "DSCore.List.Empty",
+                                        "Description":  ""
+                                    },
+                      "Id":  "3070d208b98042fb82b55969b13d0fc0",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "3eeaa0ffb5b247ab9719ef5a3b8c2ffe",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "SortItems_optionnal_",
+                                        "TypeName":  "bool",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "true",
+                                        "Description":  " Determines wether the ListView items are sorted or not"
+                                    },
+                      "Id":  "ea6549269398461c9bbdf4c97f0530d9",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "8268d059f0be4556aeed5326ae33808c",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "ShowId_optionnal_",
+                                        "TypeName":  "bool",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "true",
+                                        "Description":  " Warning: disabling this will cause the listview input creation to fail in case there are elements with the same name"
+                                    },
+                      "Id":  "788447f887b548eb8a28fa8299fed78a",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "ea7d3a583c424d2fa7ae7e7412cd38c8",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  }
+              ],
+    "Connectors":  [
+                       {
+                           "Start":  "6496de1f5fb64f7c9119f02332420a33",
+                           "End":  "dd391268c9544a999fba59f636b46bef",
+                           "Id":  "75af6af917bf446fb2c246bc5f29c482",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "d6c132c876a046c5b1c304da22ba1871",
+                           "End":  "f023b3a168da4d37886b5821464a606f",
+                           "Id":  "9d045a6537334cf39c80db97966f7eaf",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "f83436a6a85c4182b2722a8b94cd5b2c",
+                           "End":  "06660ffd85164737abc4c1a1d9281292",
+                           "Id":  "69b99a7af97e4dc0a06e4e117b94f682",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "9980b3bed6a5489680878e717a0b2d97",
+                           "End":  "b58f9f367a714fc288f819f6b40cd729",
+                           "Id":  "1714d4e6e59e4b0cb625481f84ee87c3",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "e7dec1c85d7948788bd8ce78e3f878a3",
+                           "End":  "761a9409ea5c4d63a598d2512ee7cf82",
+                           "Id":  "459e563e03764284a8a167ee788161c7",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "e65f1f7d120247d389ba3c188ce50304",
+                           "End":  "85ba8109067042d6be7ea81dedb4ddad",
+                           "Id":  "a7638e5da6834a8cbc18c5d06ebe17f7",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "69088bd019da4f09a9253a836897357d",
+                           "End":  "e85db70bdf884bfabc1ac0780fd5ea84",
+                           "Id":  "52893875a2ae470ba689103153a058d9",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "96489a4968ba4fa9843882dac540da7b",
+                           "End":  "8d856e40823b483b9b585ad59b78ffd3",
+                           "Id":  "493a8499b6714375a16e7286d24d2e74",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "3eeaa0ffb5b247ab9719ef5a3b8c2ffe",
+                           "End":  "829e7237a247457c8e885f8a7ea82fef",
+                           "Id":  "bd554bcd40984fba8b30914beaa91a42",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "8268d059f0be4556aeed5326ae33808c",
+                           "End":  "3c9c773b609e459e820ea0dbe9e0ffa9",
+                           "Id":  "bfe55e7e37f7468d93dbbb084cb6739e",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "ea7d3a583c424d2fa7ae7e7412cd38c8",
+                           "End":  "5df4b1ded0174a3bbb029c5f481deec4",
+                           "Id":  "3112cd3e5e7f4464b06db13f51ee97e2",
+                           "IsHidden":  "False"
+                       }
+                   ],
+    "Dependencies":  [
+
+                     ],
+    "NodeLibraryDependencies":  [
+
+                                ],
+    "Author":  "None provided",
+    "Bindings":  [
+
+                 ],
+    "View":  {
+                 "Dynamo":  {
+                                "ScaleFactor":  1.0,
+                                "HasRunWithoutCrash":  false,
+                                "IsVisibleInDynamoLibrary":  true,
+                                "Version":  "3.3.0.6316",
+                                "RunType":  "Manual",
+                                "RunPeriod":  "1000"
+                            },
+                 "Camera":  {
+                                "Name":  "_Background Preview",
+                                "EyeX":  -26182.98828125,
+                                "EyeY":  74536.5546875,
+                                "EyeZ":  51813.8203125,
+                                "LookX":  9918.72265625,
+                                "LookY":  -80499.0,
+                                "LookZ":  -39714.80859375,
+                                "UpX":  0.21598562598228455,
+                                "UpY":  0.4532727003097534,
+                                "UpZ":  -0.8648086786270142
+                            },
+                 "ConnectorPins":  [
+
+                                   ],
+                 "NodeViews":  [
+                                   {
+                                       "Id":  "cef200ad15124bc5ad036400d44b9b89",
+                                       "Name":  "Python Script",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  702.505489989118,
+                                       "Y":  199.0
+                                   },
+                                   {
+                                       "Id":  "ab10491428ac4b9fbcae0fce01efb435",
+                                       "Name":  "Output",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  901.0,
+                                       "Y":  199.0
+                                   },
+                                   {
+                                       "Id":  "0df247056f9d454caed1be805cce7ec9",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  256.14420580023886,
+                                       "Y":  -96.02809707951353
+                                   },
+                                   {
+                                       "Id":  "148bad2c300948b3998c5888579b75e3",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  316.8807133909406,
+                                       "Y":  44.32753822583075
+                                   },
+                                   {
+                                       "Id":  "be4be692c42047f58babb966c29580f0",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  298.6862195447575,
+                                       "Y":  161.42957129787752
+                                   },
+                                   {
+                                       "Id":  "34be11ca1a24482f9aa18ac0caf5cc65",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  265.24928497512485,
+                                       "Y":  275.42031669954383
+                                   },
+                                   {
+                                       "Id":  "163d591e213c4079844e221f0de52d14",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  -104.83840007290303,
+                                       "Y":  435.53653359254434
+                                   },
+                                   {
+                                       "Id":  "17b88acfe4544649b20b534a6db34799",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  -109.0,
+                                       "Y":  562.6297862816039
+                                   },
+                                   {
+                                       "Id":  "08be7782cbdb44b597060b8e86e8ef86",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  25.7160618686743,
+                                       "Y":  659.033637811518
+                                   },
+                                   {
+                                       "Id":  "3070d208b98042fb82b55969b13d0fc0",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  84.37235905521277,
+                                       "Y":  785.1323702811615
+                                   },
+                                   {
+                                       "Id":  "ea6549269398461c9bbdf4c97f0530d9",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  79.77046419008065,
+                                       "Y":  911.4257197295198
+                                   },
+                                   {
+                                       "Id":  "788447f887b548eb8a28fa8299fed78a",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  -104.08221908478504,
+                                       "Y":  1097.1086142846393
+                                   }
+                               ],
+                 "Annotations":  [
+
+                                 ],
+                 "X":  217.04607165645655,
+                 "Y":  112.27212306105699,
+                 "Zoom":  0.4932755586728758
+             }
+}

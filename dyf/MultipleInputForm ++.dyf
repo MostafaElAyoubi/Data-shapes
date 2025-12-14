@@ -1,0 +1,767 @@
+{
+  "Uuid": "9fbd05c0-ec1f-4bd3-bf37-969a1552eab8",
+  "IsCustomNode": true,
+  "Category": "Data-Shapes.UI",
+  "Description": "Create a form with multiple inputs. \r\nsee www.data-shapes.net for tutorials and infos!",
+  "Name": "MultipleInputForm ++",
+  "ElementResolver": {
+    "ResolutionMap": {}
+  },
+  "Inputs": [],
+  "Outputs": [],
+  "Nodes": [
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "Code": "# Copyright (c) Data Shapes, 2025\n# Data-Shapes www.data-shapes.io, elayoubi.mostafa@data-shapes.io @data_shapes\n\nimport clr\nimport sys\nimport os\nimport unicodedata\nimport System\nimport tempfile\nimport re\n\nfrom System import Uri, IntPtr, Char, Array\nfrom System.Diagnostics import ProcessStartInfo, Process\nfrom System.Collections.Generic import List as iList\n\nclr.AddReference('System.Xml')\nclr.AddReference('System.IO')\nfrom System.Xml import XmlDocument\nfrom System.IO import Directory, Path\n\nclr.AddReference('System.Windows.Forms')\nclr.AddReference('System.Drawing')\nfrom System.Drawing import (\n    Point, Size, Graphics, Bitmap, Image, Font, FontStyle, Icon, Color, \n    Region, Rectangle, ContentAlignment, SystemFonts, FontFamily\n)\nfrom System.Windows.Forms import (\n    Application, DockStyle, MouseButtons, Button, Form, Label, TrackBar, ToolTip, \n    ColumnHeader, TextBox, CheckBox, ComboBox, ComboBoxStyle, FormBorderStyle, \n    FormStartPosition, ListView, ListViewItem, SortOrder, Panel, ImageLayout, \n    GroupBox, RadioButton, BorderStyle, PictureBox, PictureBoxSizeMode, LinkLabel, \n    CheckState, ColumnHeaderStyle, ImageList, VScrollBar, DataGridView, \n    DataGridViewSelectionMode, FlowLayoutPanel, DataGridViewAutoSizeColumnsMode, \n    DataGridViewClipboardCopyMode, TreeView, TreeNode, TreeNodeCollection, \n    AutoScaleMode, Screen, Padding, NativeWindow, View as vi, FlowDirection, \n    ScrollBars, AnchorStyles, TableLayoutPanel, ColumnStyle, RowStyle, SizeType\n)\n\ntry:\n    clr.AddReference(\"PresentationCore\")\n    clr.AddReference(\"WindowsBase\")\n    from System.Windows.Input import Key, Keyboard\nexcept:\n    pass\n\ntry:\n    clr.AddReference('RevitAPIUI')\n    from Autodesk.Revit.UI import Selection, TaskDialog\n    from Autodesk.Revit.UI.Selection import ISelectionFilter\n    clr.AddReference('RevitNodes')\n    import Revit\n    clr.ImportExtensions(Revit.Elements)\n    clr.ImportExtensions(Revit.GeometryConversion)\n\n    clr.AddReference('RevitServices')\n    from RevitServices.Persistence import DocumentManager\n    doc = DocumentManager.Instance.CurrentDBDocument\n    uidoc = DocumentManager.Instance.CurrentUIApplication.ActiveUIDocument\n\n    clr.AddReference('RevitAPI')\n    try:\n        from Autodesk.Revit.DB import ImageImportOptions\n    except:\n        from Autodesk.Revit.DB import ImageTypeOptions, ImageType, ImagePlacementOptions, ImageInstance\n    from Autodesk.Revit.DB import (\n        FilteredElementCollector, Transaction, View, ViewType, ViewFamily, ViewDrafting,\n        ViewFamilyType, Element, ElementId, FamilyInstance, Document, XYZ, BoxPlacement, UnitUtils\n    )\n\n    try:\n        from Autodesk.Revit.DB import UnitType\n    except:\n        from Autodesk.Revit.DB import SpecTypeId\n\n    dbviews = [v for v in FilteredElementCollector(doc).OfClass(View).ToElements()\n               if v.ViewType in (ViewType.FloorPlan, ViewType.CeilingPlan, ViewType.Section, ViewType.Elevation, ViewType.ThreeD)]\n    viewindex = 0\n    try:\n        UIunit = Document.GetUnits(doc).GetFormatOptions(UnitType.UT_Length).DisplayUnits\n    except:\n        UIunit = Document.GetUnits(doc).GetFormatOptions(SpecTypeId.Length).GetUnitTypeId()\n\nexcept:  # Sandbox, Formit or Civil 3D\n    pass\n\nimportcolorselection = 0\ntry:\n    from Autodesk.Revit.UI import ColorSelectionDialog\nexcept:\n    importcolorselection = 1\n\ntry:\n    from Autodesk.Revit.DB import ImageTypeSource\nexcept:\n    pass\n\nclr.AddReference('ProtoGeometry')\nfrom Autodesk.DesignScript.Geometry import Point as dsPoint, Curve as dsCurve\n\nfrom System.Reflection import Assembly\n\n# LOGO HELPERS\n\ndef load_logo_image(logo_input):\n\n    if logo_input is None or logo_input == '':\n        return None, None\n    \n    try:\n        if isinstance(logo_input, Bitmap):\n            return logo_input, logo_input\n        if isinstance(logo_input, Image):\n            return logo_input, Bitmap(logo_input)\n        \n        if isinstance(logo_input, str):\n            if logo_input.startswith(('http://', 'https://')):\n                from System.Net import WebClient\n                from System.IO import MemoryStream\n                data = WebClient().DownloadData(logo_input)\n                ms = MemoryStream(data)\n                img = Image.FromStream(ms)\n                return img, Bitmap(img)\n            elif os.path.isfile(logo_input):\n                return Image.FromFile(logo_input), Bitmap.FromFile(logo_input)\n    except:\n        pass\n    return None, None\n\n\ndef get_default_logo():\n    #Tries to get default Data-Shapes logo from package folder.\n    try:\n        dynamo = Assembly.Load('DynamoCore')\n        version = str(dynamo.GetName().Version)[:3]\n        dynPath = os.getenv('APPDATA') + \"\\\\Dynamo\\\\Dynamo Revit\\\\\" + version\n        xdoc = XmlDocument()\n        xdoc.Load(dynPath + \"\\\\DynamoSettings.xml\")\n        \n        for child in xdoc.DocumentElement:\n            if child.Name == \"CustomPackageFolders\":\n                for pathNode in child:\n                    basePath = pathNode.InnerText\n                    for subpath in [\n                        basePath + \"\\\\packages\\\\Data-Shapes\\\\extra\\\\a.png\",\n                        basePath + \"\\\\Data-Shapes\\\\extra\\\\a.png\"\n                    ]:\n                        if os.path.isfile(subpath):\n                            return Image.FromFile(subpath), Bitmap.FromFile(subpath)\n    except:\n        pass\n    return None, None\n\n\ndef create_logo_control(logo_input, xRatio, yRatio, logo_size=80):\n\n    logo_img, logo_bmp = load_logo_image(logo_input)\n    if logo_img is None:\n        logo_img, logo_bmp = get_default_logo()\n    \n    if logo_img is None:\n        return None, None\n    \n    logo_pb = PictureBox()\n    scaled_size = int(logo_size * xRatio)\n    ratio = float(logo_img.Height) / float(logo_img.Width)\n    logo_pb.Size = Size(scaled_size, int(scaled_size * ratio))\n    logo_pb.Image = logo_img\n    logo_pb.SizeMode = PictureBoxSizeMode.Zoom\n    logo_pb.Margin = Padding(0)\n    \n    icon = None\n    try:\n        thumb = logo_bmp.GetThumbnailImage(64, 64, logo_bmp.GetThumbnailImageAbort, IntPtr.Zero)\n        thumb.MakeTransparent()\n        icon = Icon.FromHandle(thumb.GetHicon())\n    except:\n        pass\n    \n    return logo_pb, icon\n\n\n# HELPERS\n\ndef regexEndNum(input):\n    try:\n        return re.search(r'(\\d+)$', input).group(0)\n    except:\n        return \"\"\n\n\ndef iterateThroughNodes(collection, li):\n    if hasattr(collection, 'Nodes'):\n        ntest = collection.Nodes\n        if len(ntest) > 0:\n            for i in ntest:\n                iterateThroughNodes(i, li)\n        else:\n            if collection.Checked:\n                li.append(collection.Tag)\n    return li\n\n\ndef remove_accents(input_str):\n    nfkd_form = unicodedata.normalize('NFKD', str(input_str))\n    only_ascii = nfkd_form.encode('ASCII', 'ignore')\n    return only_ascii.decode('ASCII')\n\n#CUSTOM MESSAGE LOOP\n\nclass CustomMessageLoop(NativeWindow):\n    def __init__(self, form):\n        super().__init__()\n        self.form = form\n        self.AssignHandle(form.Handle)\n        self.run_loop()\n\n    def run_loop(self):\n        while self.form.Visible:\n            Application.DoEvents()\n\n# CUSTOM CONTROLS\n\nclass myTextBox(TextBox):\n    def __init__(self):\n        super().__init__()\n        self._isNum = False\n\n\nclass mylistview(ListView):\n    def __init__(self):\n        super().__init__()\n        self.Values = {}\n\n\nclass mytrackbar(TrackBar):\n    def __init__(self, startval=0, step=1):\n        super().__init__()\n        self.Tag = (startval, step)\n\n\nclass myDataGridView(DataGridView):\n    def __init__(self):\n        super().__init__()\n        self.startcell = {}\n        self.endcell = {}\n\n\nclass mygroupbox(GroupBox):\n    def __init__(self):\n        super().__init__()\n        self.Values = []\n\n\nclass myConditionalPanel(Panel):\n    def __init__(self):\n        super().__init__()\n        self._selected_option = None\n        self._conditions = []\n        self._grouped_inputs = []\n        self._option_panels = []\n        self._combobox = None\n        self._config = None\n\n\n# MAIN FORM\n\nclass MultiInputForm(Form):\n\n    def __init__(self):\n        super().__init__()\n        self.Text = 'Data-Shapes | Multi Input UI ++'\n        self.output = []\n        self.values = []\n        self.cancelled = True\n        \n        self.FormBorderStyle = FormBorderStyle.Sizable\n        self.AutoScaleMode = AutoScaleMode.Dpi\n        self.StartPosition = FormStartPosition.CenterScreen\n        \n        # Main layout: Header, Body, Footer\n        self._main_layout = TableLayoutPanel()\n        self._main_layout.Dock = DockStyle.Fill\n        self._main_layout.ColumnCount = 1\n        self._main_layout.ColumnStyles.Add(ColumnStyle(SizeType.Percent, 100))\n        self._main_layout.RowCount = 3\n        self._main_layout.RowStyles.Add(RowStyle(SizeType.AutoSize))\n        self._main_layout.RowStyles.Add(RowStyle(SizeType.Percent, 100))\n        self._main_layout.RowStyles.Add(RowStyle(SizeType.AutoSize))\n        self._main_layout.Padding = Padding(10)\n        self.Controls.Add(self._main_layout)\n\n    def DiableAll(self):\n        for c in self.Controls:\n            c.Enabled = False\n\n    def EnableAll(self):\n        for c in self.Controls:\n            c.Enabled = True\n\n    def setclose(self, sender, event):\n        if sender.Name == \"Cancel\":\n            self.values = None\n            self.cancelled = True\n        else:\n            self.cancelled = False\n            self.values = [self._extract_value(f) for f in self.output]\n        \n        try:\n            self.Close()\n        except:\n            pass\n\n    def _extract_value(self, f):\n        ftype = type(f).__name__\n        \n        if ftype == 'myTextBox':\n            return float(f.Text) if f._isNum else f.Text\n        \n        if ftype == 'CheckBox':\n            return f.Checked\n        \n        if ftype == 'Button':\n            tag = f.Tag\n            if isinstance(tag, list):\n                try:\n                    return [e for e in tag if e.__class__.__name__ != \"Category\"]\n                except:\n                    return tag\n            else:\n                try:\n                    return [] if tag.__class__.__name__ == \"Category\" else tag\n                except:\n                    return tag\n        \n        if ftype == 'ComboBox':\n            try:\n                return f.Tag[f.Text] if f.Tag else None\n            except:\n                return None\n        \n        if ftype == 'mylistview':\n            return [f.Values[i.Text] for i in f.CheckedItems]\n        \n        if ftype == 'mytrackbar':\n            startval, step = f.Tag\n            return startval + f.Value * step\n        \n        if ftype == 'myConditionalPanel':\n            return f._selected_option\n        \n        if ftype in ('mygroupbox', 'GroupBox'):\n            try:\n                for ctrl in f.Controls:\n                    if isinstance(ctrl, RadioButton) and ctrl.Checked:\n                        key = ctrl.Text\n                        return f.Tag[key] if (f.Tag and key in f.Tag) else key\n                    if isinstance(ctrl, TableLayoutPanel):\n                        for nested in ctrl.Controls:\n                            if isinstance(nested, RadioButton) and nested.Checked:\n                                key = nested.Text\n                                return f.Tag[key] if (f.Tag and key in f.Tag) else key\n                return None\n            except:\n                return None\n        \n        if ftype == 'myDataGridView':\n            f.EndEdit()\n            dsrc = f.DataSource\n            out = []\n            colcount = f.ColumnCount\n            rowcount = f.RowCount - 1\n            if f.Tag:\n                out.append([dsrc.Columns[i].ColumnName for i in range(colcount)])\n            for r in range(rowcount):\n                out.append([dsrc.DefaultView[r].Row[i] for i in range(colcount)])\n            return out\n        \n        if ftype == 'TreeView':\n            getter = None\n            try:\n                tagval = getattr(f, \"Tag\", None)\n                if callable(tagval):\n                    getter = tagval\n                elif isinstance(tagval, dict) and callable(tagval.get(\"get_values\")):\n                    getter = tagval.get(\"get_values\")\n            except:\n                pass\n            \n            if getter:\n                try:\n                    return getter()\n                except:\n                    return []\n            else:\n                ls = []\n                try:\n                    iterateThroughNodes(f.Nodes[0], ls)\n                except:\n                    pass\n                return ls\n        \n        if ftype == 'Label':\n            return f.Tag if hasattr(f, \"Tag\") and f.Tag is not None else f.Text\n        \n        if ftype == 'PictureBox':\n            return f.Tag if hasattr(f, \"Tag\") and f.Tag is not None else None\n        \n        return None\n\n    def reset(self, sender, event):\n        pass\n\n    def openurl(self, sender, event):\n        psi = ProcessStartInfo()\n        psi.UseShellExecute = True\n        psi.FileName = sender.Tag\n        Process.Start(psi)\n\n    def showtooltip(self, sender, event):\n        ttp = ToolTip()\n        ttp.AutoPopDelay = 10000\n        ttp.SetToolTip(sender, sender.Tag)\n\n    def numsOnly(self, sender, event):\n        if not Char.IsDigit(event.KeyChar) and event.KeyChar != \".\" and not Char.IsControl(event.KeyChar):\n            event.Handled = True\n\n    # --- AutoCAD Handlers ---\n\n    def _pick_acad(self, sender, single=False):\n        self.DiableAll()\n        try:\n            marshal = System.Runtime.InteropServices.Marshal\n            acadDoc = marshal.GetActiveObject(\"Autocad.Application\").ActiveDocument\n            acadDoc.Activate()\n            user_var = acadDoc.GetVariable(\"users5\")\n\n            if single:\n                pickbox = acadDoc.GetVariable(\"pickbox\")\n                acadDoc.SetVariable(\"pickbox\", 5)\n                acadDoc.SendCommand(\"(setq obj(car(entsel\\042\" + sender.Text + \"\\042))) \")\n                acadDoc.SendCommand(\"(and obj(setvar\\042users5\\042(cdr(assoc 5(entget obj))))(setq obj nil)) \")\n                res = acadDoc.GetVariable(\"users5\")\n                acadDoc.SetVariable(\"pickbox\", pickbox)\n                sender.Tag = acadDoc.HandleToObject(res)\n            else:\n                acadDoc.SendCommand(\"(and(princ\\042\" + sender.Text + \"\\042)(setq ss(ssget))(setvar\\042users5\\042\\042LinkDWGUIOK\\042)(command\\042_.Select\\042ss\\042\\042)) \")\n                sel = acadDoc.ActiveSelectionSet\n                acadDoc.SendCommand(\"(setq ss nil) \")\n                if acadDoc.GetVariable(\"users5\") == \"LinkDWGUIOK\" and sel:\n                    sender.Tag = list(sel)\n\n            acadDoc.SetVariable(\"users5\", user_var)\n        except:\n            pass\n        self.EnableAll()\n\n    def pickautocadobjects(self, sender, event):\n        self._pick_acad(sender, single=False)\n\n    def pickautocadobject(self, sender, event):\n        self._pick_acad(sender, single=True)\n\n    # --- Chart Handlers ---\n\n    def chart_showLabels(self, sender, event):\n        try:\n            chart = sender.Parent.GetChildAtPoint(Point(0, 0))\n            for s in chart.Series:\n                if s.ChartType == SeriesChartType.Pie:\n                    s[\"PieLabelStyle\"] = \"Inside\" if sender.Checked else \"Disabled\"\n                else:\n                    s.IsValueShownAsLabel = sender.Checked\n        except:\n            pass\n\n    def chart_showLegend(self, sender, event):\n        try:\n            chart = sender.Parent.GetChildAtPoint(Point(0, 0))\n            if len(chart.Legends) > 0:\n                target_leg = chart.Legends[1] if len(chart.Legends) > 1 else chart.Legends[0]\n                target_leg.Enabled = sender.Checked\n        except:\n            pass\n\n    def imageexport(self, sender, event):\n        pass\n\n\n# INPUT BUILDER\n\nclass InputBuilder:\n\n    def __init__(self, form, parent, config):\n        self.form = form\n        self.config = config\n        self.xRatio = config.get('xRatio', 1)\n        self.yRatio = config.get('yRatio', 1)\n        self.importcolorselection = config.get('importcolorselection', 0)\n        self.margin = int(5 * self.yRatio)\n        self.label_ratio = 0.35\n        self.parent = parent\n\n        self.table = TableLayoutPanel()\n        self.table.Dock = DockStyle.Top\n        self.table.AutoSize = True\n        self.table.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowOnly\n        self.table.ColumnCount = 1\n        self.table.ColumnStyles.Add(ColumnStyle(SizeType.Percent, 100))\n        self.table.RowCount = 0\n        self.table.Padding = Padding(0)\n        self.table.Margin = Padding(0)\n\n        parent.Controls.Add(self.table)\n\n    def _add_row(self, control):\n        self.table.RowCount += 1\n        self.table.RowStyles.Add(RowStyle(SizeType.AutoSize))\n        if not isinstance(control, (Label,)) or control.AutoSize == False:\n            control.Dock = DockStyle.Top\n        control.Margin = Padding(0, self.margin, 0, self.margin)\n        self.table.Controls.Add(control, 0, self.table.RowCount - 1)\n\n    def _create_labeled_row(self, label_text, control):\n        row = TableLayoutPanel()\n        row.Dock = DockStyle.Top\n        row.AutoSize = True\n        row.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink\n        row.ColumnCount = 2\n        row.RowCount = 1\n        row.ColumnStyles.Add(ColumnStyle(SizeType.Percent, self.label_ratio * 100))\n        row.ColumnStyles.Add(ColumnStyle(SizeType.Percent, (1 - self.label_ratio) * 100))\n        row.RowStyles.Add(RowStyle(SizeType.AutoSize))\n        row.Margin = Padding(0)\n        row.Padding = Padding(0)\n\n        lbl = Label()\n        lbl.Text = label_text\n        lbl.AutoSize = True\n        lbl.Anchor = AnchorStyles.Left | AnchorStyles.Top\n        lbl.Margin = Padding(0, int(4 * self.yRatio), int(5 * self.xRatio), 0)\n        \n        # Set MaximumSize to enable proper text wrapping with unlimited height growth for input labels\n        def update_label_max_width(sender=None, args=None, label=lbl, row_panel=row, ratio=self.label_ratio, x_ratio=self.xRatio):\n            try:\n                row_width = row_panel.ClientSize.Width\n                if row_width > 0:\n                    label_width = int(row_width * ratio) - int(10 * x_ratio)\n                    label.MaximumSize = Size(max(50, label_width), 0)\n            except:\n                pass\n        \n        row.Resize += update_label_max_width\n        row.Layout += update_label_max_width\n        \n        # Set initial max width based on form size\n        try:\n            form_width = self.form.ClientSize.Width - int(40 * self.xRatio)\n            initial_max_width = int(form_width * self.label_ratio) - int(10 * self.xRatio)\n            lbl.MaximumSize = Size(max(50, initial_max_width), 0)\n        except:\n            lbl.MaximumSize = Size(int(120 * self.xRatio), 0)\n        \n        row.Controls.Add(lbl, 0, 0)\n\n        control.Dock = DockStyle.Top\n        control.Margin = Padding(0)\n        row.Controls.Add(control, 1, 0)\n\n        return row\n\n    def _register(self, control):\n        self.form.output.append(control)\n\n    @property\n    def content_height(self):\n        return self.table.PreferredSize.Height\n\n    # INPUT TYPE HANDLERS\n\n    def handle_uitext(self, j):\n        tb = myTextBox()\n        tb.Text = str(j.defaultvalue) if j.defaultvalue is not None else \"\"\n        tb.Height = int(22 * self.yRatio)\n        \n        if getattr(j, '_isnum', False):\n            tb._isNum = True\n            tb.KeyPress += self.form.numsOnly\n\n        if j.inputname:\n            row = self._create_labeled_row(j.inputname, tb)\n            self._add_row(row)\n        else:\n            self._add_row(tb)\n\n        self._register(tb)\n\n    def handle_uimultilinetext(self, j):\n        tb = myTextBox()\n        tb.Text = str(j.defaultvalue) if j.defaultvalue is not None else \"\"\n        tb.Multiline = True\n        tb.ScrollBars = ScrollBars.Vertical\n        tb.Height = int(getattr(j, '_height', 100) * self.yRatio)\n        \n        if getattr(j, '_isnum', False):\n            tb._isNum = True\n            tb.KeyPress += self.form.numsOnly\n\n        if j.inputname:\n            row = self._create_labeled_row(j.inputname, tb)\n            self._add_row(row)\n        else:\n            self._add_row(tb)\n\n        self._register(tb)\n\n    def handle_dropdown(self, j):\n        cb = ComboBox()\n        cb.DropDownStyle = ComboBoxStyle.DropDownList\n        cb.Sorted = getattr(j, '_sorted', False)\n        cb.Height = int(22 * self.yRatio)\n        \n        options = getattr(j, 'options', {}) or {}\n        cb.Tag = options\n        for key in options.keys():\n            cb.Items.Add(str(key))\n\n        default = getattr(j, 'defaultvalue', None)\n        if default is not None:\n            try:\n                if 0 <= default < cb.Items.Count:\n                    cb.SelectedIndex = default\n            except:\n                pass\n\n        if j.inputname:\n            row = self._create_labeled_row(j.inputname, cb)\n            self._add_row(row)\n        else:\n            self._add_row(cb)\n\n        self._register(cb)\n\n    def handle_uibool(self, j):\n        cb = CheckBox()\n        cb.Text = getattr(j, 'booltext', '')\n        cb.Checked = getattr(j, 'defaultvalue', False)\n        cb.AutoSize = True\n\n        if j.inputname:\n            row = self._create_labeled_row(j.inputname, cb)\n            self._add_row(row)\n        else:\n            self._add_row(cb)\n\n        self._register(cb)\n\n    def handle_uislider(self, j):\n        container = TableLayoutPanel()\n        container.Dock = DockStyle.Top\n        container.AutoSize = True\n        container.ColumnCount = 2\n        container.RowCount = 1\n        container.ColumnStyles.Add(ColumnStyle(SizeType.Absolute, int(50 * self.xRatio)))\n        container.ColumnStyles.Add(ColumnStyle(SizeType.Percent, 100))\n        container.RowStyles.Add(RowStyle(SizeType.AutoSize))\n\n        defval = j.defaultvalue if j.defaultvalue != '' else j.minimum\n\n        val_label = Label()\n        val_label.Text = str(defval)\n        val_label.AutoSize = True\n        val_label.Anchor = AnchorStyles.Left | AnchorStyles.Top\n        val_label.Margin = Padding(0, int(8 * self.yRatio), int(5 * self.xRatio), 0)\n        container.Controls.Add(val_label, 0, 0)\n\n        sl = mytrackbar(j.minimum, j.step)\n        sl.Minimum = 0\n        sl.Maximum = int((j.maximum - j.minimum) / j.step)\n        sl.Value = int((defval - j.minimum) / j.step)\n        sl.TickFrequency = max(1, int((j.maximum - j.minimum) / j.step / 10))\n        sl.Height = int(35 * self.yRatio)\n        sl.Dock = DockStyle.Top\n\n        def on_scroll(sender, args, lbl=val_label, minimum=j.minimum, step=j.step):\n            lbl.Text = str(minimum + sender.Value * step)\n        sl.Scroll += on_scroll\n\n        container.Controls.Add(sl, 1, 0)\n\n        if j.inputname:\n            row = self._create_labeled_row(j.inputname, container)\n            self._add_row(row)\n        else:\n            self._add_row(container)\n\n        self._register(sl)\n\n    def handle_uiradio(self, j):\n        gb = mygroupbox()\n        gb.Text = getattr(j, 'grouptitle', '') or ''\n        gb.Dock = DockStyle.Top\n        gb.AutoSize = True\n        gb.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink\n        gb.Padding = Padding(int(10 * self.xRatio), int(15 * self.yRatio), int(10 * self.xRatio), int(10 * self.yRatio))\n\n        rb_table = TableLayoutPanel()\n        rb_table.Dock = DockStyle.Fill\n        rb_table.AutoSize = True\n        rb_table.ColumnCount = 1\n        rb_table.ColumnStyles.Add(ColumnStyle(SizeType.Percent, 100))\n        rb_table.RowCount = 0\n        gb.Controls.Add(rb_table)\n\n        options = getattr(j, 'options', {}) or {}\n        gb.Tag = options\n        labels = list(options.keys())\n        default_key = getattr(j, 'defaultvalue', None)\n\n        for i, lbl in enumerate(labels):\n            rb = RadioButton()\n            rb.Text = str(lbl)\n            rb.AutoSize = True\n            rb.Margin = Padding(0, int(2 * self.yRatio), 0, int(2 * self.yRatio))\n            \n            if default_key is not None and str(lbl) == str(default_key):\n                rb.Checked = True\n            elif i == 0 and default_key is None:\n                rb.Checked = True\n\n            rb_table.RowCount += 1\n            rb_table.RowStyles.Add(RowStyle(SizeType.AutoSize))\n            rb_table.Controls.Add(rb, 0, rb_table.RowCount - 1)\n\n        if j.inputname:\n            row = self._create_labeled_row(j.inputname, gb)\n            self._add_row(row)\n        else:\n            self._add_row(gb)\n\n        self._register(gb)\n\n    def handle_uigroup(self, j):\n        gb = mygroupbox()\n        gb.Text = getattr(j, 'groupname', '') or getattr(j, 'inputname', '') or ''\n        gb.Dock = DockStyle.Top\n        gb.AutoSize = True\n        gb.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink\n        gb.Padding = Padding(int(10 * self.xRatio), int(15 * self.yRatio), int(10 * self.xRatio), int(10 * self.yRatio))\n\n        inner_inputs = getattr(j, 'inputgroup', []) or []\n        if not isinstance(inner_inputs, (list, tuple)):\n            inner_inputs = [inner_inputs]\n\n        inner_builder = InputBuilder(self.form, gb, self.config)\n        for inp in inner_inputs:\n            inner_builder.build(inp)\n\n        self._add_row(gb)\n\n    def handle_uitextnote(self, j):\n        gb = GroupBox()\n        title = getattr(j, 'title', None)\n        gb.Text = title if title is not None else (getattr(j, 'inputname', '') or '')\n        gb.Dock = DockStyle.Top\n        gb.AutoSize = True\n        gb.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink\n        gb.Padding = Padding(\n            int(10 * self.xRatio),\n            int(5 * self.yRatio),\n            int(10 * self.xRatio),\n            int(10 * self.yRatio)\n        )\n        \n        text_val = getattr(j, 'textnote', None)\n        text_content = str(text_val) if text_val is not None else ''\n\n        note = Label()\n        note.Text = text_content\n        note.Tag = text_content\n        note.AutoSize = True\n        note.Dock = DockStyle.Top\n        \n        # Set MaximumSize to enable text wrapping - width will be constrained, height unlimited\n        def update_label_max_width(sender=None, args=None, label=note, groupbox=gb, x_ratio=self.xRatio):\n            try:\n                available_width = groupbox.ClientSize.Width - int(20 * x_ratio)\n                if available_width > 0:\n                    label.MaximumSize = Size(available_width, 0)\n            except:\n                pass\n        \n        gb.Resize += update_label_max_width\n        gb.Layout += update_label_max_width\n        \n        # Set initial max width based on form size\n        try:\n            form_width = self.form.ClientSize.Width - int(60 * self.xRatio)\n            note.MaximumSize = Size(max(100, form_width), 0)\n        except:\n            note.MaximumSize = Size(int(300 * self.xRatio), 0)\n        \n        gb.Controls.Add(note)\n\n        self._add_row(gb)\n\n    def handle_uiimage(self, j):\n        if j.inputname:\n            lbl = Label()\n            lbl.Text = j.inputname\n            lbl.AutoSize = True\n            lbl.Margin = Padding(0, self.margin, 0, int(5 * self.yRatio))\n            self._add_row(lbl)\n        \n        try:\n            initial_width = self.parent.ClientSize.Width - int(20 * self.xRatio)\n            if initial_width <= 0:\n                initial_width = int(400 * self.xRatio)\n        except:\n            initial_width = int(400 * self.xRatio)\n        \n        pb = j.create_picture_box(initial_width)\n        pb.Tag = j.image\n        \n        self._add_row(pb)\n        self._register(pb)\n\n    def handle_listview(self, j):\n        if j.inputname:\n            lbl = Label()\n            lbl.Text = j.inputname\n            lbl.AutoSize = True\n            lbl.Margin = Padding(0, self.margin, 0, int(5 * self.yRatio))\n            self._add_row(lbl)\n\n        element_count = getattr(j, 'element_count', 0)\n        if element_count:\n            count_lbl = Label()\n            count_lbl.Text = f\"({element_count} elements)\"\n            count_lbl.AutoSize = True\n            count_lbl.Margin = Padding(0, 0, 0, int(5 * self.yRatio))\n            self._add_row(count_lbl)\n\n        lv = mylistview()\n\n        build_method = getattr(j, 'build_listview', None)\n        if callable(build_method):\n            try:\n                result = build_method(lv, 0, self.xRatio, self.yRatio, self.form)\n                if result is not None:\n                    self._add_row(result)\n                    self._register(lv)\n                    return\n            except:\n                pass\n\n        # fallback\n        lv.Height = int(getattr(j, 'height', 150) * self.yRatio)\n        lv.CheckBoxes = True\n        if vi:\n            lv.View = vi.Details\n        lv.FullRowSelect = True\n        lv.Scrollable = True\n\n        col = ColumnHeader()\n        col.Text = \"\"\n        col.Width = -2\n        lv.Columns.Add(col)\n\n        try:\n            header_none = getattr(ColumnHeaderStyle, \"None\", None)\n            if header_none is not None:\n                lv.HeaderStyle = header_none\n        except:\n            pass\n\n        options = getattr(j, 'options', {}) or {}\n        lv.Values = options\n        for key in options.keys():\n            lv.Items.Add(str(key))\n\n        default_values = getattr(j, 'default_values', None)\n        if default_values:\n            labels = list(options.keys())\n            defaults = default_values if isinstance(default_values, list) else [default_values]\n            for d in defaults:\n                try:\n                    if isinstance(d, int) and 0 <= d < len(labels):\n                        lv.Items[d].Checked = True\n                    elif d in labels:\n                        lv.Items[labels.index(d)].Checked = True\n                except:\n                    pass\n\n        self._add_row(lv)\n        self._register(lv)\n\n    def handle_uitreeview(self, j):\n        build_tree = getattr(j, 'build_treeview', None)\n\n        if callable(build_tree):\n            try:\n                container = Panel()\n                container.Dock = DockStyle.Top\n                container.AutoSize = True\n                container.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink\n\n                tv, _ = build_tree(container, 0, 0, 0, self.xRatio, self.yRatio)\n                if tv:\n                    self._add_row(container)\n                    self._register(tv)\n                    return\n            except:\n                pass\n\n        # fallback\n        tv = TreeView()\n        tv.CheckBoxes = True\n        tv.Height = int(150 * self.yRatio)\n\n        if j.inputname:\n            row = self._create_labeled_row(j.inputname, tv)\n            self._add_row(row)\n        else:\n            self._add_row(tv)\n\n        self._register(tv)\n\n    def handle_uiconditional(self, j):\n        \"\"\"\n        All inputs from ALL options are built upfront and registered.\n        Only the selected option's panel is visible.        \n        Output order: selected option name first, then all inputs from each option, because we want to have a fixed number of outputs to handled in the script.\n        \"\"\"\n        container = myConditionalPanel()\n        container.BorderStyle = BorderStyle.FixedSingle\n        container.Dock = DockStyle.Top\n        container.AutoSize = True\n        container.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink\n        container.Padding = Padding(int(8 * self.xRatio))\n\n        container._conditions = j._Conditions\n        container._grouped_inputs = j._GroupedInputs\n        container._config = self.config\n        container._option_panels = []\n\n        # register first so selected option comes before child inputs\n        self._register(container)\n\n        layout = TableLayoutPanel()\n        layout.Dock = DockStyle.Fill\n        layout.AutoSize = True\n        layout.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink\n        layout.ColumnCount = 1\n        layout.ColumnStyles.Add(ColumnStyle(SizeType.Percent, 100))\n        layout.RowCount = 2\n        layout.RowStyles.Add(RowStyle(SizeType.AutoSize))\n        layout.RowStyles.Add(RowStyle(SizeType.AutoSize))\n        layout.Padding = Padding(0)\n        layout.Margin = Padding(0)\n        container.Controls.Add(layout)\n\n        cb = ComboBox()\n        cb.DropDownStyle = ComboBoxStyle.DropDownList\n        cb.Dock = DockStyle.Top\n        cb.Height = int(22 * self.yRatio)\n        cb.Margin = Padding(0, 0, 0, int(10 * self.yRatio))\n        \n        for cond in j._Conditions:\n            cb.Items.Add(str(cond))\n\n        container._combobox = cb\n        layout.Controls.Add(cb, 0, 0)\n\n        content_container = Panel()\n        content_container.Dock = DockStyle.Top\n        content_container.AutoSize = True\n        content_container.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink\n        content_container.Margin = Padding(0)\n        layout.Controls.Add(content_container, 0, 1)\n\n        # build all options upfront\n        for opt_idx, inputs in enumerate(j._GroupedInputs):\n            option_panel = Panel()\n            option_panel.Dock = DockStyle.Top\n            option_panel.AutoSize = True\n            option_panel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink\n            option_panel.Margin = Padding(0)\n            option_panel.Visible = False\n            \n            if not isinstance(inputs, (list, tuple)):\n                inputs = [inputs]\n            \n            inner_builder = InputBuilder(self.form, option_panel, self.config)\n            for inp in inputs:\n                if inp is not None:\n                    inner_builder.build(inp)\n            \n            content_container.Controls.Add(option_panel)\n            container._option_panels.append(option_panel)\n\n        default_idx = j._defaultOptionIndex if j._defaultOptionIndex is not None else 0\n        if 0 <= default_idx < len(j._Conditions):\n            cb.SelectedIndex = default_idx\n            container._selected_option = j._Conditions[default_idx]\n            if default_idx < len(container._option_panels):\n                container._option_panels[default_idx].Visible = True\n        elif len(j._Conditions) > 0:\n            cb.SelectedIndex = 0\n            container._selected_option = j._Conditions[0]\n            if len(container._option_panels) > 0:\n                container._option_panels[0].Visible = True\n\n        def on_selection_change(sender, args, cont=container):\n            idx = sender.SelectedIndex\n            if 0 <= idx < len(cont._conditions):\n                cont._selected_option = cont._conditions[idx]\n                for i, panel in enumerate(cont._option_panels):\n                    panel.Visible = (i == idx)\n                cont.PerformLayout()\n                if cont.Parent:\n                    cont.Parent.PerformLayout()\n\n        cb.SelectedIndexChanged += on_selection_change\n\n        self._add_row(container)\n\n    # BUTTON-BASED INPUTS\n\n    def _handle_button(self, j, callback, enabled=True, tag=None):\n        btn = Button()\n        btn.Text = getattr(j, 'buttontext', 'Select')\n        btn.Height = int(28 * self.yRatio)\n\n        if tag is not None:\n            btn.Tag = tag\n        else:\n            btn.Tag = getattr(j, 'defaultvalue', None) or getattr(j, 'category', None)\n\n        if enabled and callback:\n            form_ref = self.form\n\n            def on_click(sender, args, cb=callback):\n                form_ref.DiableAll()\n                try:\n                    cb(sender, args)\n                finally:\n                    form_ref.EnableAll()\n\n            btn.Click += on_click\n\n            def_val = getattr(j, 'defaultvalue', None)\n            if def_val and isinstance(def_val, str) and 'Path' not in def_val:\n                btn.Tag = def_val\n                btn.MouseHover += form_ref.showtooltip\n        else:\n            btn.Enabled = False\n            btn.Text += \" (Unavailable)\"\n\n        if j.inputname:\n            row = self._create_labeled_row(j.inputname, btn)\n            self._add_row(row)\n        else:\n            self._add_row(btn)\n\n        self._register(btn)\n\n    def handle_uifilepath(self, j):\n        callback = getattr(j, 'openfile', None)\n        self._handle_button(j, callback, enabled=callback is not None)\n\n    def handle_uidirectorypath(self, j):\n        callback = getattr(j, 'opendirectory', None)\n        self._handle_button(j, callback, enabled=callback is not None)\n\n    def handle_uicolorpick(self, j):\n        available = self.importcolorselection == 0 and getattr(j, 'color_picker_available', True)\n        callback = getattr(j, 'pickcolor', None)\n        self._handle_button(j, callback, enabled=available and callback is not None)\n\n    def handle_uiselectelements(self, j):\n        multi = getattr(j, 'multi', False)\n        callback = getattr(j, 'pickobjects' if multi else 'pickobject', None)\n        self._handle_button(j, callback, enabled=callback is not None)\n\n    def handle_uiselectelementsofcat(self, j):\n        multi = getattr(j, 'multi', False)\n        callback = getattr(j, 'pickobjectsofcat' if multi else 'pickobjectofcat', None)\n        self._handle_button(j, callback, enabled=callback is not None, tag=getattr(j, 'category', None))\n\n    def handle_uiselectlinkedelements(self, j):\n        multi = getattr(j, 'multi', False)\n        callback = getattr(j, 'picklinkedobjects' if multi else 'picklinkedobject', None)\n        self._handle_button(j, callback, enabled=callback is not None)\n\n    def handle_uiselectlinkedelementsofcat(self, j):\n        multi = getattr(j, 'multi', False)\n        callback = getattr(j, 'picklinkedobjectsofcat' if multi else 'picklinkedobjectofcat', None)\n        self._handle_button(j, callback, enabled=callback is not None, tag=getattr(j, 'category', None))\n\n    def handle_uiselectOrderedelements(self, j):\n        callback = getattr(j, 'pickobjectsordered', None)\n        self._handle_button(j, callback, enabled=callback is not None)\n\n    def handle_uiselectOrderedelementsofcat(self, j):\n        callback = getattr(j, 'pickobjectsofcatordered', None)\n        self._handle_button(j, callback, enabled=callback is not None, tag=getattr(j, 'category', None))\n\n    def handle_uiselectedges(self, j):\n        callback = getattr(j, 'pickedges', None)\n        self._handle_button(j, callback, enabled=callback is not None)\n\n    def handle_uiselectfaces(self, j):\n        callback = getattr(j, 'pickfaces', None)\n        self._handle_button(j, callback, enabled=callback is not None)\n\n    def handle_uiselectpointsonface(self, j):\n        callback = getattr(j, 'pickpointsonface', None)\n        self._handle_button(j, callback, enabled=callback is not None)\n\n    # CHARTS\n\n    def _handle_chart(self, j, chart_type_name):\n        build_method = getattr(j, 'build_chart', None)\n        \n        if callable(build_method):\n            try:\n                panel, _ = build_method(self.table, 0, 0, 0, self.xRatio, self.yRatio, self.form)\n                if panel is not None:\n                    panel.Tag = {\"parent\": self.parent, \"builder\": self}\n                    self._add_row(panel)\n                    self._register(panel)\n                    return\n            except:\n                pass\n\n        err = Label()\n        err.AutoSize = True\n        err.Text = f\"{chart_type_name} rendering unavailable.\"\n        self._add_row(err)\n        self._register(err)\n\n    def handle_uibarchart(self, j):\n        self._handle_chart(j, \"Bar chart\")\n\n    def handle_uilinechart(self, j):\n        self._handle_chart(j, \"Line chart\")\n\n    def handle_uipiechart(self, j):\n        self._handle_chart(j, \"Pie chart\")\n\n    def handle_uipointchart(self, j):\n        self._handle_chart(j, \"Point chart\")\n\n    def handle_uisplinechart(self, j):\n        self._handle_chart(j, \"Spline chart\")\n\n    # TABLE VIEW\n\n    def handle_tableview(self, j):\n        container = GroupBox()\n        container.Text = getattr(j, '_tabletitle', '') or getattr(j, 'inputname', '') or ''\n        container.Dock = DockStyle.Top\n        container.AutoSize = True\n        container.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink\n        container.Padding = Padding(\n            int(10 * self.xRatio),\n            int(15 * self.yRatio),\n            int(10 * self.xRatio),\n            int(10 * self.yRatio)\n        )\n\n        inner = TableLayoutPanel()\n        inner.Dock = DockStyle.Fill\n        inner.AutoSize = True\n        inner.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink\n        inner.ColumnCount = 1\n        inner.ColumnStyles.Add(ColumnStyle(SizeType.Percent, 100))\n        inner.RowCount = 0\n        container.Controls.Add(inner)\n\n        dg = myDataGridView()\n        dg.Dock = DockStyle.Top\n        dg.AllowUserToAddRows = True\n        dg.AllowUserToDeleteRows = True\n        dg.SelectionMode = DataGridViewSelectionMode.CellSelect\n        dg.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill\n        dg.ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableWithAutoHeaderText\n        \n        row_count = 1\n        if hasattr(j, 'get_display_row_count'):\n            try:\n                row_count = j.get_display_row_count()\n            except:\n                pass\n        dg.Height = int(min(300, max(100, (row_count + 2) * 22)) * self.yRatio)\n        \n        dg.Tag = getattr(j, '_hasTitle', True)\n\n        if hasattr(j, 'create_data_table'):\n            try:\n                data_table = j.create_data_table()\n                dg.DataSource = data_table\n            except:\n                pass\n\n        if hasattr(j, 'start_cell'):\n            dg.CellMouseDown += j.start_cell\n        if hasattr(j, 'end_cell'):\n            dg.CellMouseUp += j.end_cell\n\n        inner.RowCount += 1\n        inner.RowStyles.Add(RowStyle(SizeType.AutoSize))\n        inner.Controls.Add(dg, 0, inner.RowCount - 1)\n\n        export_row = TableLayoutPanel()\n        export_row.Dock = DockStyle.Top\n        export_row.AutoSize = True\n        export_row.ColumnCount = 2\n        export_row.ColumnStyles.Add(ColumnStyle(SizeType.Percent, 70))\n        export_row.ColumnStyles.Add(ColumnStyle(SizeType.Percent, 30))\n        export_row.RowCount = 1\n        export_row.RowStyles.Add(RowStyle(SizeType.AutoSize))\n        export_row.Margin = Padding(0, int(5 * self.yRatio), 0, 0)\n\n        file_tb = TextBox()\n        file_tb.Dock = DockStyle.Top\n        file_tb.Text = getattr(j, '_fileInfo', '') or 'ExportFileName'\n        file_tb.Height = int(22 * self.yRatio)\n        export_row.Controls.Add(file_tb, 0, 0)\n\n        export_btn = Button()\n        export_btn.Text = \"Export to Excel\"\n        export_btn.Dock = DockStyle.Top\n        export_btn.Height = int(28 * self.yRatio)\n        \n        title_label = Label()\n        title_label.Text = container.Text\n        title_label.Visible = False\n        export_btn.Tag = (dg, file_tb, title_label)\n        \n        if hasattr(j, 'export_to_excel'):\n            export_btn.Click += j.export_to_excel\n        else:\n            export_btn.Enabled = False\n            export_btn.Text = \"Export (Unavailable)\"\n\n        export_row.Controls.Add(export_btn, 1, 0)\n\n        inner.RowCount += 1\n        inner.RowStyles.Add(RowStyle(SizeType.AutoSize))\n        inner.Controls.Add(export_row, 0, inner.RowCount - 1)\n\n        self._add_row(container)\n        self._register(dg)\n\n    # DISPATCHER\n\n    def build(self, j):\n        typename = getattr(j, '_input_type', j.__class__.__name__)\n\n        handler = getattr(self, f'handle_{typename}', None)\n        if handler:\n            handler(j)\n        else:\n            lbl = Label()\n            lbl.Text = f\"Unknown input type: {typename}\"\n            lbl.AutoSize = True\n            lbl.ForeColor = Color.Red\n            self._add_row(lbl)\n\n\n# EXECUTION\n\ntry:\n    IN\nexcept NameError:\n    IN = [[]] * 10\n\ntry:\n    xRatio = Screen.PrimaryScreen.Bounds.Width / 1920.0 or 1\n    yRatio = Screen.PrimaryScreen.Bounds.Height / 1080.0 or 1\n\n    form = MultiInputForm()\n    form.TopMost = True\n    form.MinimumSize = Size(int(350 * xRatio), int(200 * yRatio))\n\n    formwidth = int(max(350 * xRatio, (IN[8] or 0) * xRatio))\n    form.Width = formwidth\n\n    main_layout = form._main_layout\n\n    # Header\n    header_panel = Panel()\n    header_panel.Dock = DockStyle.Fill\n    header_panel.AutoSize = True\n    header_panel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink\n    header_panel.Padding = Padding(0, 0, 0, int(10 * yRatio))\n    main_layout.Controls.Add(header_panel, 0, 0)\n\n    if IN[3]:\n        desc = Label()\n        desc.Text = IN[3]\n        desc.Font = Font(\"Arial\", 15, FontStyle.Bold)\n        desc.AutoSize = True\n        desc.MaximumSize = Size(int(formwidth - 40), 0)\n        desc.Dock = DockStyle.Top\n        header_panel.Controls.Add(desc)\n\n    # Body \n    body_panel = Panel()\n    body_panel.Dock = DockStyle.Fill\n    body_panel.AutoScroll = True\n    body_panel.Padding = Padding(0)\n    main_layout.Controls.Add(body_panel, 0, 1)\n\n    border_none = getattr(BorderStyle, \"None\")\n\n    def update_body_border(sender, args):\n        if sender.VerticalScroll.Visible:\n            sender.BorderStyle = BorderStyle.FixedSingle\n        else:\n            sender.BorderStyle = border_none\n\n    body_panel.Resize += update_body_border\n    body_panel.Layout += update_body_border\n\n    inputs = IN[0] if isinstance(IN[0], list) else [IN[0]]\n    config = {\n        'xRatio': xRatio,\n        'yRatio': yRatio,\n        'importcolorselection': importcolorselection\n    }\n\n    builder = InputBuilder(form, body_panel, config)\n    for inp in inputs:\n        if inp is not None:\n            builder.build(inp)\n\n    # Footer \n    footer_panel = TableLayoutPanel()\n    footer_panel.Dock = DockStyle.Fill\n    footer_panel.AutoSize = True\n    footer_panel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink\n    footer_panel.ColumnCount = 2\n    footer_panel.ColumnStyles.Add(ColumnStyle(SizeType.AutoSize))\n    footer_panel.ColumnStyles.Add(ColumnStyle(SizeType.Percent, 100))\n    footer_panel.RowCount = 1\n    footer_panel.RowStyles.Add(RowStyle(SizeType.AutoSize))\n    footer_panel.Padding = Padding(0, int(10 * yRatio), 0, 0)\n    main_layout.Controls.Add(footer_panel, 0, 2)\n\n    logo_pb, logo_icon = create_logo_control(IN[4], xRatio, yRatio, logo_size=80)\n    if logo_pb:\n        logo_pb.Anchor = AnchorStyles.Left | AnchorStyles.Bottom\n        logo_pb.Margin = Padding(0, 0, int(15 * xRatio), 0)\n        footer_panel.Controls.Add(logo_pb, 0, 0)\n        \n        if logo_icon:\n            form.Icon = logo_icon\n\n    button_panel = FlowLayoutPanel()\n    button_panel.Dock = DockStyle.Fill\n    button_panel.FlowDirection = FlowDirection.RightToLeft\n    button_panel.AutoSize = True\n    button_panel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink\n    button_panel.Anchor = AnchorStyles.Right | AnchorStyles.Bottom\n    button_panel.Margin = Padding(0)\n    footer_panel.Controls.Add(button_panel, 1, 0)\n\n    btn_validate = Button()\n    btn_validate.Text = IN[1] if IN[1] else \"OK\"\n    btn_validate.Width = int(120 * xRatio)\n    btn_validate.Height = int(28 * yRatio)\n    btn_validate.Margin = Padding(int(5 * xRatio))\n    btn_validate.Click += form.setclose\n    button_panel.Controls.Add(btn_validate)\n\n    if IN[6]:\n        btn_cancel = Button()\n        btn_cancel.Text = IN[6]\n        btn_cancel.Width = int(100 * xRatio)\n        btn_cancel.Height = int(28 * yRatio)\n        btn_cancel.Name = \"Cancel\"\n        btn_cancel.Margin = Padding(int(5 * xRatio))\n        btn_cancel.Click += form.setclose\n        button_panel.Controls.Add(btn_cancel)\n        form.CancelButton = btn_cancel\n\n    if IN[5]:\n        help_link = LinkLabel()\n        help_link.Text = \"Help\"\n        help_link.Tag = IN[5]\n        help_link.AutoSize = True\n        help_link.Margin = Padding(int(10 * xRatio), int(8 * yRatio), int(5 * xRatio), 0)\n        help_link.Click += form.openurl\n        button_panel.Controls.Add(help_link)\n\n    # Final sizing\n    content_height = builder.content_height + int(40 * yRatio)\n    header_height = header_panel.PreferredSize.Height\n    footer_height = footer_panel.PreferredSize.Height + int(20 * yRatio)\n\n    desired_height = header_height + content_height + footer_height + int(60 * yRatio)\n    max_height = int(Screen.PrimaryScreen.WorkingArea.Height * 0.85)\n\n    if desired_height > max_height:\n        form.Height = max_height\n    else:\n        form.Height = int(desired_height)\n\n    # Center on Revit window if available\n    try:\n        rect = uidoc.GetOpenUIViews()[0].GetWindowRectangle()\n        form.StartPosition = FormStartPosition.Manual\n        form.Location = Point(\n            int(rect.Left + (rect.Right - rect.Left) / 2 - form.Width / 2),\n            int(rect.Top + (rect.Bottom - rect.Top) / 2 - form.Height / 2)\n        )\n    except:\n        pass\n\n    if IN[2]:\n        form.Show()\n        CustomMessageLoop(form)\n        OUT = form.values, True, form.cancelled\n    else:\n        OUT = ['Set toggle to true!'], False, False\n\nexcept Exception as e:\n    import traceback\n    OUT = \"{}\\nStack Trace:\\n{}\".format(str(e), traceback.format_exc()), \"error\", \"error\"\n",
+      "Engine": "CPython3",
+      "VariableInputPorts": true,
+      "Id": "652ef6e6fd194bd6a3c0f96e7445d3e4",
+      "NodeType": "PythonScriptNode",
+      "Inputs": [
+        {
+          "Id": "58d7de38c0cf4bd098ef9e2277140426",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "51727c29c41d4c1eb2afc3806965fb37",
+          "Name": "IN[1]",
+          "Description": "Input #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "c9e7dd78f56442c0af974e6cce03fade",
+          "Name": "IN[2]",
+          "Description": "Input #2",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "640e02b339a44763a39b8a516e36f52c",
+          "Name": "IN[3]",
+          "Description": "Input #3",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "86a11f12ece14314b479c1c7b4f39ebe",
+          "Name": "IN[4]",
+          "Description": "Input #4",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "ba3e84ec90144632866f73703e78b090",
+          "Name": "IN[5]",
+          "Description": "Input #5",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "9c5fbb644d1e4da7892b5ec901d2957d",
+          "Name": "IN[6]",
+          "Description": "Input #6",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "139c4269da2642ffab516f2776887a2d",
+          "Name": "IN[7]",
+          "Description": "Input #7",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "dfc7ac4ef9aa4bbe9009623c283354a3",
+          "Name": "IN[8]",
+          "Description": "Input #8",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "7522ca3f542345e9a315baeea335dfb7",
+          "Name": "IN[9]",
+          "Description": "Input #9",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "748513389b434fe4af8e0897d7250898",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded Python script."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "Parameter": {
+        "Name": "Description_optional_",
+        "TypeName": "string",
+        "TypeRank": 0,
+        "DefaultValue": "\"\"",
+        "Description": ""
+      },
+      "Id": "aee876f4fa604b94b6829f495e2af792",
+      "NodeType": "InputNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "79be0c104f00432a8a3f917dabe3f18c",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "Parameter": {
+        "Name": "Logo_optional_",
+        "TypeName": "var",
+        "TypeRank": 0,
+        "DefaultValue": "\"\"",
+        "Description": ""
+      },
+      "Id": "eb6d92c451e84b3c8461eb2623034eb8",
+      "NodeType": "InputNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "32ab87e02ffa4c4bb3031f5d6f0fe68b",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+      "ElementResolver": null,
+      "Symbol": "User Inputs",
+      "Id": "47e0a03143564447ad0aba20606d99f4",
+      "NodeType": "OutputNode",
+      "Inputs": [
+        {
+          "Id": "b9f8e3d628bc4b0c8d2d01ab8cd89da6",
+          "Name": "",
+          "Description": "",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [],
+      "Replication": "Disabled",
+      "Description": "A function output, use with custom nodes"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "Id": "6827a40ad0784ecba5f7ac83d1a8b7a4",
+      "NodeType": "CodeBlockNode",
+      "Inputs": [
+        {
+          "Id": "d76ef05135ab4a1c870209e4c131fba8",
+          "Name": "OUT",
+          "Description": "OUT",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "15f061c86446494cb2e3336cc720e550",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "4f4b7ace8ffa4382929947b62534b2f6",
+          "Name": "",
+          "Description": "Value of expression at line 2",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "b8e9d868874848348bd6bad812a83a54",
+          "Name": "",
+          "Description": "Value of expression at line 3",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly",
+      "Code": "OUT[0];\nOUT[1];\nOUT[2];"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+      "ElementResolver": null,
+      "Symbol": "Was Run ",
+      "Id": "eb9fddf68cda490bb14993f1cf2ce43b",
+      "NodeType": "OutputNode",
+      "Inputs": [
+        {
+          "Id": "06661dccfcbb4ae7bcd40600ede844ea",
+          "Name": "",
+          "Description": "",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [],
+      "Replication": "Disabled",
+      "Description": "A function output, use with custom nodes"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "Parameter": {
+        "Name": "ButtonText_optional_",
+        "TypeName": "string",
+        "TypeRank": 0,
+        "DefaultValue": "\"Set Values\"",
+        "Description": ""
+      },
+      "Id": "44f805f42c464774b18f9ecc58e06f34",
+      "NodeType": "InputNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "4f2540372c044f5badf8d3390c13e97d",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "Parameter": {
+        "Name": "Inputs_",
+        "TypeName": "var",
+        "TypeRank": 1,
+        "DefaultValue": null,
+        "Description": ""
+      },
+      "Id": "252f2b9990bb4a0da17f36e0d7608dec",
+      "NodeType": "InputNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "f2902e85352241b9ab3c4544d852926a",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "Parameter": {
+        "Name": "Toggle_",
+        "TypeName": "bool",
+        "TypeRank": 0,
+        "DefaultValue": "false",
+        "Description": ""
+      },
+      "Id": "0a6977c9a3ce4e629bc9be1fd8cf25f9",
+      "NodeType": "InputNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "b6c52575a8ce46998e18b91b7c1eec05",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "Parameter": {
+        "Name": "LinkToHelp_optional_",
+        "TypeName": "string",
+        "TypeRank": 0,
+        "DefaultValue": "null",
+        "Description": ""
+      },
+      "Id": "a2f1283318a247e4b81e05d7a1af165b",
+      "NodeType": "InputNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "bdc5dfca6c714ec0a64080d23e785dd6",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "Parameter": {
+        "Name": "CancelButtonText_optional_",
+        "TypeName": "string",
+        "TypeRank": 0,
+        "DefaultValue": "null",
+        "Description": " Cancel button will only be displayed if a label text is entered here"
+      },
+      "Id": "54fa9d32b20b49d7aab8946482548269",
+      "NodeType": "InputNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "c9da12612e624b29b60816cd86007a8c",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+      "ElementResolver": null,
+      "Symbol": "Was Cancelled",
+      "Id": "f3d565e5379a420795584e2319983692",
+      "NodeType": "OutputNode",
+      "Inputs": [
+        {
+          "Id": "82321378fde34a08ad14358f9cc20d8f",
+          "Name": "",
+          "Description": "",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [],
+      "Replication": "Disabled",
+      "Description": "A function output, use with custom nodes"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "Parameter": {
+        "Name": "MaxHeight_optional_",
+        "TypeName": "int",
+        "TypeRank": 0,
+        "DefaultValue": "0",
+        "Description": ""
+      },
+      "Id": "cb9cd769fdcd479c8868c89365616091",
+      "NodeType": "InputNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "fe9f57dfd0a1494ca15477a903793694",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "Parameter": {
+        "Name": "Width_optional_",
+        "TypeName": "int",
+        "TypeRank": 0,
+        "DefaultValue": "400",
+        "Description": ""
+      },
+      "Id": "024ed433d62b4a2ab5735399dd344fcd",
+      "NodeType": "InputNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "0bbc01fb5aa94b609a2a5550ef220943",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+      "Parameter": {
+        "Name": "LabelWidth_optional_",
+        "TypeName": "int",
+        "TypeRank": 0,
+        "DefaultValue": "140",
+        "Description": ""
+      },
+      "Id": "ffed7bcdb31446bdb2181920ed406813",
+      "NodeType": "InputNode",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "d440722c47844d55bb7b66d9f9f1b8e4",
+          "Name": "",
+          "Description": "Symbol",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+    }
+  ],
+  "Connectors": [
+    {
+      "Start": "748513389b434fe4af8e0897d7250898",
+      "End": "d76ef05135ab4a1c870209e4c131fba8",
+      "Id": "4d8d0a65e0b44d118e1cb4a156a4d788",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "79be0c104f00432a8a3f917dabe3f18c",
+      "End": "640e02b339a44763a39b8a516e36f52c",
+      "Id": "af0d9f65c0714a7c83f33d958294904f",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "32ab87e02ffa4c4bb3031f5d6f0fe68b",
+      "End": "86a11f12ece14314b479c1c7b4f39ebe",
+      "Id": "e6c1543dd872430d99e0441ae7bf7e45",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "15f061c86446494cb2e3336cc720e550",
+      "End": "b9f8e3d628bc4b0c8d2d01ab8cd89da6",
+      "Id": "1c141dcff22f495785d9096550be8829",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "4f4b7ace8ffa4382929947b62534b2f6",
+      "End": "06661dccfcbb4ae7bcd40600ede844ea",
+      "Id": "fa79d90bac6a41d6994512d133204f36",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "b8e9d868874848348bd6bad812a83a54",
+      "End": "82321378fde34a08ad14358f9cc20d8f",
+      "Id": "3f0dc0d7aec047e497734038c5f769b0",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "4f2540372c044f5badf8d3390c13e97d",
+      "End": "51727c29c41d4c1eb2afc3806965fb37",
+      "Id": "c2a59dfdfdbd4510a203fc8adad03c56",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "f2902e85352241b9ab3c4544d852926a",
+      "End": "58d7de38c0cf4bd098ef9e2277140426",
+      "Id": "af1b6cbd595b435c940e97610d97a6ff",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "b6c52575a8ce46998e18b91b7c1eec05",
+      "End": "c9e7dd78f56442c0af974e6cce03fade",
+      "Id": "43281e27226b4268bd59ed343839c3c6",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "bdc5dfca6c714ec0a64080d23e785dd6",
+      "End": "ba3e84ec90144632866f73703e78b090",
+      "Id": "b513fcc626164ea7a4f33da56f27cc7d",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "c9da12612e624b29b60816cd86007a8c",
+      "End": "9c5fbb644d1e4da7892b5ec901d2957d",
+      "Id": "0e1389cd497f4f64b39e97851fee871e",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "fe9f57dfd0a1494ca15477a903793694",
+      "End": "139c4269da2642ffab516f2776887a2d",
+      "Id": "cb338bcaed51422c86f85a316bb04206",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "0bbc01fb5aa94b609a2a5550ef220943",
+      "End": "dfc7ac4ef9aa4bbe9009623c283354a3",
+      "Id": "c960f97970734bebb4a2a8ced20c3874",
+      "IsHidden": "False"
+    },
+    {
+      "Start": "d440722c47844d55bb7b66d9f9f1b8e4",
+      "End": "7522ca3f542345e9a315baeea335dfb7",
+      "Id": "e93c87474d0845989cdada909a9b9ba6",
+      "IsHidden": "False"
+    }
+  ],
+  "Dependencies": [],
+  "NodeLibraryDependencies": [],
+  "Author": "None provided",
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 1.0,
+      "HasRunWithoutCrash": false,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "3.3.0.6316",
+      "RunType": "Manual",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "_Background Preview",
+      "EyeX": -52.23686981201172,
+      "EyeY": 60.446380615234375,
+      "EyeZ": -97.80103302001953,
+      "LookX": 57.74095916748047,
+      "LookY": -21.393856048583984,
+      "LookZ": 36.58153533935547,
+      "UpX": 0.2523227632045746,
+      "UpY": 0.9543473720550537,
+      "UpZ": 0.1598575860261917
+    },
+    "ConnectorPins": [],
+    "NodeViews": [
+      {
+        "Id": "652ef6e6fd194bd6a3c0f96e7445d3e4",
+        "Name": "Python Script",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": 218.0846511035141,
+        "Y": 109.62537918516244
+      },
+      {
+        "Id": "aee876f4fa604b94b6829f495e2af792",
+        "Name": "Input",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": -319.85949507046416,
+        "Y": -457.75196594731483
+      },
+      {
+        "Id": "eb6d92c451e84b3c8461eb2623034eb8",
+        "Name": "Input",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": -319.6089798904984,
+        "Y": -208.0821970115973
+      },
+      {
+        "Id": "47e0a03143564447ad0aba20606d99f4",
+        "Name": "Output",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": 757.2418168537882,
+        "Y": 30.199365365765573
+      },
+      {
+        "Id": "6827a40ad0784ecba5f7ac83d1a8b7a4",
+        "Name": "Code Block",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": 489.6845581143103,
+        "Y": 66.60882603050747
+      },
+      {
+        "Id": "eb9fddf68cda490bb14993f1cf2ce43b",
+        "Name": "Output",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": 761.2418168537882,
+        "Y": 140.19936536576597
+      },
+      {
+        "Id": "44f805f42c464774b18f9ecc58e06f34",
+        "Name": "Input",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": -420.3601928994036,
+        "Y": -339.1357633413771
+      },
+      {
+        "Id": "252f2b9990bb4a0da17f36e0d7608dec",
+        "Name": "Input",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": -272.3843145704616,
+        "Y": -92.26472993181557
+      },
+      {
+        "Id": "0a6977c9a3ce4e629bc9be1fd8cf25f9",
+        "Name": "Input",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": -300.48902093649417,
+        "Y": 50.89165192503782
+      },
+      {
+        "Id": "a2f1283318a247e4b81e05d7a1af165b",
+        "Name": "Input",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": -392.10591288593105,
+        "Y": 149.3766743531823
+      },
+      {
+        "Id": "54fa9d32b20b49d7aab8946482548269",
+        "Name": "Input",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": -675.8849881177396,
+        "Y": 283.9563611064003
+      },
+      {
+        "Id": "f3d565e5379a420795584e2319983692",
+        "Name": "Output",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": 762.3476110951223,
+        "Y": 216.719902069626
+      },
+      {
+        "Id": "cb9cd769fdcd479c8868c89365616091",
+        "Name": "Input",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": -345.9820590789817,
+        "Y": 428.3732285166673
+      },
+      {
+        "Id": "024ed433d62b4a2ab5735399dd344fcd",
+        "Name": "Input",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": -323.802319777996,
+        "Y": 583.4561503385501
+      },
+      {
+        "Id": "ffed7bcdb31446bdb2181920ed406813",
+        "Name": "Input",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "ShowGeometry": true,
+        "X": -385.62910739939184,
+        "Y": 749.8440083065904
+      }
+    ],
+    "Annotations": [],
+    "X": 545.9539588865395,
+    "Y": 389.27627233288,
+    "Zoom": 0.4574460259405957
+  }
+}

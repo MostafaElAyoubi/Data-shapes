@@ -1,0 +1,243 @@
+﻿{
+    "Uuid":  "5436e298-f90d-4ad5-ae60-926e9ca9e9b8",
+    "IsCustomNode":  true,
+    "Category":  "Data-Shapes.UI.Selection",
+    "Description":  "Creates a UI.MultipleInputForm++ input that allows point on face selection ",
+    "Name":  "SelectPointsOnFace data",
+    "ElementResolver":  {
+                            "ResolutionMap":  {
+
+                                              }
+                        },
+    "Inputs":  [
+
+               ],
+    "Outputs":  [
+
+                ],
+    "Nodes":  [
+                  {
+                      "ConcreteType":  "PythonNodeModels.PythonNode, PythonNodeModels",
+                      "Code":  "# Copyright (c) Data Shapes, 2025\n# Data-Shapes www.data-shapes.io, elayoubi.mostafa@data-shapes.io @data_shapes\n\nimport clr\nclr.AddReference(\u0027RevitAPIUI\u0027)\nfrom Autodesk.Revit.UI import Selection\nclr.AddReference(\u0027RevitAPI\u0027)\nfrom Autodesk.Revit.DB import UnitUtils\ntry:\n    from Autodesk.Revit.DB import UnitType\nexcept:\n    from Autodesk.Revit.DB import SpecTypeId\n\nclr.AddReference(\u0027RevitServices\u0027)\nfrom RevitServices.Persistence import DocumentManager\ndoc = DocumentManager.Instance.CurrentDBDocument\nuidoc = DocumentManager.Instance.CurrentUIApplication.ActiveUIDocument\n\nclr.AddReference(\u0027ProtoGeometry\u0027)\nfrom Autodesk.DesignScript.Geometry import Point as dsPoint\n\n\ndef _get_ui_length_unit():\n    try:\n        return doc.GetUnits().GetFormatOptions(UnitType.UT_Length).DisplayUnits\n    except:\n        return doc.GetUnits().GetFormatOptions(SpecTypeId.Length).GetUnitTypeId()\n\n\n_UI_LENGTH_UNIT = _get_ui_length_unit()\n\n\nclass uiselectpointsonface():\n\n    def __init__(self, inputname, buttontext):\n        self.inputname = inputname\n        self.buttontext = buttontext\n        self._input_type = \u0027uiselectpointsonface\u0027\n\n    def __repr__(self):\n        return \u0027UI.SelectPointsOnFace input\u0027\n\n    def pickpointsonface(self, sender, event):\n        points = []\n        try:\n            selpoints = uidoc.Selection.PickObjects(Selection.ObjectType.PointOnElement, \u0027\u0027)\n            for s in selpoints:\n                pt = s.GlobalPoint\n                points.append(dsPoint.ByCoordinates(\n                    UnitUtils.ConvertFromInternalUnits(pt.X, _UI_LENGTH_UNIT),\n                    UnitUtils.ConvertFromInternalUnits(pt.Y, _UI_LENGTH_UNIT),\n                    UnitUtils.ConvertFromInternalUnits(pt.Z, _UI_LENGTH_UNIT)\n                ))\n            sender.Tag = points\n        except:\n            pass\n\n\ninputname = IN[0] if len(IN) \u003e 0 else \"\"\nbuttontext = IN[1] if len(IN) \u003e 1 else \"Select Point(s) on Face\"\n\nOUT = uiselectpointsonface(inputname, buttontext)\n",
+                      "Engine":  "CPython3",
+                      "VariableInputPorts":  true,
+                      "Id":  "0f61dd458f89434897ffb79ff06c83d0",
+                      "NodeType":  "PythonScriptNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "b9514b850bc94289a8669eedab4460ba",
+                                         "Name":  "IN[0]",
+                                         "Description":  "Input #0",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "b9d61b4bf3c9445ea6982a5d66b48750",
+                                         "Name":  "IN[1]",
+                                         "Description":  "Input #1",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "3acf991fb53740dfb13e8a12cbbd9458",
+                                          "Name":  "OUT",
+                                          "Description":  "Result of the python script",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "Runs an embedded Python script."
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+                      "ElementResolver":  null,
+                      "Symbol":  "SelectPointOnFace input",
+                      "Id":  "65bb910b619d49df92638cbed9b3dcf1",
+                      "NodeType":  "OutputNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "ae1f421af05b4245a6337ef6bf5e55db",
+                                         "Name":  "",
+                                         "Description":  "",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function output, use with custom nodes"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "InputName_",
+                                        "TypeName":  "string",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "\"\"",
+                                        "Description":  ""
+                                    },
+                      "Id":  "6085098f45704c2dbc7eb7eba14cd1e6",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "f6a5367d63874ee9bdc277dd53d8e6e9",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "ButtonText_",
+                                        "TypeName":  "string",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "\"Select point(s) on face\"",
+                                        "Description":  ""
+                                    },
+                      "Id":  "3c4973c9797d46309a2c870531aaa2ef",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "0409575063db4f8aa92e24a8a97fa116",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  }
+              ],
+    "Connectors":  [
+                       {
+                           "Start":  "3acf991fb53740dfb13e8a12cbbd9458",
+                           "End":  "ae1f421af05b4245a6337ef6bf5e55db",
+                           "Id":  "c9606b332a6249cca3998971598c6530",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "f6a5367d63874ee9bdc277dd53d8e6e9",
+                           "End":  "b9514b850bc94289a8669eedab4460ba",
+                           "Id":  "e025674563fa4c33918ca6a4aed66fc8",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "0409575063db4f8aa92e24a8a97fa116",
+                           "End":  "b9d61b4bf3c9445ea6982a5d66b48750",
+                           "Id":  "2f1e24b490ee4400ad64483f254ff9cc",
+                           "IsHidden":  "False"
+                       }
+                   ],
+    "Dependencies":  [
+
+                     ],
+    "NodeLibraryDependencies":  [
+
+                                ],
+    "Author":  "None provided",
+    "Bindings":  [
+
+                 ],
+    "View":  {
+                 "Dynamo":  {
+                                "ScaleFactor":  1.0,
+                                "HasRunWithoutCrash":  false,
+                                "IsVisibleInDynamoLibrary":  true,
+                                "Version":  "3.3.0.6316",
+                                "RunType":  "Manual",
+                                "RunPeriod":  "1000"
+                            },
+                 "Camera":  {
+                                "Name":  "_Background Preview",
+                                "EyeX":  -33412.453125,
+                                "EyeY":  12291.755859375,
+                                "EyeZ":  -2753.875732421875,
+                                "LookX":  26560.400390625,
+                                "LookY":  -8314.3046875,
+                                "LookZ":  -453.093017578125,
+                                "UpX":  0.29865628480911255,
+                                "UpY":  0.9543471336364746,
+                                "UpZ":  -0.005094640422612429
+                            },
+                 "ConnectorPins":  [
+
+                                   ],
+                 "NodeViews":  [
+                                   {
+                                       "Id":  "0f61dd458f89434897ffb79ff06c83d0",
+                                       "Name":  "Python Script",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  727.216894178376,
+                                       "Y":  51.20106978697001
+                                   },
+                                   {
+                                       "Id":  "65bb910b619d49df92638cbed9b3dcf1",
+                                       "Name":  "Output",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  956.216894178376,
+                                       "Y":  47.0
+                                   },
+                                   {
+                                       "Id":  "6085098f45704c2dbc7eb7eba14cd1e6",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  315.0,
+                                       "Y":  -3.0
+                                   },
+                                   {
+                                       "Id":  "3c4973c9797d46309a2c870531aaa2ef",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  174.0,
+                                       "Y":  211.0
+                                   }
+                               ],
+                 "Annotations":  [
+
+                                 ],
+                 "X":  -100.66666666666646,
+                 "Y":  209.33333333333337,
+                 "Zoom":  1.0
+             }
+}

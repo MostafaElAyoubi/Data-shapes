@@ -1,0 +1,428 @@
+﻿{
+    "Uuid":  "d5437128-64cf-49ea-b11b-0c06412435ff",
+    "IsCustomNode":  true,
+    "Category":  "Data-Shapes.ModificationTracker",
+    "Description":  "Takes ExistingElements Data as input and outputs lists with all geometry/parameter values change combinations . Check out www.Data-Shapes.net for more informations .",
+    "Name":  "ModificationTracker.AllChanges",
+    "ElementResolver":  {
+                            "ResolutionMap":  {
+
+                                              }
+                        },
+    "Inputs":  [
+
+               ],
+    "Outputs":  [
+
+                ],
+    "Nodes":  [
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+                      "Id":  "580d2bdce8b248ffaffc6149ef63b65b",
+                      "NodeType":  "CodeBlockNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "89197060a7ee4797b95d05480237d9ef",
+                                         "Name":  "x",
+                                         "Description":  "x",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "6e6da4fbd87646d794a1f9b94a208754",
+                                          "Name":  "",
+                                          "Description":  "Value of expression at line 2",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      },
+                                      {
+                                          "Id":  "0260860d78764fd4918cde2a7b385a71",
+                                          "Name":  "",
+                                          "Description":  "Value of expression at line 4",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      },
+                                      {
+                                          "Id":  "98d10c79ea0246278ad147b00c698ac2",
+                                          "Name":  "",
+                                          "Description":  "Value of expression at line 6",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      },
+                                      {
+                                          "Id":  "ee4d574d2cf5456295803e1bed982007",
+                                          "Name":  "",
+                                          "Description":  "Value of expression at line 8",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      },
+                                      {
+                                          "Id":  "fdb31b7f02594177b20a81dfdb69f31a",
+                                          "Name":  "",
+                                          "Description":  "Value of expression at line 10",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "Allows for DesignScript code to be authored directly",
+                      "Code":  "//same geometry and parameters\nx[0];\n//same geometry different parameter\nx[1];\n//different geometry and same parameter\nx[2];\n//different geometry and parameters\nx[3];\n//report\nx[4];"
+                  },
+                  {
+                      "ConcreteType":  "PythonNodeModels.PythonNode, PythonNodeModels",
+                      "Code":  "# Copyright (c) mostafa el ayoubi, 2016\n# Data-Shapes www.data-shapes.net, elayoubi.mostafa@gmail.com\n# This node was inspired by Jeremy Tammik @Jeremytammik\n# Ported to CPython + PythonNet 2.5\n\nimport clr\n\nclr.AddReference(\u0027RevitAPI\u0027)\nfrom Autodesk.Revit.DB import Options\n\n\ndef tolist(input):\n    \"\"\"Ensure input is a list.\"\"\"\n    if isinstance(input, list):\n        return input\n    return [input]\n\n\ndef flatten(container):\n    \"\"\"Flatten nested lists/tuples.\"\"\"\n    for i in container:\n        if isinstance(i, (list, tuple)):\n            for j in flatten(i):\n                yield j\n        else:\n            yield i\n\n\ndef tostring(x):\n    \"\"\"Convert object to string representation.\"\"\"\n    return x.ToString()\n\n\ndef getgeomlist(x):\n    \"\"\"Get geometry elements as list from element.\"\"\"\n    return list(x.get_Geometry(Options()))\n\n\ndef getvertices(x):\n    \"\"\"Extract and return sorted vertex string representation for geometry comparison.\"\"\"\n    # Getting geometry elements as list\n    geomelems = getgeomlist(x)\n    \n    # Getting nested instance geometry for all geometry instances\n    while any(\u0027GeometryInstance\u0027 in g for g in map(tostring, geomelems)):\n        for index, i in enumerate(geomelems):\n            if \u0027GeometryInstance\u0027 in i.ToString():\n                geomelems[index] = i.GetInstanceGeometry()\n            else:\n                continue\n            geomelems = list(flatten(geomelems))[0]\n    \n    # Getting all faces, keeping meshes\n    faces = []\n    for i in geomelems:\n        if \u0027Solid\u0027 in i.ToString():\n            faces.append(list(i.Faces))\n        elif \u0027Mesh\u0027 in i.ToString():\n            faces.append(i)\n        else:\n            continue\n    faces = list(flatten(faces))\n    \n    # Getting all meshes\n    meshes = []\n    for f in faces:\n        if \u0027Mesh\u0027 in f.ToString():\n            meshes.append(f)\n        else:\n            meshes.append(f.Triangulate())\n    \n    # Getting all vertices\n    vertexlist = []\n    for m in meshes:\n        vertexlist.append(list(m.Vertices))\n    vertexlist = list(flatten(vertexlist))\n    \n    # Creating sorted vertex string representation of object for comparison\n    vertexstr = \u0027, \u0027.join(sorted(set(map(tostring, vertexlist))))\n    return vertexstr\n\n\ndef parametersnapshot(x):\n    \"\"\"Create a sorted string snapshot of all parameter names and values.\"\"\"\n    parameters = x.Parameters\n    paramnames = [p.Definition.Name for p in parameters]\n    sortedindex = sorted(range(len(paramnames)), key=lambda k: paramnames[k])\n    sortedparameters = [paramnames[i] for i in sortedindex]\n    \n    paramvalues = []\n    for p in parameters:\n        if p.AsString() is not None:\n            paramvalues.append(p.AsString())\n        else:\n            paramvalues.append(p.AsValueString())\n    \n    sortedvalues = [paramvalues[i] for i in sortedindex]\n    return \u0027, \u0027.join([\u0027%s : %s\u0027 % (param, value) for param, value in zip(sortedparameters, sortedvalues)])\n\n\n# Main execution\nif isinstance(IN[0][0], list):\n    elementsA = UnwrapElement(IN[0][0])\n    elementsB = UnwrapElement(IN[0][1])\nelse:\n    elementsA = [UnwrapElement(IN[0][0])]\n    elementsB = [UnwrapElement(IN[0][1])]\n\ngeomtest = []\nparamtest = []\n\nfor eA, eB in zip(elementsA, elementsB):\n    try:\n        geomtest.append(getvertices(eA) == getvertices(eB))\n        paramtest.append(parametersnapshot(eA) == parametersnapshot(eB))\n    except:\n        pass\n\n# Categorize results\nsamegeometrysameparameters = [i for (i, gt, pt) in zip(elementsA, geomtest, paramtest) if gt and pt]\ndifferentgeometrysameparameters = [i for (i, gt, pt) in zip(elementsA, geomtest, paramtest) if gt == False and pt == True]\nsamegeometrydifferentparameters = [i for (i, gt, pt) in zip(elementsA, geomtest, paramtest) if gt == True and pt == False]\ndifferentgeometrydifferentparameters = [i for (i, gt, pt) in zip(elementsA, geomtest, paramtest) if gt == False and pt == False]\n\nreport = \u0027%d element(s) tested \\n%d element(s) with same geometry and parameters, \\n%d element(s) with same geometry and different parameters, \\n%d element(s) with different geometry and same parameters, \\n%d element(s) with different geometry and different parameters\u0027 % (\n    len(elementsA),\n    len(samegeometrysameparameters),\n    len(samegeometrydifferentparameters),\n    len(differentgeometrysameparameters),\n    len(differentgeometrydifferentparameters)\n)\n\nOUT = (\n    samegeometrysameparameters,\n    samegeometrydifferentparameters,\n    differentgeometrysameparameters,\n    differentgeometrydifferentparameters,\n    report\n)\n\n",
+                      "Engine":  "CPython3",
+                      "VariableInputPorts":  true,
+                      "Id":  "1d6f4de8086d4d999f07bd20e384215b",
+                      "NodeType":  "PythonScriptNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "cc90df872f4b4fd684776084ef2e5a82",
+                                         "Name":  "IN[0]",
+                                         "Description":  "Input #0",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "b0c94fdee72d45b8bd07532af91ef799",
+                                          "Name":  "OUT",
+                                          "Description":  "Result of the python script",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "Runs an embedded Python script."
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "ExistingElementsData",
+                                        "TypeName":  "var",
+                                        "TypeRank":  -1,
+                                        "DefaultValue":  null,
+                                        "Description":  ""
+                                    },
+                      "Id":  "cfe98d52aafb4d9f86ddcf33361799bb",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "b05720aad8994324b65f844d1ca155a4",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+                      "ElementResolver":  null,
+                      "Symbol":  "Report",
+                      "Id":  "f4ca275bc0ca43bd97287442a7753bb9",
+                      "NodeType":  "OutputNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "4e59037247514802a8e56eb484a1813f",
+                                         "Name":  "",
+                                         "Description":  "",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function output, use with custom nodes"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+                      "ElementResolver":  null,
+                      "Symbol":  "Same geometry and parameter values",
+                      "Id":  "364decfb48fe4d01a1b1be1619a51b8a",
+                      "NodeType":  "OutputNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "d0577313c4424847af9fc4ac7a08117e",
+                                         "Name":  "",
+                                         "Description":  "",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function output, use with custom nodes"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+                      "ElementResolver":  null,
+                      "Symbol":  "Same geometry, different parameter values",
+                      "Id":  "127f698653064eabb8c7944f44f32667",
+                      "NodeType":  "OutputNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "1117d99a064f473f99b3d3e84963515b",
+                                         "Name":  "",
+                                         "Description":  "",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function output, use with custom nodes"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+                      "ElementResolver":  null,
+                      "Symbol":  "Different geometry, same parameter values",
+                      "Id":  "30b183b8186a494cace8694a296ccdca",
+                      "NodeType":  "OutputNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "4d775bfcf3a749debf946b790b2099f3",
+                                         "Name":  "",
+                                         "Description":  "",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function output, use with custom nodes"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+                      "ElementResolver":  null,
+                      "Symbol":  "Different geometry and parameter values",
+                      "Id":  "a3e757ca197b432d9fa6823f7aa40ee6",
+                      "NodeType":  "OutputNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "bd118d80310c4b7dbab3831188ec6ada",
+                                         "Name":  "",
+                                         "Description":  "",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function output, use with custom nodes"
+                  }
+              ],
+    "Connectors":  [
+                       {
+                           "Start":  "6e6da4fbd87646d794a1f9b94a208754",
+                           "End":  "d0577313c4424847af9fc4ac7a08117e",
+                           "Id":  "75565bd915644f8094d65bee88ec9dfe",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "0260860d78764fd4918cde2a7b385a71",
+                           "End":  "1117d99a064f473f99b3d3e84963515b",
+                           "Id":  "9e15457c242645dd8cd8a3a2cbb73f4b",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "98d10c79ea0246278ad147b00c698ac2",
+                           "End":  "4d775bfcf3a749debf946b790b2099f3",
+                           "Id":  "53e6864d09034c03a2601cd013187812",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "ee4d574d2cf5456295803e1bed982007",
+                           "End":  "bd118d80310c4b7dbab3831188ec6ada",
+                           "Id":  "4006ee9fa1a14deaa589badf42b42154",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "fdb31b7f02594177b20a81dfdb69f31a",
+                           "End":  "4e59037247514802a8e56eb484a1813f",
+                           "Id":  "85b7de9ad192486c9f7516b19ceef853",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "b0c94fdee72d45b8bd07532af91ef799",
+                           "End":  "89197060a7ee4797b95d05480237d9ef",
+                           "Id":  "924a43c1ebc643b292936b63f57bfcba",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "b05720aad8994324b65f844d1ca155a4",
+                           "End":  "cc90df872f4b4fd684776084ef2e5a82",
+                           "Id":  "d2a20d37228f44c8bff6f69668bd20e0",
+                           "IsHidden":  "False"
+                       }
+                   ],
+    "Dependencies":  [
+
+                     ],
+    "NodeLibraryDependencies":  [
+
+                                ],
+    "Author":  "None provided",
+    "Bindings":  [
+
+                 ],
+    "View":  {
+                 "Dynamo":  {
+                                "ScaleFactor":  1.0,
+                                "HasRunWithoutCrash":  false,
+                                "IsVisibleInDynamoLibrary":  true,
+                                "Version":  "3.3.0.6316",
+                                "RunType":  "Manual",
+                                "RunPeriod":  "1000"
+                            },
+                 "Camera":  {
+                                "Name":  "_Background Preview",
+                                "EyeX":  -9.701420783996582,
+                                "EyeY":  8.390907287597656,
+                                "EyeZ":  -5.084073066711426,
+                                "LookX":  9.497069358825684,
+                                "LookY":  -9.042110443115234,
+                                "LookZ":  5.05450963973999,
+                                "UpX":  0.5679731369018555,
+                                "UpY":  0.7655259370803833,
+                                "UpZ":  0.30228564143180847
+                            },
+                 "ConnectorPins":  [
+
+                                   ],
+                 "NodeViews":  [
+                                   {
+                                       "Id":  "580d2bdce8b248ffaffc6149ef63b65b",
+                                       "Name":  "Code Block",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  504.287614554191,
+                                       "Y":  5.12484392029023
+                                   },
+                                   {
+                                       "Id":  "1d6f4de8086d4d999f07bd20e384215b",
+                                       "Name":  "Python Script",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  250.0,
+                                       "Y":  2.0
+                                   },
+                                   {
+                                       "Id":  "cfe98d52aafb4d9f86ddcf33361799bb",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  -98.5,
+                                       "Y":  3.0
+                                   },
+                                   {
+                                       "Id":  "f4ca275bc0ca43bd97287442a7753bb9",
+                                       "Name":  "Output",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  1001.5,
+                                       "Y":  17.0
+                                   },
+                                   {
+                                       "Id":  "364decfb48fe4d01a1b1be1619a51b8a",
+                                       "Name":  "Output",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  997.5,
+                                       "Y":  85.0
+                                   },
+                                   {
+                                       "Id":  "127f698653064eabb8c7944f44f32667",
+                                       "Name":  "Output",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  998.5,
+                                       "Y":  150.0
+                                   },
+                                   {
+                                       "Id":  "30b183b8186a494cace8694a296ccdca",
+                                       "Name":  "Output",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  998.5,
+                                       "Y":  212.0
+                                   },
+                                   {
+                                       "Id":  "a3e757ca197b432d9fa6823f7aa40ee6",
+                                       "Name":  "Output",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  997.5,
+                                       "Y":  276.0
+                                   }
+                               ],
+                 "Annotations":  [
+
+                                 ],
+                 "X":  212.0,
+                 "Y":  371.0,
+                 "Zoom":  1.0
+             }
+}

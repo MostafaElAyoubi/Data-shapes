@@ -1,0 +1,296 @@
+﻿{
+    "Uuid":  "8bbd3ec6-bc5b-4a95-aa18-eb1ca097fef4",
+    "IsCustomNode":  true,
+    "Category":  "Data-Shapes.Export",
+    "Description":  "Exports 3D views to FBX format",
+    "Name":  "Export to FBX",
+    "ElementResolver":  {
+                            "ResolutionMap":  {
+
+                                              }
+                        },
+    "Inputs":  [
+
+               ],
+    "Outputs":  [
+
+                ],
+    "Nodes":  [
+                  {
+                      "ConcreteType":  "PythonNodeModels.PythonNode, PythonNodeModels",
+                      "Code":  "# Copyright (c) Data Shapes, 2025\n# Data-Shapes www.data-shapes.io, elayoubi.mostafa@data-shapes.io @data_shapes\n\nimport clr\nimport os\n\nclr.AddReference(\u0027RevitAPI\u0027)\nfrom Autodesk.Revit.DB import (\n    Transaction, ViewSet, FBXExportOptions, View3D, OptionalFunctionalityUtils\n)\n\nclr.AddReference(\u0027RevitServices\u0027)\nfrom RevitServices.Persistence import DocumentManager\n\n\ndef tolist(input):\n    if isinstance(input, list):\n        return input\n    return [input]\n\n\ndef export_views_to_fbx(folder, prefix, views):\n    doc = DocumentManager.Instance.CurrentDBDocument\n    \n    if not OptionalFunctionalityUtils.IsFBXExportAvailable():\n        return (\"FBX export functionality is not available in this Revit installation.\", [])\n    \n    if not folder or not os.path.isdir(folder):\n        return (\"Invalid folder path: {}\".format(folder), [])\n    \n    views_list = tolist(views)\n    \n    if not views_list:\n        return (\"No views provided for export.\", [])\n    \n    results = []\n    errors = []\n    options = FBXExportOptions()\n    \n    t = Transaction(doc, \u0027Export Views to FBX\u0027)\n    t.Start()\n    \n    try:\n        for v in views_list:\n            view = v.InternalElement if hasattr(v, \u0027InternalElement\u0027) else v\n            \n            if not isinstance(view, View3D):\n                errors.append(\"View \u0027{}\u0027 is not a 3D view - skipped.\".format(view.Name))\n                continue\n            \n            vset = ViewSet()\n            vset.Insert(view)\n            \n            export_name = \"{}{}\".format(prefix, view.Name) if prefix else view.Name\n            \n            try:\n                export_result = doc.Export(folder, export_name, vset, options)\n                results.append({\n                    \u0027view\u0027: view.Name,\n                    \u0027success\u0027: export_result,\n                    \u0027path\u0027: os.path.join(folder, \"{}.fbx\".format(export_name))\n                })\n            except Exception as ex:\n                errors.append(\"Failed to export \u0027{}\u0027: {}\".format(view.Name, str(ex)))\n        \n        t.Commit()\n        \n    except Exception as ex:\n        if t.HasStarted():\n            t.RollBack()\n        return (\"Export failed: {}\".format(str(ex)), [])\n    \n    success_count = sum(1 for r in results if r.get(\u0027success\u0027, False))\n    total_count = len(views_list)\n    \n    if errors:\n        message = \"Exported {}/{} views. Errors: {}\".format(\n            success_count, total_count, \"; \".join(errors)\n        )\n    else:\n        message = \"Successfully exported {} view(s) to FBX.\".format(success_count)\n    \n    return (message, results)\n\n\nfolder = IN[0] if len(IN) \u003e 0 else None\nprefix = IN[1] if len(IN) \u003e 1 else \"\"\nviews = IN[2] if len(IN) \u003e 2 else []\n\nmessage, results = export_views_to_fbx(folder, prefix, views)\n\nsuccess_paths = [r[\u0027path\u0027] for r in results if r.get(\u0027success\u0027, False)]\nOUT = message, success_paths\n",
+                      "Engine":  "CPython3",
+                      "VariableInputPorts":  true,
+                      "Id":  "6b30ff40a936429998b8e97bdbcdd96a",
+                      "NodeType":  "PythonScriptNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "25d275a92ce342e98e297bc603afc42a",
+                                         "Name":  "IN[0]",
+                                         "Description":  "Input #0",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "6c11f5fa61154fa9a95a54d646c8abcc",
+                                         "Name":  "IN[1]",
+                                         "Description":  "Input #1",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "5ffd68c0bbf54279be994139349898b6",
+                                         "Name":  "IN[2]",
+                                         "Description":  "Input #2",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "e628d348df714735a4dc32be0b6bf180",
+                                          "Name":  "OUT",
+                                          "Description":  "Result of the python script",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "Runs an embedded Python script."
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "ExportFolderPath_",
+                                        "TypeName":  "string",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  null,
+                                        "Description":  ""
+                                    },
+                      "Id":  "fa00e71215f84b85802d40f51dbaec35",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "be2cb980b98b4a26878b4c11b8158c2f",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "prefix_",
+                                        "TypeName":  "string",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  null,
+                                        "Description":  ""
+                                    },
+                      "Id":  "db1ae4ce3391477ea1dff8b587e4b881",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "c159bd6dc13043f6a2a7d00ad791c24c",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "ThreeDView_",
+                                        "TypeName":  "var",
+                                        "TypeRank":  1,
+                                        "DefaultValue":  null,
+                                        "Description":  ""
+                                    },
+                      "Id":  "86edf924125246a9a5c5b4279d790044",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "c27c0e8f1abb4bdc805188553c2cc3e7",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+                      "ElementResolver":  null,
+                      "Symbol":  "OUT",
+                      "Id":  "7fd1daf93a3645a48315435dcce4a932",
+                      "NodeType":  "OutputNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "2d72646ff9ef4db183deb375b892d7f2",
+                                         "Name":  "",
+                                         "Description":  "",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function output, use with custom nodes"
+                  }
+              ],
+    "Connectors":  [
+                       {
+                           "Start":  "e628d348df714735a4dc32be0b6bf180",
+                           "End":  "2d72646ff9ef4db183deb375b892d7f2",
+                           "Id":  "8d8a78be7608406ba2f1969ec64f32ef",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "be2cb980b98b4a26878b4c11b8158c2f",
+                           "End":  "25d275a92ce342e98e297bc603afc42a",
+                           "Id":  "c349bcad420a464b8a46ce47209f2ed6",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "c159bd6dc13043f6a2a7d00ad791c24c",
+                           "End":  "6c11f5fa61154fa9a95a54d646c8abcc",
+                           "Id":  "60f65d65cc524de1b76c8a936c7d192a",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "c27c0e8f1abb4bdc805188553c2cc3e7",
+                           "End":  "5ffd68c0bbf54279be994139349898b6",
+                           "Id":  "fcc9490187c54186814732c8e08907e6",
+                           "IsHidden":  "False"
+                       }
+                   ],
+    "Dependencies":  [
+
+                     ],
+    "NodeLibraryDependencies":  [
+
+                                ],
+    "Author":  "None provided",
+    "Bindings":  [
+
+                 ],
+    "View":  {
+                 "Dynamo":  {
+                                "ScaleFactor":  1.0,
+                                "HasRunWithoutCrash":  false,
+                                "IsVisibleInDynamoLibrary":  true,
+                                "Version":  "3.3.0.6316",
+                                "RunType":  "Manual",
+                                "RunPeriod":  "1000"
+                            },
+                 "Camera":  {
+                                "Name":  "_Background Preview",
+                                "EyeX":  -33412.453125,
+                                "EyeY":  12291.755859375,
+                                "EyeZ":  -2753.875732421875,
+                                "LookX":  26560.400390625,
+                                "LookY":  -8314.3046875,
+                                "LookZ":  -453.093017578125,
+                                "UpX":  0.29865628480911255,
+                                "UpY":  0.9543471336364746,
+                                "UpZ":  -0.005094640422612429
+                            },
+                 "ConnectorPins":  [
+
+                                   ],
+                 "NodeViews":  [
+                                   {
+                                       "Id":  "6b30ff40a936429998b8e97bdbcdd96a",
+                                       "Name":  "Python Script",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  692.285714285714,
+                                       "Y":  354.285714285714
+                                   },
+                                   {
+                                       "Id":  "fa00e71215f84b85802d40f51dbaec35",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  314.857142857143,
+                                       "Y":  247.571428571429
+                                   },
+                                   {
+                                       "Id":  "db1ae4ce3391477ea1dff8b587e4b881",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  364.714285714286,
+                                       "Y":  419.0
+                                   },
+                                   {
+                                       "Id":  "86edf924125246a9a5c5b4279d790044",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  342.428571428572,
+                                       "Y":  538.0
+                                   },
+                                   {
+                                       "Id":  "7fd1daf93a3645a48315435dcce4a932",
+                                       "Name":  "Output",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  881.142857142857,
+                                       "Y":  354.857142857143
+                                   }
+                               ],
+                 "Annotations":  [
+
+                                 ],
+                 "X":  -187.0,
+                 "Y":  -31.8571428571429,
+                 "Zoom":  1.0
+             }
+}

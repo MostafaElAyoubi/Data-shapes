@@ -1,0 +1,190 @@
+﻿{
+    "Uuid":  "51e3d5bc-cc07-4e8b-b976-11dc51cf6843",
+    "IsCustomNode":  true,
+    "Category":  "Data-Shapes.Revit.Elements",
+    "Description":  "Retrieves all visible element in a view or a set of views",
+    "Name":  "All Elements In View(s)",
+    "ElementResolver":  {
+                            "ResolutionMap":  {
+
+                                              }
+                        },
+    "Inputs":  [
+
+               ],
+    "Outputs":  [
+
+                ],
+    "Nodes":  [
+                  {
+                      "ConcreteType":  "PythonNodeModels.PythonNode, PythonNodeModels",
+                      "Code":  "# Copyright (c) Data Shapes, 2025\n# Data-Shapes www.data-shapes.io, elayoubi.mostafa@data-shapes.io\n\nimport clr\n\nclr.AddReference(\u0027RevitAPI\u0027)\nfrom Autodesk.Revit.DB import (\n    FilteredElementCollector,\n    SectionType,\n    ViewType,\n    SubTransaction\n)\n\nclr.AddReference(\u0027RevitServices\u0027)\nfrom RevitServices.Persistence import DocumentManager\nfrom RevitServices.Transactions import TransactionManager\n\ndoc = DocumentManager.Instance.CurrentDBDocument\n\n\ndef tolist(input):\n    if isinstance(input, list):\n        return input\n    return [input]\n\n\ndef elementsInScheduleView(doc, viewSchedule):\n    initialList = FilteredElementCollector(doc, viewSchedule.Id).ToElementIds()\n    \n    table_data = viewSchedule.GetTableData()\n    section_data = table_data.GetSectionData(SectionType.Body)\n    no_of_rows = section_data.NumberOfRows\n    \n    itemInScheduleRowId = []\n    ScheduleDef = viewSchedule.Definition\n    itemized = ScheduleDef.IsItemized\n    \n    for i in range(no_of_rows):\n        TransactionManager.Instance.EnsureInTransaction(doc)\n        st = SubTransaction(doc)\n        st.Start()\n        try:\n            section_data.RemoveRow(i)\n            remaining = FilteredElementCollector(doc, viewSchedule.Id).ToElementIds()\n            remaining = list(remaining)\n            if itemized:\n                deleted = [eid for eid in initialList if eid not in remaining]\n                if deleted:\n                    itemInScheduleRowId.append(deleted[0])\n            else:\n                deleted = [eid for eid in initialList if eid not in remaining]\n                itemInScheduleRowId.extend(deleted)\n            st.RollBack()\n        except:\n            st.RollBack()\n        TransactionManager.Instance.ForceCloseTransaction()\n    \n    return [doc.GetElement(eid) for eid in itemInScheduleRowId]\n\n\nviews = tolist(UnwrapElement(IN[0]))\n\nOUT = []\nfor v in views:\n    if v.ViewType == ViewType.Schedule:\n        OUT.append(elementsInScheduleView(doc, v))\n    else:\n        OUT.append(FilteredElementCollector(doc, v.Id).ToElements())\n",
+                      "Engine":  "CPython3",
+                      "VariableInputPorts":  true,
+                      "Id":  "d8c1cfb5f66943eeadb9ed71065c8cfa",
+                      "NodeType":  "PythonScriptNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "40f0f1aca8f74ad2b747971ad60da30a",
+                                         "Name":  "IN[0]",
+                                         "Description":  "Input #0",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "363adf7fd7214dbb934ce5eeff129ae4",
+                                          "Name":  "OUT",
+                                          "Description":  "Result of the python script",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "Runs an embedded Python script."
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "Views_",
+                                        "TypeName":  "var",
+                                        "TypeRank":  1,
+                                        "DefaultValue":  null,
+                                        "Description":  ""
+                                    },
+                      "Id":  "3c77f6ce91b44abd96c4d2899f37f332",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "420f1110a30543f2a421e3b1545cd0ba",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+                      "ElementResolver":  null,
+                      "Symbol":  "Element(s)",
+                      "Id":  "75b70a1a31b0487ea01b85d5199023f6",
+                      "NodeType":  "OutputNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "08197bfac01c42d5b4c4a00fa928db58",
+                                         "Name":  "",
+                                         "Description":  "",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function output, use with custom nodes"
+                  }
+              ],
+    "Connectors":  [
+                       {
+                           "Start":  "363adf7fd7214dbb934ce5eeff129ae4",
+                           "End":  "08197bfac01c42d5b4c4a00fa928db58",
+                           "Id":  "e302d74f6ff246f59e850e278df10b7b",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "420f1110a30543f2a421e3b1545cd0ba",
+                           "End":  "40f0f1aca8f74ad2b747971ad60da30a",
+                           "Id":  "dbb4dfa0a5cf438e982dcbc87d6b9983",
+                           "IsHidden":  "False"
+                       }
+                   ],
+    "Dependencies":  [
+
+                     ],
+    "NodeLibraryDependencies":  [
+
+                                ],
+    "Author":  "None provided",
+    "Bindings":  [
+
+                 ],
+    "View":  {
+                 "Dynamo":  {
+                                "ScaleFactor":  1.0,
+                                "HasRunWithoutCrash":  false,
+                                "IsVisibleInDynamoLibrary":  true,
+                                "Version":  "3.3.0.6316",
+                                "RunType":  "Manual",
+                                "RunPeriod":  "1000"
+                            },
+                 "Camera":  {
+                                "Name":  "_Background Preview",
+                                "EyeX":  -9.701420783996582,
+                                "EyeY":  8.390907287597656,
+                                "EyeZ":  -5.084073066711426,
+                                "LookX":  9.497069358825684,
+                                "LookY":  -9.042110443115234,
+                                "LookZ":  5.05450963973999,
+                                "UpX":  0.5679731369018555,
+                                "UpY":  0.7655259370803833,
+                                "UpZ":  0.30228564143180847
+                            },
+                 "ConnectorPins":  [
+
+                                   ],
+                 "NodeViews":  [
+                                   {
+                                       "Id":  "d8c1cfb5f66943eeadb9ed71065c8cfa",
+                                       "Name":  "Python Script",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  244.07590249922862,
+                                       "Y":  -14.810243751928454
+                                   },
+                                   {
+                                       "Id":  "3c77f6ce91b44abd96c4d2899f37f332",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  0.0,
+                                       "Y":  0.0
+                                   },
+                                   {
+                                       "Id":  "75b70a1a31b0487ea01b85d5199023f6",
+                                       "Name":  "Output",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  449.0,
+                                       "Y":  0.0
+                                   }
+                               ],
+                 "Annotations":  [
+
+                                 ],
+                 "X":  158.75857142857149,
+                 "Y":  289.2717857142857,
+                 "Zoom":  1.1575
+             }
+}

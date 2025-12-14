@@ -1,0 +1,402 @@
+﻿{
+    "Uuid":  "9f32e65e-e8cb-4d35-a2d2-25611e209d9e",
+    "IsCustomNode":  true,
+    "Category":  "Data-Shapes.UI.Input",
+    "Description":  "Create a DataTable view input for UI.MultipleInputForm ++",
+    "Name":  "DataTable input",
+    "ElementResolver":  {
+                            "ResolutionMap":  {
+
+                                              }
+                        },
+    "Inputs":  [
+
+               ],
+    "Outputs":  [
+
+                ],
+    "Nodes":  [
+                  {
+                      "ConcreteType":  "PythonNodeModels.PythonNode, PythonNodeModels",
+                      "Code":  "# Copyright (c) Data Shapes, 2025\n# Data-Shapes www.data-shapes.io, elayoubi.mostafa@data-shapes.io @data_shapes\n\nimport clr\nimport re\n\nclr.AddReference(\u0027RevitServices\u0027)\nfrom RevitServices.Persistence import DocumentManager\nfrom System import DateTime\nclr.AddReference(\u0027System.Data\u0027)\nfrom System.Data import DataTable as DotNetDataTable, DataRow as DotNetDataRow\n\nclr.AddReference(\u0027System.Windows.Forms\u0027)\nfrom System.Windows.Forms import FolderBrowserDialog, SaveFileDialog, DialogResult, MessageBox, MessageBoxButtons\n\n\ndef _get_doc_name(path):\n    if not path:\n        return \"\"\n    try:\n        return path.split(\"\\\\\")[-1]\n    except Exception:\n        try:\n            return path.split(\"/\")[-1]\n        except Exception:\n            return \"\"\n\n\ndef _default_file_info():\n    try:\n        doc = DocumentManager.Instance.CurrentDBDocument\n        name = _get_doc_name(doc.PathName)\n    except Exception:\n        name = \"\"\n    return \"{0} , {1}\".format(name, DateTime.Now)\n\n\ndef _remove_accents(input_str):\n    import unicodedata\n    nfkd_form = unicodedata.normalize(\u0027NFKD\u0027, str(input_str))\n    return nfkd_form.encode(\u0027ASCII\u0027, \u0027ignore\u0027).decode(\u0027ASCII\u0027)\n\n\nclass tableview(object):\n\n    def __init__(\n        self,\n        inputname=\"\",\n        tabletitle=\"\",\n        data_list=None,\n        has_title=True,\n        open_excel=True,\n        show_info=True,\n        file_info=None,\n    ):\n        self.inputname = inputname if inputname is not None else \"\"\n        self._tabletitle = tabletitle if tabletitle is not None else \"\"\n        self.dataList = data_list if data_list is not None else []\n        self._hasTitle = bool(has_title)\n        self._openExcel = bool(open_excel)\n        self._showinfo = bool(show_info)\n        self._fileInfo = file_info if file_info is not None else \"\"\n        self._input_type = \"tableview\"\n        if not self._fileInfo:\n            self._fileInfo = _default_file_info()\n\n    def __repr__(self):\n        return \"UI.DataTable input\"\n\n    def get_data_list(self):\n        dl = self.dataList\n        if isinstance(dl, list) and len(dl) == 1 and isinstance(dl[0], list):\n            dl = dl[0]\n        return dl\n\n    def _cell_val(self, v):\n        try:\n            if v is None:\n                return \"\"\n            if isinstance(v, (int, float, bool, str)):\n                return v\n            if hasattr(v, \"ItemArray\"):\n                arr = list(v.ItemArray)\n                if len(arr) == 1:\n                    return self._cell_val(arr[0])\n                return \"; \".join([str(self._cell_val(x)) for x in arr])\n            if hasattr(v, \"Value\"):\n                return self._cell_val(v.Value)\n            return str(v)\n        except Exception:\n            return \"\"\n\n    def _row_to_list(self, r):\n        if r is None:\n            return []\n        if hasattr(r, \"ItemArray\"):\n            try:\n                return [self._cell_val(x) for x in list(r.ItemArray)]\n            except Exception:\n                pass\n        if hasattr(r, \"RowData\"):\n            try:\n                rd = r.RowData\n                if isinstance(rd, list):\n                    return [self._cell_val(x) for x in rd]\n                return [self._cell_val(x) for x in list(rd)]\n            except Exception:\n                pass\n        if isinstance(r, (list, tuple)):\n            return [self._cell_val(x) for x in r]\n        try:\n            return [self._cell_val(x) for x in list(r)]\n        except Exception:\n            return [self._cell_val(r)]\n    \n    def get_display_row_count(self):\n        dl = self.get_data_list()\n        return len(dl) if dl else 1\n\n    def _ensure_cell_store(self, sender):\n        if not hasattr(self, \"_dg_cell_store\"):\n            self._dg_cell_store = {}\n        if sender not in self._dg_cell_store:\n            self._dg_cell_store[sender] = ({\"X\": None, \"Y\": None}, {\"X\": None, \"Y\": None})\n        return self._dg_cell_store[sender]\n\n    def _regex_end_num(self, val):\n        try:\n            m = re.search(r\"(\\d+)$\", str(val))\n            return m.group(1) if m else \"\"\n        except Exception:\n            return \"\"\n\n    def _show_message(self, text):\n        return\n\n    def _find_export_context(self, sender):\n        parent = getattr(sender, \"Parent\", None)\n        if parent is None or not hasattr(parent, \"Controls\"):\n            return None\n\n        dg = None\n        filepathtb = None\n        titlep = None\n\n        try:\n            for c in list(parent.Controls):\n                try:\n                    ctype = c.GetType().Name if hasattr(c, \"GetType\") else c.__class__.__name__\n                except Exception:\n                    ctype = \"\"\n                if dg is None and \"DataGridView\" in ctype:\n                    dg = c\n                if filepathtb is None and ctype == \"TextBox\":\n                    filepathtb = c\n                if titlep is None and ctype == \"Label\":\n                    titlep = c\n                if dg and filepathtb and titlep:\n                    break\n        except Exception:\n            return None\n\n        if dg and filepathtb:\n            return (dg, filepathtb, titlep)\n        return None\n\n    def start_cell(self, sender, event):\n        if event.ColumnIndex \u003c 0 or event.RowIndex \u003c 0:\n            return\n        startcell, _ = self._ensure_cell_store(sender)\n        startcell[\"X\"] = event.ColumnIndex\n        startcell[\"Y\"] = event.RowIndex\n\n    def end_cell(self, sender, event):\n        try:\n            if event.ColumnIndex \u003c 0 or event.RowIndex \u003c 0:\n                return\n            startcell, endcell = self._ensure_cell_store(sender)\n            if startcell[\"X\"] is None or startcell[\"Y\"] is None:\n                return\n            endcell[\"X\"] = event.ColumnIndex\n            endcell[\"Y\"] = event.RowIndex\n            startval = sender.Rows[startcell[\"Y\"]].Cells[startcell[\"X\"]].Value\n            endNum = self._regex_end_num(startval)\n            if endNum != \"\":\n                if endcell[\"Y\"] == startcell[\"Y\"]:\n                    for e, i in enumerate(range(startcell[\"X\"], endcell[\"X\"] + 1)):\n                        sender.Rows[startcell[\"Y\"]].Cells[i].Value = str(startval)[:-len(endNum)] + str(int(endNum) + e)\n                elif endcell[\"X\"] == startcell[\"X\"]:\n                    for e, i in enumerate(range(startcell[\"Y\"], endcell[\"Y\"] + 1)):\n                        sender.Rows[i].Cells[endcell[\"X\"]].Value = str(startval)[:-len(endNum)] + str(int(endNum) + e)\n            else:\n                if endcell[\"Y\"] == startcell[\"Y\"]:\n                    for i in range(startcell[\"X\"], endcell[\"X\"] + 1):\n                        sender.Rows[startcell[\"Y\"]].Cells[i].Value = startval\n                elif endcell[\"X\"] == startcell[\"X\"]:\n                    for i in range(startcell[\"Y\"], endcell[\"Y\"] + 1):\n                        sender.Rows[i].Cells[endcell[\"X\"]].Value = startval\n        except Exception:\n            pass\n\n    def create_data_table(self):\n        dt = DotNetDataTable()\n\n        dl = self.get_data_list()\n\n        if not dl or len(dl) == 0:\n            return dt\n\n        if hasattr(dl, \"Rows\") and hasattr(dl, \"Columns\"):\n            try:\n                dl = [list(r.ItemArray) for r in dl.Rows]\n            except Exception:\n                pass\n\n        if not isinstance(dl, list):\n            try:\n                dl = list(dl)\n            except Exception:\n                return dt\n\n        if len(dl) == 0:\n            return dt\n\n        header_row = self._row_to_list(dl[0])\n        col_count = len(header_row)\n        if col_count == 0:\n            return dt\n\n        rngstart = 0\n        for i in range(col_count):\n            if self._hasTitle:\n                dt.Columns.Add(_remove_accents(str(header_row[i])))\n                rngstart = 1\n            else:\n                dt.Columns.Add(\"Column \" + str(i))\n                rngstart = 0\n\n        for rindex in range(rngstart, len(dl)):\n            r_vals = self._row_to_list(dl[rindex])\n            values = []\n            for i in range(col_count):\n                if i \u003c len(r_vals):\n                    values.append(self._cell_val(r_vals[i]))\n                else:\n                    values.append(\"\")\n            dt.Rows.Add(*values)\n\n        return dt\n\n    def export_to_excel(self, sender, event):\n        tag = getattr(sender, \"Tag\", None)\n        if not tag or not isinstance(tag, tuple) or len(tag) \u003c 3:\n            tag = self._find_export_context(sender)\n        if not tag or len(tag) \u003c 2:\n            self._show_message(\"Nothing to export: missing DataGrid/metadata.\")\n            return\n        if len(tag) == 2:\n            dg, filepathtb = tag\n            titlep = None\n        else:\n            dg, filepathtb, titlep = tag\n        data_table = getattr(dg, \"DataSource\", None)\n        if data_table is None:\n            self._show_message(\"Nothing to export: DataGrid is empty.\")\n            return\n\n        excel_available = True\n        app_ctor = None\n        TypeMissing = None\n        try:\n            import System\n            excelTypeLibGuid = System.Guid(\"00020813-0000-0000-C000-000000000046\")\n            clr.AddReferenceToTypeLibrary(excelTypeLibGuid)\n            from Excel import Application, XlYesNoGuess, XlListObjectSourceType\n            TypeMissing = System.Type.Missing\n            app_ctor = Application\n        except Exception:\n            excel_available = False\n            try:\n                import System\n                TypeMissing = System.Type.Missing\n                excel_type = System.Type.GetTypeFromProgID(\"Excel.Application\")\n                if excel_type is not None:\n\n                    def _create_excel_app():\n                        try:\n                            return System.Activator.CreateInstance(excel_type)\n                        except Exception:\n                            pass\n                        try:\n                            return System.Activator.CreateInstance(excel_type, [])\n                        except Exception:\n                            pass\n                        try:\n                            from System import RuntimeInteropServices\n                            return RuntimeInteropServices.Marshal.GetActiveObject(\"Excel.Application\")\n                        except Exception:\n                            pass\n                        raise Exception(\"Excel COM activation failed.\")\n\n                    app_ctor = _create_excel_app\n\n                    class _YN:\n                        xlYes = 1\n                        xlNo = 2\n\n                    class _Src:\n                        xlSrcRange = 1\n\n                    XlYesNoGuess = _YN\n                    XlListObjectSourceType = _Src\n                    excel_available = True\n            except Exception:\n                excel_available = False\n\n        sfd = SaveFileDialog()\n        if excel_available:\n            sfd.Filter = \"Excel Workbook (*.xlsx)|*.xlsx|CSV (Comma delimited) (*.csv)|*.csv|All files (*.*)|*.*\"\n            default_name = (getattr(filepathtb, \"Text\", \"\") or \"ExportFileName\").strip() or \"ExportFileName\"\n            if not (default_name.lower().endswith(\".xlsx\") or default_name.lower().endswith(\".csv\")):\n                default_name += \".xlsx\"\n        else:\n            sfd.Filter = \"CSV (Comma delimited) (*.csv)|*.csv|All files (*.*)|*.*\"\n            default_name = (getattr(filepathtb, \"Text\", \"\") or \"ExportFileName\").strip() or \"ExportFileName\"\n            if not default_name.lower().endswith(\".csv\"):\n                default_name += \".csv\"\n        sfd.FileName = default_name\n\n        dr = sfd.ShowDialog()\n        if dr != DialogResult.OK:\n            return\n\n        fptext = sfd.FileName\n\n        if (not excel_available) or fptext.lower().endswith(\".csv\"):\n            try:\n                import csv\n                with open(fptext, \"w\", newline=\"\", encoding=\"utf-8\") as f:\n                    writer = csv.writer(f)\n                    frstRwTtle = bool(self._hasTitle)\n                    if frstRwTtle:\n                        writer.writerow([col.ColumnName for col in data_table.Columns])\n                    for i in range(0, data_table.Rows.Count):\n                        writer.writerow([data_table.DefaultView[i].Row[j] for j in range(data_table.Columns.Count)])\n                if not excel_available:\n                    self._show_message(\"Excel not available; exported CSV instead.\")\n                else:\n                    self._show_message(\"Exported CSV to {0}\".format(fptext))\n                return\n            except Exception as csv_exc:\n                self._show_message(\"CSV export failed: {0}\".format(csv_exc))\n                return\n\n        try:\n            ex = app_ctor()\n\n            def _col_to_letter(idx):\n                letters = \"\"\n                while idx \u003e 0:\n                    idx, rem = divmod(idx - 1, 26)\n                    letters = chr(65 + rem) + letters\n                return letters or \"A\"\n\n            def _com_get(obj, prop, args=None):\n                try:\n                    from System.Reflection import BindingFlags\n                    return obj.GetType().InvokeMember(prop, BindingFlags.GetProperty, None, obj, args or [])\n                except Exception:\n                    return None\n\n            def _com_set(obj, prop, value, args=None):\n                from System.Reflection import BindingFlags\n                params = (args or []) + [value]\n                return obj.GetType().InvokeMember(prop, BindingFlags.SetProperty, None, obj, params)\n\n            def _com_call(obj, method, args=None):\n                from System.Reflection import BindingFlags\n                return obj.GetType().InvokeMember(method, BindingFlags.InvokeMethod, None, obj, args or [])\n\n            typed_excel = hasattr(ex, \"Workbooks\")\n\n            if not typed_excel:\n                try:\n                    import System\n                    excelTypeLibGuid = System.Guid(\"00020813-0000-0000-C000-000000000046\")\n                    clr.AddReferenceToTypeLibrary(excelTypeLibGuid)\n                    from Excel import Application as ExcelApp\n                    ex = clr.Convert(ex, ExcelApp)\n                    typed_excel = hasattr(ex, \"Workbooks\")\n                except Exception:\n                    typed_excel = False\n\n            if typed_excel:\n                ex.Visible = bool(self._openExcel)\n                ex.DisplayAlerts = False\n\n                titletext = getattr(titlep, \"Text\", \"\")\n                frstRwTtle = bool(self._hasTitle)\n                startR = 1\n                info_offset = 0\n\n                workbk = ex.Workbooks.Add()\n                worksheet = workbk.Worksheets.Add()\n\n                if self._showinfo:\n                    worksheet.Cells[1, 1].Value2 = titletext\n                    worksheet.Cells[1, 1].Font.Size = 18\n                    worksheet.Cells[1, 1].Font.Bold = True\n                    worksheet.Cells[2, 1].Value2 = self._fileInfo\n                    startR = 3\n                    info_offset = 2\n\n                if frstRwTtle:\n                    for j, col in enumerate(data_table.Columns):\n                        worksheet.Cells[startR, j + 1] = col.ColumnName\n                    for i in range(0, data_table.Rows.Count):\n                        for j, col in enumerate(data_table.Columns):\n                            worksheet.Cells[i + startR + 1, j + 1] = data_table.DefaultView[i].Row[j]\n                    xlrange = worksheet.Range[\n                        worksheet.Cells[startR, 1],\n                        worksheet.Cells[data_table.Rows.Count + info_offset + 1, data_table.Columns.Count],\n                    ]\n                else:\n                    for i in range(0, data_table.Rows.Count):\n                        for j, col in enumerate(data_table.Columns):\n                            worksheet.Cells[i + startR, j + 1] = data_table.DefaultView[i].Row[j]\n                    xlrange = worksheet.Range[\n                        worksheet.Cells[startR, 1],\n                        worksheet.Cells[data_table.Rows.Count + info_offset, data_table.Columns.Count],\n                    ]\n\n                xlrange.Columns.AutoFit()\n                worksheet.ListObjects.Add(\n                    XlListObjectSourceType.xlSrcRange, xlrange, TypeMissing, XlYesNoGuess.xlYes if frstRwTtle else XlYesNoGuess.xlNo, TypeMissing\n                ).Name = \"DataShapesTable\"\n                worksheet.ListObjects[\"DataShapesTable\"].TableStyle = \"TableStyleMedium16\"\n\n                workbk.SaveAs(fptext)\n\n                if not self._openExcel:\n                    workbk.Close()\n                    ex.Quit()\n                self._show_message(\"Exported Excel table to {0}\".format(fptext))\n            else:\n                _com_set(ex, \"Visible\", bool(self._openExcel))\n                _com_set(ex, \"DisplayAlerts\", False)\n\n                wbs = _com_get(ex, \"Workbooks\")\n                if wbs is None:\n                    self._show_message(\"Excel COM available but Workbooks is unreachable.\")\n                    return\n                workbk = _com_call(wbs, \"Add\")\n                if workbk is None:\n                    self._show_message(\"Excel COM available but could not create workbook.\")\n                    return\n                worksheet = _com_get(workbk, \"ActiveSheet\")\n                if worksheet is None:\n                    self._show_message(\"Excel COM available but ActiveSheet is unreachable.\")\n                    return\n\n                titletext = getattr(titlep, \"Text\", \"\") if titlep else \"\"\n                frstRwTtle = bool(self._hasTitle)\n                startR = 1\n                info_offset = 0\n\n                if self._showinfo:\n                    _com_prop = _com_set\n                    _com_prop(worksheet, \"Cells\", titletext, [1, 1])\n                    try:\n                        cell11 = _com_get(worksheet, \"Cells\", [1, 1])\n                        if cell11:\n                            _com_set(cell11, \"Value2\", titletext)\n                            font = _com_get(cell11, \"Font\")\n                            if font:\n                                _com_set(font, \"Size\", 18)\n                                _com_set(font, \"Bold\", True)\n                    except Exception:\n                        pass\n                    _com_set(worksheet, \"Cells\", self._fileInfo, [2, 1])\n                    startR = 3\n                    info_offset = 2\n\n                if frstRwTtle:\n                    for j, col in enumerate(data_table.Columns):\n                        _com_set(worksheet, \"Cells\", col.ColumnName, [startR, j + 1])\n                    for i in range(0, data_table.Rows.Count):\n                        for j, col in enumerate(data_table.Columns):\n                            _com_set(worksheet, \"Cells\", data_table.DefaultView[i].Row[j], [i + startR + 1, j + 1])\n                    start_addr = \"A{0}\".format(startR)\n                    end_addr = \"{0}{1}\".format(_col_to_letter(data_table.Columns.Count), data_table.Rows.Count + info_offset + 1)\n                else:\n                    for i in range(0, data_table.Rows.Count):\n                        for j, col in enumerate(data_table.Columns):\n                            _com_set(worksheet, \"Cells\", data_table.DefaultView[i].Row[j], [i + startR, j + 1])\n                    start_addr = \"A{0}\".format(startR)\n                    end_addr = \"{0}{1}\".format(_col_to_letter(data_table.Columns.Count), data_table.Rows.Count + info_offset)\n\n                rng = _com_get(worksheet, \"Range\", [start_addr, end_addr])\n                if rng:\n                    cols = _com_get(rng, \"Columns\")\n                    if cols:\n                        try:\n                            _com_call(cols, \"AutoFit\")\n                        except Exception:\n                            pass\n\n                _com_call(workbk, \"SaveAs\", [fptext])\n\n                if not self._openExcel:\n                    _com_call(workbk, \"Close\", [])\n                    _com_call(ex, \"Quit\", [])\n\n                self._show_message(\"Exported Excel table to {0}\".format(fptext))\n        except Exception as excel_exc:\n            try:\n                if not self._openExcel:\n                    ex.Quit()\n            except Exception:\n                pass\n            self._show_message(\"Excel export failed: {0}\".format(excel_exc))\n\n\ntabletitle = IN[0] if len(IN) \u003e 0 else \"\"\ndata_list = IN[1] if len(IN) \u003e 1 else []\nhas_title = IN[2] if len(IN) \u003e 2 else True\nopen_excel = IN[3] if len(IN) \u003e 3 else False\nshow_info = IN[4] if len(IN) \u003e 4 else False\ninputname = IN[5] if len(IN) \u003e 5 else \"\"\nfile_info = IN[6] if len(IN) \u003e 6 else None\n\nOUT = tableview(\n    inputname,\n    tabletitle,\n    data_list,\n    has_title,\n    open_excel,\n    show_info,\n    file_info,\n)\n",
+                      "Engine":  "CPython3",
+                      "VariableInputPorts":  true,
+                      "Id":  "1cf63d5da9ea4281bf0276f67137f150",
+                      "NodeType":  "PythonScriptNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "3bb4dc61f65a4ec8a1f8fcfeacb2e4b6",
+                                         "Name":  "IN[0]",
+                                         "Description":  "Input #0",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "d86067bd00394d8b9918ce518a85682b",
+                                         "Name":  "IN[1]",
+                                         "Description":  "Input #1",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "e15ce015d0f744d7aea99bbb6e105de5",
+                                         "Name":  "IN[2]",
+                                         "Description":  "Input #2",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "ff8bd4a228d44b8bb70d10d417193cc0",
+                                         "Name":  "IN[3]",
+                                         "Description":  "Input #3",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "8020896029a14ba5ae3411e78ed7412c",
+                                         "Name":  "IN[4]",
+                                         "Description":  "Input #4",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "8f170ed304da4cb597a0f81a67e71c66",
+                                          "Name":  "OUT",
+                                          "Description":  "Result of the python script",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "Runs an embedded Python script."
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "InputName_",
+                                        "TypeName":  "string",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "\"Table Title\"",
+                                        "Description":  ""
+                                    },
+                      "Id":  "20ca47bcb70f4a9293010f899ebb88ab",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "d405ad6e15bc46dda795b72d27ccf01b",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "Data_",
+                                        "TypeName":  "var",
+                                        "TypeRank":  -1,
+                                        "DefaultValue":  null,
+                                        "Description":  ""
+                                    },
+                      "Id":  "1230a0674c4a4862b4b0d004e200a72f",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "786a4e98e9f94f9587ac1fd9245660bc",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+                      "ElementResolver":  null,
+                      "Symbol":  "TableView input",
+                      "Id":  "a4203266933246f3820848a67331dc5d",
+                      "NodeType":  "OutputNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "3f3b504c2e924d01a933c3142070006d",
+                                         "Name":  "",
+                                         "Description":  "",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function output, use with custom nodes"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "FirstRowIsTitles_",
+                                        "TypeName":  "bool",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "false",
+                                        "Description":  ""
+                                    },
+                      "Id":  "edcbf6bf0a5d47c58159b1ddf0dbe192",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "a6f05cfacae54f72991a07678d03ee0c",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "ShowTitleAndFileInfoInExport_",
+                                        "TypeName":  "bool",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "true",
+                                        "Description":  ""
+                                    },
+                      "Id":  "627dd837d7b649818610e5e9d2d1e5bb",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "6feb3d62f315495e97d96b8241fc02e8",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "OpenExcelAtExport_",
+                                        "TypeName":  "bool",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "false",
+                                        "Description":  ""
+                                    },
+                      "Id":  "e55c506f1552429a92d2221211aeba3d",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "b574dc77e58c4c549b79d47b1470eef9",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  }
+              ],
+    "Connectors":  [
+                       {
+                           "Start":  "8f170ed304da4cb597a0f81a67e71c66",
+                           "End":  "3f3b504c2e924d01a933c3142070006d",
+                           "Id":  "fd102d358cc04d0c81d3adc239fe8699",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "d405ad6e15bc46dda795b72d27ccf01b",
+                           "End":  "3bb4dc61f65a4ec8a1f8fcfeacb2e4b6",
+                           "Id":  "cea505a04efe4f13bf3d9c0a011bda3a",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "786a4e98e9f94f9587ac1fd9245660bc",
+                           "End":  "d86067bd00394d8b9918ce518a85682b",
+                           "Id":  "c174d0cb4b5947cf85d290e9dca4b3a8",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "a6f05cfacae54f72991a07678d03ee0c",
+                           "End":  "e15ce015d0f744d7aea99bbb6e105de5",
+                           "Id":  "a6218ea262b84d7fa72fcf8f0973c4be",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "6feb3d62f315495e97d96b8241fc02e8",
+                           "End":  "8020896029a14ba5ae3411e78ed7412c",
+                           "Id":  "081cc558eb78448ead58f16e02691e7d",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "b574dc77e58c4c549b79d47b1470eef9",
+                           "End":  "ff8bd4a228d44b8bb70d10d417193cc0",
+                           "Id":  "2f7561f777f14a7681d7f477fe8a9d86",
+                           "IsHidden":  "False"
+                       }
+                   ],
+    "Dependencies":  [
+
+                     ],
+    "NodeLibraryDependencies":  [
+
+                                ],
+    "Author":  "None provided",
+    "Bindings":  [
+
+                 ],
+    "View":  {
+                 "Dynamo":  {
+                                "ScaleFactor":  1.0,
+                                "HasRunWithoutCrash":  false,
+                                "IsVisibleInDynamoLibrary":  true,
+                                "Version":  "3.3.0.6316",
+                                "RunType":  "Manual",
+                                "RunPeriod":  "1000"
+                            },
+                 "Camera":  {
+                                "Name":  "_Background Preview",
+                                "EyeX":  -33412.453125,
+                                "EyeY":  12291.755859375,
+                                "EyeZ":  -2753.875732421875,
+                                "LookX":  26560.400390625,
+                                "LookY":  -8314.3046875,
+                                "LookZ":  -453.093017578125,
+                                "UpX":  0.29865628480911255,
+                                "UpY":  0.9543471336364746,
+                                "UpZ":  -0.005094640422612429
+                            },
+                 "ConnectorPins":  [
+
+                                   ],
+                 "NodeViews":  [
+                                   {
+                                       "Id":  "1cf63d5da9ea4281bf0276f67137f150",
+                                       "Name":  "Python Script",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  703.941434077256,
+                                       "Y":  24.977345185058198
+                                   },
+                                   {
+                                       "Id":  "20ca47bcb70f4a9293010f899ebb88ab",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  20.282095707774488,
+                                       "Y":  -167.91686473030438
+                                   },
+                                   {
+                                       "Id":  "1230a0674c4a4862b4b0d004e200a72f",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  16.73999161358779,
+                                       "Y":  -27.656046963908125
+                                   },
+                                   {
+                                       "Id":  "a4203266933246f3820848a67331dc5d",
+                                       "Name":  "Output",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  920.941434077256,
+                                       "Y":  25.0
+                                   },
+                                   {
+                                       "Id":  "edcbf6bf0a5d47c58159b1ddf0dbe192",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  2.7813176786969507,
+                                       "Y":  98.27464542108919
+                                   },
+                                   {
+                                       "Id":  "627dd837d7b649818610e5e9d2d1e5bb",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  -11.013344515216204,
+                                       "Y":  389.1493747063
+                                   },
+                                   {
+                                       "Id":  "e55c506f1552429a92d2221211aeba3d",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  -2.9173478697812243,
+                                       "Y":  238.3560050318473
+                                   }
+                               ],
+                 "Annotations":  [
+
+                                 ],
+                 "X":  230.4730809972191,
+                 "Y":  320.773090535618,
+                 "Zoom":  0.5793739942717775
+             }
+}

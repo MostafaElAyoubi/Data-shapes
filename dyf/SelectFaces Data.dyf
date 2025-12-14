@@ -1,0 +1,243 @@
+﻿{
+    "Uuid":  "d5ab45d3-040c-46c6-9aa7-45c75aed4a19",
+    "IsCustomNode":  true,
+    "Category":  "Data-Shapes.UI.Selection",
+    "Description":  "Creates a Revit face selection input for UI.MultipleInputForm++. Check out www.data-shapes.net for more infos!",
+    "Name":  "SelectFaces Data",
+    "ElementResolver":  {
+                            "ResolutionMap":  {
+
+                                              }
+                        },
+    "Inputs":  [
+
+               ],
+    "Outputs":  [
+
+                ],
+    "Nodes":  [
+                  {
+                      "ConcreteType":  "PythonNodeModels.PythonNode, PythonNodeModels",
+                      "Code":  "# Copyright (c) Data Shapes, 2025\n# Data-Shapes www.data-shapes.io, elayoubi.mostafa@data-shapes.io @data_shapes\n\nimport clr\nclr.AddReference(\u0027RevitAPIUI\u0027)\nfrom Autodesk.Revit.UI import Selection\nclr.AddReference(\u0027RevitAPI\u0027)\nfrom Autodesk.Revit.DB import FamilyInstance\n\nclr.AddReference(\u0027RevitNodes\u0027)\nimport Revit\nclr.ImportExtensions(Revit.Elements)\nclr.ImportExtensions(Revit.GeometryConversion)\n\nclr.AddReference(\u0027RevitServices\u0027)\nfrom RevitServices.Persistence import DocumentManager\ndoc = DocumentManager.Instance.CurrentDBDocument\nuidoc = DocumentManager.Instance.CurrentUIApplication.ActiveUIDocument\n\n\nclass uiselectfaces():\n\n    def __init__(self, inputname, buttontext):\n        self.inputname = inputname\n        self.buttontext = buttontext\n        self._input_type = \u0027uiselectfaces\u0027\n\n    def __repr__(self):\n        return \u0027UI.SelectFaces input\u0027\n\n    def pickfaces(self, sender, event):\n        faces = []\n        try:\n            selface = uidoc.Selection.PickObjects(Selection.ObjectType.Face, \u0027\u0027)\n            for s in selface:\n                elemid = s.ElementId\n                elem = doc.GetElement(elemid)\n                if isinstance(elem, FamilyInstance):\n                    transf = elem.GetTransform().ToCoordinateSystem()\n                    geom = elem.GetGeometryObjectFromReference(s)\n                    convertedGeom = geom.Convert(s, transf)\n                    faces.append(convertedGeom)\n                else:\n                    f = uidoc.Document.GetElement(s).GetGeometryObjectFromReference(s).ToProtoType(True)\n                    for i in f:\n                        i.Tags.AddTag(\"RevitFaceReference\", s)\n                    faces.append(f)\n            sender.Tag = [i for j in faces for i in j]\n        except:\n            pass\n\n\ninputname = IN[0] if len(IN) \u003e 0 else \"\"\nbuttontext = IN[1] if len(IN) \u003e 1 else \"Select Face(s)\"\n\nOUT = uiselectfaces(inputname, buttontext)\n",
+                      "Engine":  "CPython3",
+                      "VariableInputPorts":  true,
+                      "Id":  "1373a8d711ec4a7998f53bb8349aa2fb",
+                      "NodeType":  "PythonScriptNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "fe75424dff0240b89d6fb5c27b2715e1",
+                                         "Name":  "IN[0]",
+                                         "Description":  "Input #0",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "2b888608f3214fe881a738758ee5ce4d",
+                                         "Name":  "IN[1]",
+                                         "Description":  "Input #1",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "877970e446d54bf3af8cba7f9d3faeb0",
+                                          "Name":  "OUT",
+                                          "Description":  "Result of the python script",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "Runs an embedded Python script."
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+                      "ElementResolver":  null,
+                      "Symbol":  "SelectFaces input",
+                      "Id":  "4b695f85bce1430d890e7e8a98432e61",
+                      "NodeType":  "OutputNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "a636a59cc7594ceeb7b8af8817e4f607",
+                                         "Name":  "",
+                                         "Description":  "",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function output, use with custom nodes"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "InputName_",
+                                        "TypeName":  "string",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "\"\"",
+                                        "Description":  ""
+                                    },
+                      "Id":  "d7b7ec9c5a0a4476832b34070a79de5b",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "87f7d0f4c1b24f60a4783a24dab19b54",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "ButtonText_",
+                                        "TypeName":  "string",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "\"Select face(s)\"",
+                                        "Description":  ""
+                                    },
+                      "Id":  "a0332b45f92f45e0bfd6ae6029dd5cc6",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "a6641ec654a84fa19e244803feea63b9",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  }
+              ],
+    "Connectors":  [
+                       {
+                           "Start":  "877970e446d54bf3af8cba7f9d3faeb0",
+                           "End":  "a636a59cc7594ceeb7b8af8817e4f607",
+                           "Id":  "34269e841a234428b294ac5cf0b075d3",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "87f7d0f4c1b24f60a4783a24dab19b54",
+                           "End":  "fe75424dff0240b89d6fb5c27b2715e1",
+                           "Id":  "e9d9f8eb17334ebf85c078bc56061b6c",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "a6641ec654a84fa19e244803feea63b9",
+                           "End":  "2b888608f3214fe881a738758ee5ce4d",
+                           "Id":  "bc00804285db4d44a33c44681b669d2f",
+                           "IsHidden":  "False"
+                       }
+                   ],
+    "Dependencies":  [
+
+                     ],
+    "NodeLibraryDependencies":  [
+
+                                ],
+    "Author":  "None provided",
+    "Bindings":  [
+
+                 ],
+    "View":  {
+                 "Dynamo":  {
+                                "ScaleFactor":  1.0,
+                                "HasRunWithoutCrash":  false,
+                                "IsVisibleInDynamoLibrary":  true,
+                                "Version":  "3.3.0.6316",
+                                "RunType":  "Manual",
+                                "RunPeriod":  "1000"
+                            },
+                 "Camera":  {
+                                "Name":  "_Background Preview",
+                                "EyeX":  -26182.98828125,
+                                "EyeY":  74536.5546875,
+                                "EyeZ":  51813.8203125,
+                                "LookX":  9918.72265625,
+                                "LookY":  -80499.0,
+                                "LookZ":  -39714.80859375,
+                                "UpX":  0.21598562598228455,
+                                "UpY":  0.4532727003097534,
+                                "UpZ":  -0.8648086786270142
+                            },
+                 "ConnectorPins":  [
+
+                                   ],
+                 "NodeViews":  [
+                                   {
+                                       "Id":  "1373a8d711ec4a7998f53bb8349aa2fb",
+                                       "Name":  "Python Script",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  281.4868178149168,
+                                       "Y":  -3.2349470357791006
+                                   },
+                                   {
+                                       "Id":  "4b695f85bce1430d890e7e8a98432e61",
+                                       "Name":  "Output",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  457.351830514493,
+                                       "Y":  -3.88193644293494
+                                   },
+                                   {
+                                       "Id":  "d7b7ec9c5a0a4476832b34070a79de5b",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  -46.9984466169753,
+                                       "Y":  -48.720988899578
+                                   },
+                                   {
+                                       "Id":  "a0332b45f92f45e0bfd6ae6029dd5cc6",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  -101.079927745159,
+                                       "Y":  63.1515069165487
+                                   }
+                               ],
+                 "Annotations":  [
+
+                                 ],
+                 "X":  365.2152962908681,
+                 "Y":  326.69007602948045,
+                 "Zoom":  0.7843693280448271
+             }
+}

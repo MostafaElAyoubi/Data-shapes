@@ -1,0 +1,183 @@
+﻿{
+    "Uuid":  "78ef4e25-eb17-4761-8b14-645590cc2029",
+    "IsCustomNode":  true,
+    "Category":  "Data-Shapes.Revit.Rooms",
+    "Description":  "Returns room height.",
+    "Name":  "Room.Height",
+    "ElementResolver":  {
+                            "ResolutionMap":  {
+
+                                              }
+                        },
+    "Inputs":  [
+
+               ],
+    "Outputs":  [
+
+                ],
+    "Nodes":  [
+                  {
+                      "ConcreteType":  "PythonNodeModels.PythonNode, PythonNodeModels",
+                      "NodeType":  "PythonScriptNode",
+                      "Code":  "# Copyright (c) Data Shapes, 2025\n# Data-Shapes www.data-shapes.io, elayoubi.mostafa@data-shapes.io @data_shapes\n\nimport clr\nclr.AddReference(\u0027RevitAPI\u0027)\nfrom Autodesk.Revit.DB import *\nclr.AddReference(\u0027RevitServices\u0027)\nfrom RevitServices.Transactions import TransactionManager\nfrom RevitServices.Persistence import DocumentManager\nclr.AddReference(\u0027RevitNodes\u0027)\nimport Revit\nclr.ImportExtensions(Revit.GeometryConversion)\n\ndoc = DocumentManager.Instance.CurrentDBDocument\n\n\ndef ToList(input):\n    if isinstance(input, list):\n        return input\n    else:\n        return [input]\n\n\nrooms = ToList(IN[0])\nOUT = [(r.BoundingBox.MaxPoint.Z - r.BoundingBox.MinPoint.Z) for r in rooms]\n",
+                      "VariableInputPorts":  true,
+                      "Id":  "a38283aeaa94486c85e5bceef2146da3",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "37c41cf1aad14fc8a03208070860413b",
+                                         "Name":  "IN[0]",
+                                         "Description":  "Input #0",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "ec1ea3616b484777bc6c957f99df1809",
+                                          "Name":  "OUT",
+                                          "Description":  "Result of the python script",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "Runs an embedded IronPython script."
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "NodeType":  "InputNode",
+                      "Parameter":  {
+                                        "Name":  "Rooms_",
+                                        "TypeName":  "var",
+                                        "TypeRank":  1,
+                                        "DefaultValue":  null,
+                                        "Description":  ""
+                                    },
+                      "Id":  "bc8324acd6224028a3006e592fd452c7",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "7ea666f8fe6d4ebaac8fe5316dfd8ce6",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+                      "NodeType":  "OutputNode",
+                      "ElementResolver":  null,
+                      "Symbol":  "Height(s)",
+                      "Id":  "dea5cb16d45641498078fa4b29417186",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "d09aa3bbcb994896907b69e0ec767fde",
+                                         "Name":  "",
+                                         "Description":  "",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function output, use with custom nodes"
+                  }
+              ],
+    "Connectors":  [
+                       {
+                           "Start":  "ec1ea3616b484777bc6c957f99df1809",
+                           "End":  "d09aa3bbcb994896907b69e0ec767fde",
+                           "Id":  "97803ce0f6a84cd6ac4bc14e5efe8992"
+                       },
+                       {
+                           "Start":  "7ea666f8fe6d4ebaac8fe5316dfd8ce6",
+                           "End":  "37c41cf1aad14fc8a03208070860413b",
+                           "Id":  "7d35553049a54a2aa610dbe553f2d4ca"
+                       }
+                   ],
+    "Dependencies":  [
+
+                     ],
+    "NodeLibraryDependencies":  [
+
+                                ],
+    "Bindings":  [
+
+                 ],
+    "View":  {
+                 "Dynamo":  {
+                                "ScaleFactor":  1.0,
+                                "HasRunWithoutCrash":  false,
+                                "IsVisibleInDynamoLibrary":  true,
+                                "Version":  "2.3.0.5885",
+                                "RunType":  "Manual",
+                                "RunPeriod":  "1000"
+                            },
+                 "Camera":  {
+                                "Name":  "Background Preview",
+                                "EyeX":  -17.0,
+                                "EyeY":  24.0,
+                                "EyeZ":  50.0,
+                                "LookX":  12.0,
+                                "LookY":  -13.0,
+                                "LookZ":  -58.0,
+                                "UpX":  0.0,
+                                "UpY":  1.0,
+                                "UpZ":  0.0
+                            },
+                 "NodeViews":  [
+                                   {
+                                       "ShowGeometry":  true,
+                                       "Name":  "Room Height",
+                                       "Id":  "a38283aeaa94486c85e5bceef2146da3",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "X":  214.117502310329,
+                                       "Y":  -0.56066402640109914
+                                   },
+                                   {
+                                       "ShowGeometry":  true,
+                                       "Name":  "Input",
+                                       "Id":  "bc8324acd6224028a3006e592fd452c7",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "X":  0.0,
+                                       "Y":  0.0
+                                   },
+                                   {
+                                       "ShowGeometry":  true,
+                                       "Name":  "Output",
+                                       "Id":  "dea5cb16d45641498078fa4b29417186",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "X":  441.150703630384,
+                                       "Y":  -2.80332013200555
+                                   }
+                               ],
+                 "Annotations":  [
+
+                                 ],
+                 "X":  222.313243263466,
+                 "Y":  167.957746108838,
+                 "Zoom":  1.78359936238281
+             }
+}

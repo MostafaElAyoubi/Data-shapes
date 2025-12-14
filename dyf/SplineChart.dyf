@@ -1,0 +1,508 @@
+﻿{
+    "Uuid":  "8f837b4c-88c0-4f1c-9ab0-3947d838832e",
+    "IsCustomNode":  true,
+    "Category":  "Data-Shapes.UI.Charts",
+    "Description":  "SplineChart",
+    "Name":  "SplineChart",
+    "ElementResolver":  {
+                            "ResolutionMap":  {
+
+                                              }
+                        },
+    "Inputs":  [
+
+               ],
+    "Outputs":  [
+
+                ],
+    "Nodes":  [
+                  {
+                      "ConcreteType":  "PythonNodeModels.PythonNode, PythonNodeModels",
+                      "Code":  "# Copyright (c) Data Shapes, 2025\n# Data-Shapes www.data-shapes.io\n\nimport clr\n\nPanel = None\nPictureBox = None\nPictureBoxSizeMode = None\nCheckBox = None\nButton = None\nSaveFileDialog = None\nDialogResult = None\nAnchorStyles = None\nPoint = None\nSize = None\nBitmap = None\nGraphics = None\nPen = None\nSolidBrush = None\nColor = None\nFont = None\nFontStyle = None\nStringFormat = None\nStringFormatFlags = None\nStringAlignment = None\nPointF = None\nRectangleF = None\nSmoothingMode = None\nImageFormat = None\n\n_import_error = None\n\ntry:\n    clr.AddReference(\"System.Windows.Forms\")\n    from System.Windows.Forms import (\n        Panel,\n        PictureBox,\n        PictureBoxSizeMode,\n        CheckBox,\n        Button,\n        SaveFileDialog,\n        DialogResult,\n        AnchorStyles,\n    )\nexcept Exception as ex:\n    _import_error = \"WinForms: \" + str(ex)\n\ntry:\n    clr.AddReference(\"System.Drawing\")\n    from System.Drawing import (\n        Point,\n        Size,\n        Bitmap,\n        Graphics,\n        Pen,\n        SolidBrush,\n        Color,\n        Font,\n        FontStyle,\n        StringFormat,\n        StringFormatFlags,\n        StringAlignment,\n        PointF,\n        RectangleF,\n    )\nexcept Exception as ex:\n    _import_error = (_import_error or \"\") + \" | Drawing: \" + str(ex)\n\ntry:\n    from System.Drawing.Drawing2D import SmoothingMode\nexcept Exception as ex:\n    _import_error = (_import_error or \"\") + \" | Drawing2D: \" + str(ex)\n\ntry:\n    from System.Drawing.Imaging import ImageFormat\nexcept Exception as ex:\n    _import_error = (_import_error or \"\") + \" | Imaging: \" + str(ex)\n\ntry:\n    from System import Array\nexcept Exception as ex:\n    _import_error = (_import_error or \"\") + \" | System.Array: \" + str(ex)\n\ntry:\n    from System.Windows.Forms import AutoSizeMode\nexcept:\n    AutoSizeMode = None\n\n\nclass uisplinechart(object):\n\n    def __init__(\n        self,\n        inputname=\"\",\n        chartname=\"\",\n        labels=None,\n        xseries=None,\n        yseries=None,\n        inputcolors=None,\n        xaxislabel=\"\",\n        yaxislabel=\"\",\n    ):\n        self._input_type = \"uisplinechart\"\n        self.inputname = inputname if inputname is not None else \"\"\n        self.chartname = chartname if chartname is not None else \"\"\n        self.labels = labels if labels is not None else []\n        self.xseries = xseries if xseries is not None else []\n        self.yseries = yseries if yseries is not None else []\n        self.inputcolors = inputcolors if inputcolors is not None else []\n        self.xaxislabel = xaxislabel if xaxislabel is not None else \"\"\n        self.yaxislabel = yaxislabel if yaxislabel is not None else \"\"\n\n    def __repr__(self):\n        return \"UI.SplineChart input\"\n\n    def _is_nested(self, obj):\n        if obj is None:\n            return False\n        try:\n            lst = self._to_list(obj)\n            if len(lst) == 0:\n                return False\n            first = lst[0]\n            if isinstance(first, str):\n                return False\n            if isinstance(first, (list, tuple)):\n                return True\n            if hasattr(first, \u0027__iter__\u0027) and hasattr(first, \u0027__len__\u0027):\n                return True\n            if hasattr(first, \u0027Count\u0027) and hasattr(first, \u0027__getitem__\u0027):\n                return True\n            return False\n        except:\n            return False\n\n    def _to_list(self, obj):\n        if obj is None:\n            return []\n        if isinstance(obj, list):\n            return obj\n        if isinstance(obj, str):\n            return [obj]\n        try:\n            return [x for x in obj]\n        except:\n            return [obj]\n\n    def _to_nested_list(self, obj):\n        if obj is None:\n            return []\n        outer = self._to_list(obj)\n        result = []\n        for item in outer:\n            if isinstance(item, str):\n                result.append(item)\n            elif isinstance(item, (list, tuple)):\n                result.append(list(item))\n            elif hasattr(item, \u0027__iter__\u0027):\n                try:\n                    result.append([x for x in item])\n                except:\n                    result.append(item)\n            else:\n                result.append(item)\n        return result\n\n    def _to_number(self, val):\n        if val is None:\n            return 0.0\n        if isinstance(val, (int, float)):\n            return float(val)\n        try:\n            return float(val)\n        except:\n            pass\n        try:\n            return float(str(val))\n        except:\n            pass\n        return 0.0\n\n    def _get_default_colors(self):\n        if Color is None:\n            return []\n        return [\n            Color.FromArgb(70, 130, 180),\n            Color.FromArgb(205, 92, 92),\n            Color.FromArgb(60, 179, 113),\n            Color.FromArgb(255, 165, 0),\n            Color.FromArgb(147, 112, 219),\n            Color.FromArgb(64, 224, 208),\n            Color.FromArgb(255, 105, 180),\n            Color.FromArgb(154, 205, 50),\n        ]\n\n    def _to_color(self, c, idx=0):\n        if Color is None:\n            return None\n        try:\n            if c is None:\n                colors = self._get_default_colors()\n                return colors[idx % len(colors)] if colors else None\n            if isinstance(c, Color):\n                return c\n            if hasattr(c, \"Red\") and hasattr(c, \"Green\") and hasattr(c, \"Blue\"):\n                return Color.FromArgb(int(c.Red), int(c.Green), int(c.Blue))\n            if hasattr(c, \"R\") and hasattr(c, \"G\") and hasattr(c, \"B\"):\n                a = getattr(c, \"A\", 255)\n                return Color.FromArgb(int(a), int(c.R), int(c.G), int(c.B))\n        except:\n            pass\n        colors = self._get_default_colors()\n        return colors[idx % len(colors)] if colors else None\n\n    def _prepare_series_data(self):\n        labels = self._to_list(self.labels)\n        if len(labels) == 0:\n            labels = [\"Series 1\"]\n        \n        xseries_raw = self._to_nested_list(self.xseries)\n        yseries_raw = self._to_nested_list(self.yseries)\n        \n        x_is_nested = self._is_nested(self.xseries)\n        y_is_nested = self._is_nested(self.yseries)\n        \n        if x_is_nested and y_is_nested:\n            nbOfSeries = len(xseries_raw)\n            xseries = xseries_raw\n            yseries = yseries_raw\n        elif not x_is_nested and y_is_nested:\n            nbOfSeries = len(yseries_raw)\n            xseries = [xseries_raw for _ in range(nbOfSeries)]\n            yseries = yseries_raw\n        elif not y_is_nested and x_is_nested:\n            nbOfSeries = len(xseries_raw)\n            yseries = [yseries_raw for _ in range(nbOfSeries)]\n            xseries = xseries_raw\n        else:\n            xseries = [xseries_raw]\n            yseries = [yseries_raw]\n            nbOfSeries = 1\n        \n        while len(labels) \u003c nbOfSeries:\n            labels.append(\"Series {}\".format(len(labels) + 1))\n        \n        series_list = []\n        for i in range(nbOfSeries):\n            xs = self._to_list(xseries[i]) if i \u003c len(xseries) else []\n            ys = self._to_list(yseries[i]) if i \u003c len(yseries) else []\n            xs = [self._to_number(v) for v in xs]\n            ys = [self._to_number(v) for v in ys]\n            points = list(zip(xs, ys))\n            series_list.append(points)\n        \n        return labels[:nbOfSeries], series_list\n\n    def _render_spline_chart(self, width, height, state):\n        if Bitmap is None or Graphics is None:\n            return None, \"Bitmap or Graphics is None\"\n        if Color is None or Pen is None or SolidBrush is None:\n            return None, \"Color, Pen, or SolidBrush is None\"\n\n        try:\n            series_labels, series_list = self._prepare_series_data()\n            colors = self._to_list(self.inputcolors)\n            \n            all_x_values = []\n            all_y_values = []\n            for points in series_list:\n                for x, y in points:\n                    all_x_values.append(x)\n                    all_y_values.append(y)\n            \n            if not all_x_values:\n                all_x_values = [0]\n            if not all_y_values:\n                all_y_values = [0]\n            \n            x_min = min(all_x_values)\n            x_max = max(all_x_values)\n            y_min = min(all_y_values)\n            y_max = max(all_y_values)\n            \n            x_range = x_max - x_min\n            y_range = y_max - y_min\n            if x_range == 0:\n                x_range = 1\n                x_min -= 0.5\n                x_max += 0.5\n            if y_range == 0:\n                y_range = 1\n                y_min -= 0.5\n                y_max += 0.5\n            \n            x_min -= x_range * 0.05\n            x_max += x_range * 0.05\n            y_min -= y_range * 0.05\n            y_max += y_range * 0.1\n            \n            margin = {\"left\": 65, \"right\": 120, \"top\": 50, \"bottom\": 55}\n            \n            bmp = Bitmap(width, height)\n            g = Graphics.FromImage(bmp)\n            \n            if SmoothingMode is not None:\n                try:\n                    g.SmoothingMode = SmoothingMode.AntiAlias\n                except:\n                    pass\n            g.Clear(Color.White)\n            \n            plot_x = margin[\"left\"]\n            plot_y = margin[\"top\"]\n            plot_w = width - margin[\"left\"] - margin[\"right\"]\n            plot_h = height - margin[\"top\"] - margin[\"bottom\"]\n            \n            if self.chartname:\n                try:\n                    title_font = Font(\"Segoe UI\", 11, FontStyle.Bold)\n                    g.DrawString(self.chartname, title_font, SolidBrush(Color.FromArgb(50, 50, 50)), \n                                PointF(plot_x, 10))\n                except:\n                    pass\n            \n            axis_pen = Pen(Color.FromArgb(80, 80, 80), 1)\n            g.DrawLine(axis_pen, plot_x, plot_y + plot_h, plot_x + plot_w, plot_y + plot_h)\n            g.DrawLine(axis_pen, plot_x, plot_y, plot_x, plot_y + plot_h)\n            \n            label_font = Font(\"Segoe UI\", 8)\n            label_brush = SolidBrush(Color.FromArgb(80, 80, 80))\n            \n            y_steps = 5\n            grid_pen = Pen(Color.FromArgb(220, 220, 220), 1)\n            fmt_right = StringFormat()\n            fmt_right.Alignment = StringAlignment.Far\n            \n            for i in range(y_steps + 1):\n                y_val = y_min + (y_max - y_min) * i / y_steps\n                y_pos = plot_y + plot_h - (plot_h * i / y_steps)\n                \n                if state.get(\"grid\", True) and i \u003e 0:\n                    g.DrawLine(grid_pen, plot_x, int(y_pos), plot_x + plot_w, int(y_pos))\n                \n                label_text = \"{:.4g}\".format(y_val)\n                g.DrawString(label_text, label_font, label_brush, \n                            PointF(plot_x - 5, y_pos - 6), fmt_right)\n            \n            x_steps = 5\n            fmt_center = StringFormat()\n            fmt_center.Alignment = StringAlignment.Center\n            \n            for i in range(x_steps + 1):\n                x_val = x_min + (x_max - x_min) * i / x_steps\n                x_pos = plot_x + (plot_w * i / x_steps)\n                \n                if state.get(\"grid\", True) and i \u003e 0 and i \u003c x_steps:\n                    g.DrawLine(grid_pen, int(x_pos), plot_y, int(x_pos), plot_y + plot_h)\n                \n                label_text = \"{:.4g}\".format(x_val)\n                g.DrawString(label_text, label_font, label_brush,\n                            PointF(x_pos, plot_y + plot_h + 8), fmt_center)\n            \n            for si, points in enumerate(series_list):\n                if len(points) \u003c 2:\n                    continue\n                    \n                color = self._to_color(colors[si] if si \u003c len(colors) else None, si)\n                if color is None:\n                    continue\n                \n                spline_pen = Pen(color, 4)\n                \n                sorted_points = sorted(points, key=lambda p: p[0])\n                \n                screen_points = []\n                for x_val, y_val in sorted_points:\n                    screen_x = plot_x + ((x_val - x_min) / (x_max - x_min)) * plot_w\n                    screen_y = plot_y + plot_h - ((y_val - y_min) / (y_max - y_min)) * plot_h\n                    screen_points.append(PointF(float(screen_x), float(screen_y)))\n                \n                if len(screen_points) \u003e= 2:\n                    try:\n                        points_array = Array[PointF](screen_points)\n                        g.DrawCurve(spline_pen, points_array, 0.5)\n                    except Exception:\n                        prev_pt = None\n                        for pt in screen_points:\n                            if prev_pt is not None:\n                                g.DrawLine(spline_pen, prev_pt, pt)\n                            prev_pt = pt\n                \n                point_brush = SolidBrush(color)\n                for pt in screen_points:\n                    g.FillEllipse(point_brush, int(pt.X - 4), int(pt.Y - 4), 8, 8)\n                \n                if state.get(\"labels\", True):\n                    for i, (x_val, y_val) in enumerate(sorted_points):\n                        pt = screen_points[i]\n                        label_text = \"{:.4g}\".format(y_val)\n                        g.DrawString(label_text, label_font, SolidBrush(Color.FromArgb(60, 60, 60)),\n                                    PointF(pt.X + 5, pt.Y - 12))\n            \n            if state.get(\"legend\", True) and series_labels:\n                legend_x = plot_x + plot_w + 10\n                legend_y = plot_y + 10\n                legend_font = Font(\"Segoe UI\", 9)\n                \n                for i, name in enumerate(series_labels):\n                    color = self._to_color(colors[i] if i \u003c len(colors) else None, i)\n                    if color is not None:\n                        legend_pen = Pen(color, 3)\n                        try:\n                            g.DrawBezier(legend_pen, \n                                        PointF(legend_x, legend_y + i * 22 + 9),\n                                        PointF(legend_x + 5, legend_y + i * 22 + 3),\n                                        PointF(legend_x + 9, legend_y + i * 22 + 11),\n                                        PointF(legend_x + 14, legend_y + i * 22 + 5))\n                        except:\n                            g.DrawLine(legend_pen, legend_x, legend_y + i * 22 + 7, \n                                      legend_x + 14, legend_y + i * 22 + 7)\n                    g.DrawString(str(name), legend_font, SolidBrush(Color.FromArgb(60, 60, 60)),\n                                PointF(legend_x + 20, legend_y + i * 22 - 1))\n            \n            if self.xaxislabel:\n                try:\n                    axis_font = Font(\"Segoe UI\", 9)\n                    x_label_y = plot_y + plot_h + 30\n                    g.DrawString(self.xaxislabel, axis_font, label_brush,\n                                PointF(plot_x + plot_w / 2, x_label_y), fmt_center)\n                except:\n                    pass\n            \n            if self.yaxislabel:\n                try:\n                    axis_font = Font(\"Segoe UI\", 9)\n                    fmt_vert = StringFormat()\n                    fmt_vert.Alignment = StringAlignment.Center\n                    if StringFormatFlags is not None:\n                        fmt_vert.FormatFlags = StringFormatFlags.DirectionVertical\n                    text_size = g.MeasureString(self.yaxislabel, axis_font)\n                    y_label_x = 2\n                    y_label_y = plot_y + (plot_h - text_size.Width) / 2\n                    g.DrawString(self.yaxislabel, axis_font, label_brush,\n                                PointF(y_label_x, y_label_y), fmt_vert)\n                except:\n                    pass\n            \n            g.Dispose()\n            return bmp, None\n            \n        except Exception as ex:\n            import traceback\n            return None, str(ex) + \"\\n\" + traceback.format_exc()\n\n    def build_chart(self, formbody, xlabel, xinput, y, xRatio, yRatio, form):\n        if Panel is None or PictureBox is None or Bitmap is None:\n            return None, int(y)\n\n        panel = Panel()\n        panel.Location = Point(int(xlabel), int(y))\n        panel.Width = max(int(formbody.Width - 25 * xRatio - xlabel), int(200 * xRatio))\n        panel.Height = max(int(340 * yRatio), 220)\n\n        pb = PictureBox()\n        pb.SizeMode = PictureBoxSizeMode.Normal\n        pb.Location = Point(0, 0)\n        pb.Width = panel.Width\n        pb.Height = int(panel.Height - 40 * yRatio)\n\n        if AnchorStyles is not None:\n            pb.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right\n\n        panel.Controls.Add(pb)\n        \n        placeholder = None\n        state = {\"legend\": True, \"grid\": True, \"labels\": True}\n\n        def render():\n            nonlocal placeholder\n            bmp = None\n            err_txt = None\n            \n            try:\n                if pb.Width \u003e 0 and pb.Height \u003e 0:\n                    bmp, render_err = self._render_spline_chart(pb.Width, pb.Height, state)\n                    if render_err:\n                        err_txt = render_err\n                else:\n                    err_txt = \"Invalid size\"\n            except Exception as exc:\n                import traceback\n                err_txt = str(exc) + \"\\n\" + traceback.format_exc()\n            \n            try:\n                old_img = pb.Image\n                pb.Image = bmp\n                if old_img is not None and old_img is not bmp:\n                    old_img.Dispose()\n            except:\n                pb.Image = bmp\n            \n            if bmp is None:\n                pb.Visible = False\n                if placeholder is None:\n                    try:\n                        from System.Windows.Forms import Label\n                        placeholder = Label()\n                        placeholder.AutoSize = True\n                        placeholder.MaximumSize = Size(panel.Width - 20, 0)\n                        placeholder.Location = Point(10, 10)\n                        panel.Controls.Add(placeholder)\n                    except:\n                        pass\n                if placeholder:\n                    placeholder.Text = \"Chart error: \" + (err_txt or \"Unknown\")\n            else:\n                pb.Visible = True\n                if placeholder:\n                    try:\n                        panel.Controls.Remove(placeholder)\n                    except:\n                        pass\n                    placeholder = None\n\n        pb.SizeChanged += lambda s, e: render()\n\n        render()\n\n        ctrl_y = pb.Bottom + int(4 * yRatio)\n\n        cb_grid = CheckBox()\n        cb_grid.Text = \"Grid\"\n        cb_grid.AutoSize = True\n        cb_grid.Checked = True\n        cb_grid.Location = Point(int(10 * xRatio), ctrl_y)\n        cb_grid.CheckedChanged += lambda s, e: (state.update({\"grid\": s.Checked}), render())\n        panel.Controls.Add(cb_grid)\n\n        cb_legend = CheckBox()\n        cb_legend.Text = \"Legend\"\n        cb_legend.AutoSize = True\n        cb_legend.Checked = True\n        cb_legend.Location = Point(int(80 * xRatio), ctrl_y)\n        cb_legend.CheckedChanged += lambda s, e: (state.update({\"legend\": s.Checked}), render())\n        panel.Controls.Add(cb_legend)\n\n        cb_labels = CheckBox()\n        cb_labels.Text = \"Labels\"\n        cb_labels.AutoSize = True\n        cb_labels.Checked = True\n        cb_labels.Location = Point(int(160 * xRatio), ctrl_y)\n        cb_labels.CheckedChanged += lambda s, e: (state.update({\"labels\": s.Checked}), render())\n        panel.Controls.Add(cb_labels)\n\n        btn_export = Button()\n        btn_export.Text = \"Export Image\"\n        btn_export.AutoSize = True\n        btn_export.Location = Point(int(panel.Width - 100 * xRatio), ctrl_y)\n\n        if AnchorStyles is not None:\n            btn_export.Anchor = AnchorStyles.Top | AnchorStyles.Right\n        \n        def do_export(sender, args):\n            try:\n                if pb.Image is None:\n                    return\n                dlg = SaveFileDialog()\n                dlg.Filter = \"PNG|*.png|JPEG|*.jpg|BMP|*.bmp\"\n                dlg.FileName = (self.chartname or \"chart\") + \".png\"\n                if dlg.ShowDialog() == DialogResult.OK:\n                    fmt = ImageFormat.Png if ImageFormat else None\n                    path = dlg.FileName\n                    if fmt:\n                        if path.lower().endswith(\".jpg\") or path.lower().endswith(\".jpeg\"):\n                            fmt = ImageFormat.Jpeg\n                        elif path.lower().endswith(\".bmp\"):\n                            fmt = ImageFormat.Bmp\n                        pb.Image.Save(path, fmt)\n                    else:\n                        pb.Image.Save(path)\n            except:\n                pass\n        \n        btn_export.Click += do_export\n        panel.Controls.Add(btn_export)\n\n        next_y = int(y + panel.Height + 10 * yRatio)\n        return panel, next_y\n\n\nchartname = IN[0] if len(IN) \u003e 0 else \"\"\nlabels = IN[1] if len(IN) \u003e 1 else []\nxseries = IN[2] if len(IN) \u003e 2 else []\nyseries = IN[3] if len(IN) \u003e 3 else []\ninputcolors = IN[4] if len(IN) \u003e 4 else []\nxaxislabel = IN[5] if len(IN) \u003e 5 else \"\"\nyaxislabel = IN[6] if len(IN) \u003e 6 else \"\"\n\nOUT = uisplinechart(\n    \"\",\n    chartname,\n    labels,\n    xseries,\n    yseries,\n    inputcolors,\n    xaxislabel,\n    yaxislabel,\n)\n",
+                      "Engine":  "CPython3",
+                      "VariableInputPorts":  true,
+                      "Id":  "b162a7c98146466da74195dacdc31716",
+                      "NodeType":  "PythonScriptNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "240c403c57a6430296488cae90caa98a",
+                                         "Name":  "IN[0]",
+                                         "Description":  "Input #0",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "1d028bc8864e4079a4357723d6f075e0",
+                                         "Name":  "IN[1]",
+                                         "Description":  "Input #1",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "151d3df2189f497eb4cbb0d56323ff66",
+                                         "Name":  "IN[2]",
+                                         "Description":  "Input #2",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "d973da2a0e1646579553c8e397a68264",
+                                         "Name":  "IN[3]",
+                                         "Description":  "Input #3",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "dda97649feb54e45ba55fdb31efdbd54",
+                                         "Name":  "IN[4]",
+                                         "Description":  "Input #4",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "8572bca1878941258971651d7a82eb15",
+                                         "Name":  "IN[5]",
+                                         "Description":  "Input #5",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "2f890fe574074e7795965174cd7060b4",
+                                         "Name":  "IN[6]",
+                                         "Description":  "Input #6",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "5aae4c9292eb4d6f9639dfed5d1d655a",
+                                          "Name":  "OUT",
+                                          "Description":  "Result of the python script",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "Runs an embedded Python script."
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "Chart_name_",
+                                        "TypeName":  "string",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "\"Spline Chart\"",
+                                        "Description":  ""
+                                    },
+                      "Id":  "6a48e9b3cb9841c19d40e1b62701da5b",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "62932ac721804a1f84ea51d0d935fd04",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "Series_names_",
+                                        "TypeName":  "var",
+                                        "TypeRank":  -1,
+                                        "DefaultValue":  null,
+                                        "Description":  ""
+                                    },
+                      "Id":  "c49ff77509f442d5a454d01337cafc11",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "783951deeba8490dbc728a95f9fb0296",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "X_values_",
+                                        "TypeName":  "var",
+                                        "TypeRank":  -1,
+                                        "DefaultValue":  null,
+                                        "Description":  ""
+                                    },
+                      "Id":  "74991bae244246b182fc97d86523d4be",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "3bd4831afd9b406ea95889e28d1447fe",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "Y_values_",
+                                        "TypeName":  "var",
+                                        "TypeRank":  -1,
+                                        "DefaultValue":  null,
+                                        "Description":  ""
+                                    },
+                      "Id":  "65d1d8c3d314479693c98c9e44fc1290",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "99da78ae70c348f2b509de472be36eb5",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "Chart_colors_optionnal_",
+                                        "TypeName":  "var",
+                                        "TypeRank":  1,
+                                        "DefaultValue":  "null",
+                                        "Description":  ""
+                                    },
+                      "Id":  "f32a2e9027a34231a89b156c46f7e28d",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "71337e99ec3b4f18983650447fb9e958",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "x_Axis_Label_optionnal_",
+                                        "TypeName":  "string",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "\"\"",
+                                        "Description":  ""
+                                    },
+                      "Id":  "36783dbd6fa54738862040323c9f8cad",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "bace780eea5942828991875a0f7147cf",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "y_Axis_Label_optionnal_",
+                                        "TypeName":  "string",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "\"\"",
+                                        "Description":  ""
+                                    },
+                      "Id":  "c3598e66f2004590aeeadddd3b3dd6f2",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "42ff7439015b4e979ba3af40ec6a4881",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+                      "ElementResolver":  null,
+                      "Symbol":  "UI.SplineChartData",
+                      "Id":  "877a5f989ea147398d969996ba8b0b35",
+                      "NodeType":  "OutputNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "24531e3c657e43f98ca8cb160ae52a4e",
+                                         "Name":  "",
+                                         "Description":  "",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function output, use with custom nodes"
+                  }
+              ],
+    "Connectors":  [
+                       {
+                           "Start":  "5aae4c9292eb4d6f9639dfed5d1d655a",
+                           "End":  "24531e3c657e43f98ca8cb160ae52a4e",
+                           "Id":  "33e3219a930e4ab199deb53146d1e84e",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "62932ac721804a1f84ea51d0d935fd04",
+                           "End":  "240c403c57a6430296488cae90caa98a",
+                           "Id":  "1944a263ca42442e9a389ec0246571c0",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "783951deeba8490dbc728a95f9fb0296",
+                           "End":  "1d028bc8864e4079a4357723d6f075e0",
+                           "Id":  "a93b0dbca1e14664902fd17ead350cc3",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "3bd4831afd9b406ea95889e28d1447fe",
+                           "End":  "151d3df2189f497eb4cbb0d56323ff66",
+                           "Id":  "bce3506035ed4b15b4d452f72cb872d5",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "99da78ae70c348f2b509de472be36eb5",
+                           "End":  "d973da2a0e1646579553c8e397a68264",
+                           "Id":  "14ad36d5940e4c38ae2bce21ce64867e",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "71337e99ec3b4f18983650447fb9e958",
+                           "End":  "dda97649feb54e45ba55fdb31efdbd54",
+                           "Id":  "52933ec49bd34d9a9da235034a8e8e9c",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "bace780eea5942828991875a0f7147cf",
+                           "End":  "8572bca1878941258971651d7a82eb15",
+                           "Id":  "1e03f6ad2b99427ea2d0f21c7f824db0",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "42ff7439015b4e979ba3af40ec6a4881",
+                           "End":  "2f890fe574074e7795965174cd7060b4",
+                           "Id":  "1c14364dd04d4a118d04c14a24c9a736",
+                           "IsHidden":  "False"
+                       }
+                   ],
+    "Dependencies":  [
+
+                     ],
+    "NodeLibraryDependencies":  [
+
+                                ],
+    "Author":  "None provided",
+    "Bindings":  [
+
+                 ],
+    "View":  {
+                 "Dynamo":  {
+                                "ScaleFactor":  1.0,
+                                "HasRunWithoutCrash":  false,
+                                "IsVisibleInDynamoLibrary":  true,
+                                "Version":  "3.3.0.6316",
+                                "RunType":  "Manual",
+                                "RunPeriod":  "1000"
+                            },
+                 "Camera":  {
+                                "Name":  "_Background Preview",
+                                "EyeX":  -26182.98828125,
+                                "EyeY":  74536.5546875,
+                                "EyeZ":  51813.8203125,
+                                "LookX":  9918.72265625,
+                                "LookY":  -80499.0,
+                                "LookZ":  -39714.80859375,
+                                "UpX":  0.21598562598228455,
+                                "UpY":  0.4532727003097534,
+                                "UpZ":  -0.8648086786270142
+                            },
+                 "ConnectorPins":  [
+
+                                   ],
+                 "NodeViews":  [
+                                   {
+                                       "Id":  "b162a7c98146466da74195dacdc31716",
+                                       "Name":  "Python Script",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  0.0,
+                                       "Y":  0.0
+                                   },
+                                   {
+                                       "Id":  "6a48e9b3cb9841c19d40e1b62701da5b",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  -872.3958679403383,
+                                       "Y":  -744.3995629915627
+                                   },
+                                   {
+                                       "Id":  "c49ff77509f442d5a454d01337cafc11",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  -815.1343630948337,
+                                       "Y":  -582.7200198983728
+                                   },
+                                   {
+                                       "Id":  "74991bae244246b182fc97d86523d4be",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  -785.9422233696743,
+                                       "Y":  -392.97111168483707
+                                   },
+                                   {
+                                       "Id":  "65d1d8c3d314479693c98c9e44fc1290",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  -829.7304329574132,
+                                       "Y":  -184.13503518946652
+                                   },
+                                   {
+                                       "Id":  "f32a2e9027a34231a89b156c46f7e28d",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  -856.6770234729449,
+                                       "Y":  -33.683238144414645
+                                   },
+                                   {
+                                       "Id":  "36783dbd6fa54738862040323c9f8cad",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  -789.3105471841156,
+                                       "Y":  298.65804488047615
+                                   },
+                                   {
+                                       "Id":  "c3598e66f2004590aeeadddd3b3dd6f2",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  -765.7322804830254,
+                                       "Y":  125.75075573914785
+                                   },
+                                   {
+                                       "Id":  "877a5f989ea147398d969996ba8b0b35",
+                                       "Name":  "Output",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  511.985219795102,
+                                       "Y":  15.71884446739341
+                                   }
+                               ],
+                 "Annotations":  [
+
+                                 ],
+                 "X":  346.21817576918636,
+                 "Y":  451.81997216121954,
+                 "Zoom":  0.9155622852812264
+             }
+}

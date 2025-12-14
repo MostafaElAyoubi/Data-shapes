@@ -1,0 +1,243 @@
+﻿{
+    "Uuid":  "85d047a5-c05a-4aa2-954a-b84d04aa3859",
+    "IsCustomNode":  true,
+    "Category":  "Data-Shapes.UI.Input",
+    "Description":  "Create a color selection input for UI.MultiInputForm++ . Check out www.data-shapes.net for more infos! Warning : Only works with Revit 2017",
+    "Name":  "ColorInput Data",
+    "ElementResolver":  {
+                            "ResolutionMap":  {
+
+                                              }
+                        },
+    "Inputs":  [
+
+               ],
+    "Outputs":  [
+
+                ],
+    "Nodes":  [
+                  {
+                      "ConcreteType":  "PythonNodeModels.PythonNode, PythonNodeModels",
+                      "Code":  "# Copyright (c) Data Shapes, 2025\n# Data-Shapes www.data-shapes.io, elayoubi.mostafa@data-shapes.io @data_shapes\n\nimport clr\n\nclr.AddReference(\u0027System.Drawing\u0027)\nfrom System.Drawing import Color\n\ntry:\n    clr.AddReference(\u0027RevitAPIUI\u0027)\n    from Autodesk.Revit.UI import ColorSelectionDialog\n    _COLOR_DIALOG_AVAILABLE = True\nexcept:\n    _COLOR_DIALOG_AVAILABLE = False\n\n\nclass uicolorpick(object):\n\n    def __init__(self, inputname=\"\", buttontext=\"Pick Color\"):\n        self.inputname = inputname if inputname is not None else \"\"\n        self.buttontext = buttontext if buttontext is not None else \"Pick Color\"\n        self._input_type = \u0027uicolorpick\u0027\n        self.color_picker_available = _COLOR_DIALOG_AVAILABLE\n\n    def __repr__(self):\n        return \u0027UI.ColorPick input\u0027\n\n    def pickcolor(self, sender, event):\n        if not self.color_picker_available:\n            sender.Tag = None\n            return\n        try:\n            dialog = ColorSelectionDialog()\n            ColorSelectionDialog.Show(dialog)\n            selected = dialog.SelectedColor\n            if selected is None:\n                return\n            sender.Tag = selected\n            sender.BackColor = Color.FromArgb(selected.Red, selected.Green, selected.Blue)\n            sender.ForeColor = Color.FromArgb(selected.Red, selected.Green, selected.Blue)\n        except:\n            sender.Tag = None\n\n\ninputname = IN[0] if len(IN) \u003e 0 else \"\"\nbuttontext = IN[1] if len(IN) \u003e 1 else \"Pick Color\"\n\nOUT = uicolorpick(inputname, buttontext)\n",
+                      "Engine":  "CPython3",
+                      "VariableInputPorts":  true,
+                      "Id":  "a6e8fb5fd69944cdba96a3c30c7cfede",
+                      "NodeType":  "PythonScriptNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "05a34d4f2c6a455b929603b3bfdec642",
+                                         "Name":  "IN[0]",
+                                         "Description":  "Input #0",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     },
+                                     {
+                                         "Id":  "3270cf41e496431abd6139388bbe1d54",
+                                         "Name":  "IN[1]",
+                                         "Description":  "Input #1",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "8428c2eb7d5b42d490d9c177c14e896b",
+                                          "Name":  "OUT",
+                                          "Description":  "Result of the python script",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "Runs an embedded Python script."
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+                      "ElementResolver":  null,
+                      "Symbol":  "ColorSelection Input",
+                      "Id":  "398c24bc7be94b13ab2e9e95c9c1cdf7",
+                      "NodeType":  "OutputNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "1db05f86420f488b9ad685b141210256",
+                                         "Name":  "",
+                                         "Description":  "",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function output, use with custom nodes"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "InputName_",
+                                        "TypeName":  "string",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "\"\"",
+                                        "Description":  ""
+                                    },
+                      "Id":  "46e4f8ad95e440f4a78c2a27610fa20c",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "b7f82edcb4fe4465a39ff5a36517679e",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "ButtonText_",
+                                        "TypeName":  "string",
+                                        "TypeRank":  0,
+                                        "DefaultValue":  "\"Select Color\"",
+                                        "Description":  ""
+                                    },
+                      "Id":  "3073d201bd40471eabdc48d39105ec31",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "4de694507e0841168ee8bf94af56bf3c",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  }
+              ],
+    "Connectors":  [
+                       {
+                           "Start":  "8428c2eb7d5b42d490d9c177c14e896b",
+                           "End":  "1db05f86420f488b9ad685b141210256",
+                           "Id":  "ed8b95ed9f2f49328c498d1c9cb9cdb1",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "b7f82edcb4fe4465a39ff5a36517679e",
+                           "End":  "05a34d4f2c6a455b929603b3bfdec642",
+                           "Id":  "bb639731d1dc4a07acb35a5fca790809",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "4de694507e0841168ee8bf94af56bf3c",
+                           "End":  "3270cf41e496431abd6139388bbe1d54",
+                           "Id":  "d96e68d4b20a4e418df7e1f3b476122b",
+                           "IsHidden":  "False"
+                       }
+                   ],
+    "Dependencies":  [
+
+                     ],
+    "NodeLibraryDependencies":  [
+
+                                ],
+    "Author":  "None provided",
+    "Bindings":  [
+
+                 ],
+    "View":  {
+                 "Dynamo":  {
+                                "ScaleFactor":  1.0,
+                                "HasRunWithoutCrash":  false,
+                                "IsVisibleInDynamoLibrary":  true,
+                                "Version":  "3.3.0.6316",
+                                "RunType":  "Manual",
+                                "RunPeriod":  "1000"
+                            },
+                 "Camera":  {
+                                "Name":  "_Background Preview",
+                                "EyeX":  -33412.453125,
+                                "EyeY":  12291.755859375,
+                                "EyeZ":  -2753.875732421875,
+                                "LookX":  26560.400390625,
+                                "LookY":  -8314.3046875,
+                                "LookZ":  -453.093017578125,
+                                "UpX":  0.29865628480911255,
+                                "UpY":  0.9543471336364746,
+                                "UpZ":  -0.005094640422612429
+                            },
+                 "ConnectorPins":  [
+
+                                   ],
+                 "NodeViews":  [
+                                   {
+                                       "Id":  "a6e8fb5fd69944cdba96a3c30c7cfede",
+                                       "Name":  "Python Script",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  469.887240356083,
+                                       "Y":  33.4302670623147
+                                   },
+                                   {
+                                       "Id":  "398c24bc7be94b13ab2e9e95c9c1cdf7",
+                                       "Name":  "Output",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  653.887240356083,
+                                       "Y":  35.0
+                                   },
+                                   {
+                                       "Id":  "46e4f8ad95e440f4a78c2a27610fa20c",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  88.16666666666674,
+                                       "Y":  -41.333333333333314
+                                   },
+                                   {
+                                       "Id":  "3073d201bd40471eabdc48d39105ec31",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  35.5,
+                                       "Y":  95.0
+                                   }
+                               ],
+                 "Annotations":  [
+
+                                 ],
+                 "X":  164.0,
+                 "Y":  330.0,
+                 "Zoom":  1.0
+             }
+}

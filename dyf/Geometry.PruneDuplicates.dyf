@@ -1,0 +1,190 @@
+﻿{
+    "Uuid":  "b0670d6b-5444-4a13-8b4d-62d8e7145868",
+    "IsCustomNode":  true,
+    "Category":  "Data-Shapes.Geometry",
+    "Description":  "Removes all duplicate geometries from list.",
+    "Name":  "Geometry.PruneDuplicates",
+    "ElementResolver":  {
+                            "ResolutionMap":  {
+
+                                              }
+                        },
+    "Inputs":  [
+
+               ],
+    "Outputs":  [
+
+                ],
+    "Nodes":  [
+                  {
+                      "ConcreteType":  "PythonNodeModels.PythonNode, PythonNodeModels",
+                      "Code":  "# Copyright (c) Data Shapes, 2025\n# @data_shapes, www.data-shapes.io, contact@data-shapes.io\n\nimport clr\n\nclr.AddReference(\u0027ProtoGeometry\u0027)\nfrom Autodesk.DesignScript.Geometry import *\n\n\ndef tolist(input):\n    if isinstance(input, list):\n        return input\n    return [input]\n\n\ndef surfsol_to_sorted_vertices(surfsol):\n    return \",\".join(sorted([str(v) for v in surfsol.Vertices]))\n\n\ndef curve_to_sorted_vertices(cv):\n    nbs = cv.ToNurbsCurve()\n    return \",\".join(sorted([str(p) for p in nbs.ControlPoints()]))\n\n\ndef pt_to_sorted_vertices(pt):\n    return str(pt)\n\n\nunique = []\nunique_str = []\n\ng = tolist(IN[0])\n\nfor geom in g:\n    try:\n        key = surfsol_to_sorted_vertices(geom)\n        if key not in unique_str:\n            unique_str.append(key)\n            unique.append(geom)\n    except:\n        try:\n            key = curve_to_sorted_vertices(geom)\n            if key not in unique_str:\n                unique_str.append(key)\n                unique.append(geom)\n        except:\n            key = pt_to_sorted_vertices(geom)\n            if key not in unique_str:\n                unique_str.append(key)\n                unique.append(geom)\n\nOUT = unique\n",
+                      "Engine":  "CPython3",
+                      "VariableInputPorts":  true,
+                      "Id":  "9c2d9a11b9664632941c57630b684f84",
+                      "NodeType":  "PythonScriptNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "378cd0ae60284983a8db8286931f894d",
+                                         "Name":  "IN[0]",
+                                         "Description":  "Input #0",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "775282f758074b988e228946469749bd",
+                                          "Name":  "OUT",
+                                          "Description":  "Result of the python script",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "Runs an embedded Python script."
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Symbol, DynamoCore",
+                      "Parameter":  {
+                                        "Name":  "GeometryList",
+                                        "TypeName":  "var",
+                                        "TypeRank":  -1,
+                                        "DefaultValue":  null,
+                                        "Description":  ""
+                                    },
+                      "Id":  "03e9d776493f400faad7ae248e37cf95",
+                      "NodeType":  "InputNode",
+                      "Inputs":  [
+
+                                 ],
+                      "Outputs":  [
+                                      {
+                                          "Id":  "bd58ac4f0fe14397856fdb616864a991",
+                                          "Name":  "",
+                                          "Description":  "Symbol",
+                                          "UsingDefaultValue":  false,
+                                          "Level":  2,
+                                          "UseLevels":  false,
+                                          "KeepListStructure":  false
+                                      }
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function parameter, use with custom nodes.\r\n\r\nYou can specify the type and default value for parameter. E.g.,\r\n\r\ninput : var[]..[]\r\nvalue : bool = false"
+                  },
+                  {
+                      "ConcreteType":  "Dynamo.Graph.Nodes.CustomNodes.Output, DynamoCore",
+                      "ElementResolver":  null,
+                      "Symbol":  "UniqueItems",
+                      "Id":  "a7b49e077bb24a7f9a821c1e72a05df0",
+                      "NodeType":  "OutputNode",
+                      "Inputs":  [
+                                     {
+                                         "Id":  "bdb1ea722cad42158d351d5ae55bf7c2",
+                                         "Name":  "",
+                                         "Description":  "",
+                                         "UsingDefaultValue":  false,
+                                         "Level":  2,
+                                         "UseLevels":  false,
+                                         "KeepListStructure":  false
+                                     }
+                                 ],
+                      "Outputs":  [
+
+                                  ],
+                      "Replication":  "Disabled",
+                      "Description":  "A function output, use with custom nodes"
+                  }
+              ],
+    "Connectors":  [
+                       {
+                           "Start":  "775282f758074b988e228946469749bd",
+                           "End":  "bdb1ea722cad42158d351d5ae55bf7c2",
+                           "Id":  "b645cfed8f764abb87bba58c09414723",
+                           "IsHidden":  "False"
+                       },
+                       {
+                           "Start":  "bd58ac4f0fe14397856fdb616864a991",
+                           "End":  "378cd0ae60284983a8db8286931f894d",
+                           "Id":  "dce24cdde1b440f6afd0fb99f108afc0",
+                           "IsHidden":  "False"
+                       }
+                   ],
+    "Dependencies":  [
+
+                     ],
+    "NodeLibraryDependencies":  [
+
+                                ],
+    "Author":  "None provided",
+    "Bindings":  [
+
+                 ],
+    "View":  {
+                 "Dynamo":  {
+                                "ScaleFactor":  1.0,
+                                "HasRunWithoutCrash":  false,
+                                "IsVisibleInDynamoLibrary":  true,
+                                "Version":  "3.3.0.6316",
+                                "RunType":  "Manual",
+                                "RunPeriod":  "1000"
+                            },
+                 "Camera":  {
+                                "Name":  "_Background Preview",
+                                "EyeX":  -33412.453125,
+                                "EyeY":  12291.755859375,
+                                "EyeZ":  -2753.875732421875,
+                                "LookX":  26560.400390625,
+                                "LookY":  -8314.3046875,
+                                "LookZ":  -453.093017578125,
+                                "UpX":  0.29865628480911255,
+                                "UpY":  0.9543471336364746,
+                                "UpZ":  -0.005094640422612429
+                            },
+                 "ConnectorPins":  [
+
+                                   ],
+                 "NodeViews":  [
+                                   {
+                                       "Id":  "9c2d9a11b9664632941c57630b684f84",
+                                       "Name":  "Python Script",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  250.0,
+                                       "Y":  0.0
+                                   },
+                                   {
+                                       "Id":  "03e9d776493f400faad7ae248e37cf95",
+                                       "Name":  "Input",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  -85.59470803056956,
+                                       "Y":  -3.737760176007413
+                                   },
+                                   {
+                                       "Id":  "a7b49e077bb24a7f9a821c1e72a05df0",
+                                       "Name":  "Output",
+                                       "IsSetAsInput":  false,
+                                       "IsSetAsOutput":  false,
+                                       "Excluded":  false,
+                                       "ShowGeometry":  true,
+                                       "X":  449.0,
+                                       "Y":  0.0
+                                   }
+                               ],
+                 "Annotations":  [
+
+                                 ],
+                 "X":  351.82353869424793,
+                 "Y":  125.51981428755474,
+                 "Zoom":  1.78359936238281
+             }
+}
